@@ -1,0 +1,19 @@
+{
+  "name": "encargo-commerce-kit",
+  "private": true,
+  "type": "module",
+  "description": "What makes a store agent-ready: schema.org, Merchant feed, UCP endpoints and AP2 mandate verification. Copied into each store by scripts/sync-shared.mjs.",
+  "scripts": {
+    "sync": "node ../sync-shared.mjs --kit-only",
+    "test": "npm run sync && vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "jose": "^6.2.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
+  }
+}
