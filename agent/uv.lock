@@ -250,7 +250,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.118" },
     { name = "google-adk", specifier = ">=2.10.0" },
     { name = "google-cloud-firestore", specifier = ">=2.21.0" },
-    { name = "google-genai", specifier = ">=1.63.0" },
+    { name = "google-genai", specifier = ">=2.25.0" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "playwright", specifier = ">=1.55" },
     { name = "python-dotenv", specifier = ">=1.1" },
