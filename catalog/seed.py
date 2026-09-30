@@ -54,6 +54,7 @@ def size_key(size: float) -> str:
 MODELS = [
     {
         "slug": "acatenango-t3",
+        "specs": {"weight_g": 290, "drop_mm": 6, "outsole_es": "Tacos de 5 mm"},
         "name": "Senda Acatenango T3",
         "category": "trail",
         "role": "fits the errand at both stores",
@@ -67,6 +68,7 @@ MODELS = [
     },
     {
         "slug": "tajumulco-x",
+        "specs": {"weight_g": 340, "drop_mm": 8, "outsole_es": "Tacos de 6 mm, membrana impermeable"},
         "name": "Senda Tajumulco X",
         "category": "trail",
         "role": "trail, size 9 in stock, fast — over budget",
@@ -80,6 +82,7 @@ MODELS = [
     },
     {
         "slug": "pacaya-lite",
+        "specs": {"weight_g": 245, "drop_mm": 4, "outsole_es": "Tacos de 3,5 mm"},
         "name": "Senda Pacaya Lite",
         "category": "trail",
         "role": "trail, cheap, fast — size 9 sold out",
@@ -92,6 +95,7 @@ MODELS = [
     },
     {
         "slug": "fuego-gtx",
+        "specs": {"weight_g": 360, "drop_mm": 8, "outsole_es": "Compuesto volcánico, tacos de 6 mm"},
         "name": "Senda Fuego GTX",
         "category": "trail",
         "role": "trail, size 9 in stock, under budget — arrives too late",
@@ -105,6 +109,7 @@ MODELS = [
     },
     {
         "slug": "atitlan-trail",
+        "specs": {"weight_g": 255, "drop_mm": 6, "outsole_es": "Tacos de 3 mm"},
         "name": "Senda Atitlán Trail",
         "category": "trail",
         "role": "trail, cheap, fast — size 9 not offered",
@@ -118,6 +123,7 @@ MODELS = [
     },
     {
         "slug": "reforma-run",
+        "specs": {"weight_g": 270, "drop_mm": 10, "outsole_es": "Caucho de ruta"},
         "name": "Senda Reforma Run",
         "category": "road",
         "role": "road — everything else fits",
@@ -130,6 +136,7 @@ MODELS = [
     },
     {
         "slug": "aurora-2",
+        "specs": {"weight_g": 295, "drop_mm": 8, "outsole_es": "Caucho de ruta, amortiguación máxima"},
         "name": "Senda Aurora 2",
         "category": "road",
         "role": "road",
@@ -142,6 +149,7 @@ MODELS = [
     },
     {
         "slug": "pista-pro",
+        "specs": {"weight_g": 215, "drop_mm": 8, "outsole_es": "Caucho de competencia, placa de carbono"},
         "name": "Senda Pista Pro",
         "category": "road",
         "role": "road, carbon plate, expensive",
@@ -154,6 +162,7 @@ MODELS = [
     },
     {
         "slug": "ritmo",
+        "specs": {"weight_g": 280, "drop_mm": 10, "outsole_es": "Caucho de ruta"},
         "name": "Senda Ritmo",
         "category": "road",
         "role": "road, entry level",
@@ -166,6 +175,7 @@ MODELS = [
     },
     {
         "slug": "maraton-elite",
+        "specs": {"weight_g": 230, "drop_mm": 8, "outsole_es": "Caucho de ruta, espuma de alto retorno"},
         "name": "Senda Maratón Elite",
         "category": "road",
         "role": "road, long distance",
@@ -201,6 +211,7 @@ def build() -> dict:
                 "description_es": spec["description_es"],
                 "color_es": spec["color_es"],
                 "sizes": [size_key(s) for s in sizes],
+                "specs": spec["specs"],
                 "image": f"images/{spec['slug']}.jpg",
                 "pulso_image": f"images/pulso/{spec['slug']}.jpg",
                 "stores": {

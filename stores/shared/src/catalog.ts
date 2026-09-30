@@ -16,6 +16,7 @@ export interface SeedModel {
   description_es: string;
   color_es: string;
   sizes: string[];
+  specs?: { weight_g: number; drop_mm: number; outsole_es: string };
   image: string;
   pulso_image: string;
   stores: Record<
@@ -52,6 +53,8 @@ export interface Product {
   priceCents: number;
   currency: "USD";
   variants: Variant[];
+  /** Technical sheet (optional): weight in grams, heel-to-toe drop in mm, outsole. */
+  specs?: { weightG: number; dropMm: number; outsole: string };
   shipping: {
     rateCents: number;
     country: string;
@@ -107,6 +110,7 @@ export function toProduct(m: SeedModel, store: StoreKey, stockOf: (variantId: st
       size,
       stock: stockOf(variantId(m.id, size)),
     })),
+    specs: m.specs ? { weightG: m.specs.weight_g, dropMm: m.specs.drop_mm, outsole: m.specs.outsole_es } : undefined,
     shipping: {
       rateCents: Math.round(s.shipping_usd * 100),
       country: shipsTo,

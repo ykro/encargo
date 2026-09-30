@@ -35,6 +35,11 @@
         "11.5",
         "12"
       ],
+      "specs": {
+        "weight_g": 290,
+        "drop_mm": 6,
+        "outsole_es": "Tacos de 5 mm"
+      },
       "image": "images/acatenango-t3.jpg",
       "pulso_image": "images/pulso/acatenango-t3.jpg",
       "stores": {
@@ -119,6 +124,11 @@
         "11.5",
         "12"
       ],
+      "specs": {
+        "weight_g": 340,
+        "drop_mm": 8,
+        "outsole_es": "Tacos de 6 mm, membrana impermeable"
+      },
       "image": "images/tajumulco-x.jpg",
       "pulso_image": "images/pulso/tajumulco-x.jpg",
       "stores": {
@@ -203,6 +213,11 @@
         "11.5",
         "12"
       ],
+      "specs": {
+        "weight_g": 245,
+        "drop_mm": 4,
+        "outsole_es": "Tacos de 3,5 mm"
+      },
       "image": "images/pacaya-lite.jpg",
       "pulso_image": "images/pulso/pacaya-lite.jpg",
       "stores": {
@@ -287,6 +302,11 @@
         "11.5",
         "12"
       ],
+      "specs": {
+        "weight_g": 360,
+        "drop_mm": 8,
+        "outsole_es": "Compuesto volcánico, tacos de 6 mm"
+      },
       "image": "images/fuego-gtx.jpg",
       "pulso_image": "images/pulso/fuego-gtx.jpg",
       "stores": {
@@ -364,6 +384,11 @@
         "8",
         "8.5"
       ],
+      "specs": {
+        "weight_g": 255,
+        "drop_mm": 6,
+        "outsole_es": "Tacos de 3 mm"
+      },
       "image": "images/atitlan-trail.jpg",
       "pulso_image": "images/pulso/atitlan-trail.jpg",
       "stores": {
@@ -434,6 +459,11 @@
         "11.5",
         "12"
       ],
+      "specs": {
+        "weight_g": 270,
+        "drop_mm": 10,
+        "outsole_es": "Caucho de ruta"
+      },
       "image": "images/reforma-run.jpg",
       "pulso_image": "images/pulso/reforma-run.jpg",
       "stores": {
@@ -518,6 +548,11 @@
         "11.5",
         "12"
       ],
+      "specs": {
+        "weight_g": 295,
+        "drop_mm": 8,
+        "outsole_es": "Caucho de ruta, amortiguación máxima"
+      },
       "image": "images/aurora-2.jpg",
       "pulso_image": "images/pulso/aurora-2.jpg",
       "stores": {
@@ -602,6 +637,11 @@
         "11.5",
         "12"
       ],
+      "specs": {
+        "weight_g": 215,
+        "drop_mm": 8,
+        "outsole_es": "Caucho de competencia, placa de carbono"
+      },
       "image": "images/pista-pro.jpg",
       "pulso_image": "images/pulso/pista-pro.jpg",
       "stores": {
@@ -686,6 +726,11 @@
         "11.5",
         "12"
       ],
+      "specs": {
+        "weight_g": 280,
+        "drop_mm": 10,
+        "outsole_es": "Caucho de ruta"
+      },
       "image": "images/ritmo.jpg",
       "pulso_image": "images/pulso/ritmo.jpg",
       "stores": {
@@ -770,6 +815,11 @@
         "11.5",
         "12"
       ],
+      "specs": {
+        "weight_g": 230,
+        "drop_mm": 8,
+        "outsole_es": "Caucho de ruta, espuma de alto retorno"
+      },
       "image": "images/maraton-elite.jpg",
       "pulso_image": "images/pulso/maraton-elite.jpg",
       "stores": {

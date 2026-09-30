@@ -42,7 +42,16 @@ export function productJsonLd(p: Product, baseUrl: string, pagePath: string) {
     description: p.description,
     brand: { "@type": "Brand", name: p.brand },
     category: p.category === "trail" ? "Tenis de trail running" : "Tenis de running para ruta",
-    additionalProperty: [{ "@type": "PropertyValue", name: "terreno", value: p.category }],
+    additionalProperty: [
+      { "@type": "PropertyValue", name: "terreno", value: p.category },
+      ...(p.specs
+        ? [
+            { "@type": "PropertyValue", name: "peso", value: p.specs.weightG, unitCode: "GRM" },
+            { "@type": "PropertyValue", name: "drop", value: p.specs.dropMm, unitCode: "MMT" },
+            { "@type": "PropertyValue", name: "suela", value: p.specs.outsole },
+          ]
+        : []),
+    ],
     color: p.color,
     image: [`${baseUrl}${p.image}`],
     url,
