@@ -43,8 +43,8 @@ class RunRequest(BaseModel):
     stores: list[str] = Field(default_factory=lambda: settings().default_stores)
 
 
-@app.get("/healthz")
-async def healthz() -> dict[str, Any]:
+@app.get("/health")  # not /healthz: Cloud Run reserves paths ending in "z"
+async def health() -> dict[str, Any]:
     s = settings()
     return {"ok": True, "mode": "mock" if s.mock_ai else "gemini", "run_store": s.run_store}
 

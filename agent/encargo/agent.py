@@ -10,6 +10,7 @@ from google.adk.tools import ToolContext
 from google.genai import types
 
 from .config import settings
+from .model import build_model
 from .run_context import RunContext
 from .tools import approval, browser, checklist, discovery, product_feed, structured_data, ucp_client
 
@@ -145,7 +146,7 @@ def build_agent() -> Agent:
     return Agent(
         name="encargo",
         description="Compra en nombre de una persona solo donde puede verificar cada condición.",
-        model=model,
+        model=build_model(model),
         instruction=INSTRUCTION,
         tools=TOOLS,
         generate_content_config=types.GenerateContentConfig(
