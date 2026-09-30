@@ -1,0 +1,1490 @@
+{
+  "ucp": {
+    "version": "2026-08-25",
+    "capabilities": {
+      "dev.ucp.shopping.catalog.search": [
+        {
+          "version": "2026-08-25"
+        }
+      ]
+    }
+  },
+  "products": [
+    {
+      "id": "SND-001",
+      "handle": "acatenango-t3",
+      "title": "Senda Acatenango T3",
+      "description": {
+        "plain": "Tenis de trail con suela de tacos de 5 mm, placa anti-rocas y amortiguación media. Pensado para senderos técnicos y lodo."
+      },
+      "url": "http://localhost:3001/productos/acatenango-t3",
+      "categories": [
+        {
+          "value": "187",
+          "taxonomy": "google_product_category"
+        },
+        {
+          "value": "Calzado > Tenis > Trail",
+          "taxonomy": "merchant"
+        }
+      ],
+      "price_range": {
+        "min": {
+          "amount": 14500,
+          "currency": "USD"
+        },
+        "max": {
+          "amount": 14500,
+          "currency": "USD"
+        }
+      },
+      "media": [
+        {
+          "type": "image",
+          "url": "http://localhost:3001/images/acatenango-t3.jpg",
+          "alt_text": "Senda Acatenango T3"
+        }
+      ],
+      "options": [
+        {
+          "name": "Talla",
+          "values": [
+            {
+              "label": "7"
+            },
+            {
+              "label": "7.5"
+            },
+            {
+              "label": "8"
+            },
+            {
+              "label": "8.5"
+            },
+            {
+              "label": "9"
+            },
+            {
+              "label": "9.5"
+            },
+            {
+              "label": "10"
+            },
+            {
+              "label": "10.5"
+            },
+            {
+              "label": "11"
+            },
+            {
+              "label": "11.5"
+            },
+            {
+              "label": "12"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "id": "SND-001-7",
+          "sku": "KM-SND-001-7",
+          "title": "Talla 7",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-7.5",
+          "sku": "KM-SND-001-7.5",
+          "title": "Talla 7.5",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-8",
+          "sku": "KM-SND-001-8",
+          "title": "Talla 8",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-8.5",
+          "sku": "KM-SND-001-8.5",
+          "title": "Talla 8.5",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-9",
+          "sku": "KM-SND-001-9",
+          "title": "Talla 9",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "9"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-9.5",
+          "sku": "KM-SND-001-9.5",
+          "title": "Talla 9.5",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "9.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-10",
+          "sku": "KM-SND-001-10",
+          "title": "Talla 10",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "10"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-10.5",
+          "sku": "KM-SND-001-10.5",
+          "title": "Talla 10.5",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": false
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "10.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-11",
+          "sku": "KM-SND-001-11",
+          "title": "Talla 11",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "11"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-11.5",
+          "sku": "KM-SND-001-11.5",
+          "title": "Talla 11.5",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "11.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-001-12",
+          "sku": "KM-SND-001-12",
+          "title": "Talla 12",
+          "price": {
+            "amount": 14500,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "12"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        }
+      ],
+      "metadata": {
+        "terrain": "trail",
+        "brand": "Senda",
+        "shipping": {
+          "country": "GT",
+          "rate": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "handling_business_days": {
+            "min": 0,
+            "max": 0
+          },
+          "transit_business_days": {
+            "min": 1,
+            "max": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "SND-002",
+      "handle": "tajumulco-x",
+      "title": "Senda Tajumulco X",
+      "description": {
+        "plain": "Tenis de trail de montaña con membrana impermeable y protección de puntera reforzada."
+      },
+      "url": "http://localhost:3001/productos/tajumulco-x",
+      "categories": [
+        {
+          "value": "187",
+          "taxonomy": "google_product_category"
+        },
+        {
+          "value": "Calzado > Tenis > Trail",
+          "taxonomy": "merchant"
+        }
+      ],
+      "price_range": {
+        "min": {
+          "amount": 17200,
+          "currency": "USD"
+        },
+        "max": {
+          "amount": 17200,
+          "currency": "USD"
+        }
+      },
+      "media": [
+        {
+          "type": "image",
+          "url": "http://localhost:3001/images/tajumulco-x.jpg",
+          "alt_text": "Senda Tajumulco X"
+        }
+      ],
+      "options": [
+        {
+          "name": "Talla",
+          "values": [
+            {
+              "label": "7"
+            },
+            {
+              "label": "7.5"
+            },
+            {
+              "label": "8"
+            },
+            {
+              "label": "8.5"
+            },
+            {
+              "label": "9"
+            },
+            {
+              "label": "9.5"
+            },
+            {
+              "label": "10"
+            },
+            {
+              "label": "10.5"
+            },
+            {
+              "label": "11"
+            },
+            {
+              "label": "11.5"
+            },
+            {
+              "label": "12"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "id": "SND-002-7",
+          "sku": "KM-SND-002-7",
+          "title": "Talla 7",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-7.5",
+          "sku": "KM-SND-002-7.5",
+          "title": "Talla 7.5",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-8",
+          "sku": "KM-SND-002-8",
+          "title": "Talla 8",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-8.5",
+          "sku": "KM-SND-002-8.5",
+          "title": "Talla 8.5",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-9",
+          "sku": "KM-SND-002-9",
+          "title": "Talla 9",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "9"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-9.5",
+          "sku": "KM-SND-002-9.5",
+          "title": "Talla 9.5",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "9.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-10",
+          "sku": "KM-SND-002-10",
+          "title": "Talla 10",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "10"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-10.5",
+          "sku": "KM-SND-002-10.5",
+          "title": "Talla 10.5",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "10.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-11",
+          "sku": "KM-SND-002-11",
+          "title": "Talla 11",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "11"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-11.5",
+          "sku": "KM-SND-002-11.5",
+          "title": "Talla 11.5",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "11.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-002-12",
+          "sku": "KM-SND-002-12",
+          "title": "Talla 12",
+          "price": {
+            "amount": 17200,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "12"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        }
+      ],
+      "metadata": {
+        "terrain": "trail",
+        "brand": "Senda",
+        "shipping": {
+          "country": "GT",
+          "rate": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "handling_business_days": {
+            "min": 0,
+            "max": 1
+          },
+          "transit_business_days": {
+            "min": 1,
+            "max": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "SND-003",
+      "handle": "pacaya-lite",
+      "title": "Senda Pacaya Lite",
+      "description": {
+        "plain": "Tenis de trail ligero para senderos rápidos y tierra compacta."
+      },
+      "url": "http://localhost:3001/productos/pacaya-lite",
+      "categories": [
+        {
+          "value": "187",
+          "taxonomy": "google_product_category"
+        },
+        {
+          "value": "Calzado > Tenis > Trail",
+          "taxonomy": "merchant"
+        }
+      ],
+      "price_range": {
+        "min": {
+          "amount": 12900,
+          "currency": "USD"
+        },
+        "max": {
+          "amount": 12900,
+          "currency": "USD"
+        }
+      },
+      "media": [
+        {
+          "type": "image",
+          "url": "http://localhost:3001/images/pacaya-lite.jpg",
+          "alt_text": "Senda Pacaya Lite"
+        }
+      ],
+      "options": [
+        {
+          "name": "Talla",
+          "values": [
+            {
+              "label": "7"
+            },
+            {
+              "label": "7.5"
+            },
+            {
+              "label": "8"
+            },
+            {
+              "label": "8.5"
+            },
+            {
+              "label": "9"
+            },
+            {
+              "label": "9.5"
+            },
+            {
+              "label": "10"
+            },
+            {
+              "label": "10.5"
+            },
+            {
+              "label": "11"
+            },
+            {
+              "label": "11.5"
+            },
+            {
+              "label": "12"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "id": "SND-003-7",
+          "sku": "KM-SND-003-7",
+          "title": "Talla 7",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-7.5",
+          "sku": "KM-SND-003-7.5",
+          "title": "Talla 7.5",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": false
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-8",
+          "sku": "KM-SND-003-8",
+          "title": "Talla 8",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-8.5",
+          "sku": "KM-SND-003-8.5",
+          "title": "Talla 8.5",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-9",
+          "sku": "KM-SND-003-9",
+          "title": "Talla 9",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": false
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "9"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-9.5",
+          "sku": "KM-SND-003-9.5",
+          "title": "Talla 9.5",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": false
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "9.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-10",
+          "sku": "KM-SND-003-10",
+          "title": "Talla 10",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": false
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "10"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-10.5",
+          "sku": "KM-SND-003-10.5",
+          "title": "Talla 10.5",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "10.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-11",
+          "sku": "KM-SND-003-11",
+          "title": "Talla 11",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "11"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-11.5",
+          "sku": "KM-SND-003-11.5",
+          "title": "Talla 11.5",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "11.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-003-12",
+          "sku": "KM-SND-003-12",
+          "title": "Talla 12",
+          "price": {
+            "amount": 12900,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "12"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        }
+      ],
+      "metadata": {
+        "terrain": "trail",
+        "brand": "Senda",
+        "shipping": {
+          "country": "GT",
+          "rate": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "handling_business_days": {
+            "min": 0,
+            "max": 1
+          },
+          "transit_business_days": {
+            "min": 1,
+            "max": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "SND-004",
+      "handle": "fuego-gtx",
+      "title": "Senda Fuego GTX",
+      "description": {
+        "plain": "Tenis de trail de alta durabilidad con suela de compuesto volcánico. Se fabrica bajo pedido."
+      },
+      "url": "http://localhost:3001/productos/fuego-gtx",
+      "categories": [
+        {
+          "value": "187",
+          "taxonomy": "google_product_category"
+        },
+        {
+          "value": "Calzado > Tenis > Trail",
+          "taxonomy": "merchant"
+        }
+      ],
+      "price_range": {
+        "min": {
+          "amount": 14800,
+          "currency": "USD"
+        },
+        "max": {
+          "amount": 14800,
+          "currency": "USD"
+        }
+      },
+      "media": [
+        {
+          "type": "image",
+          "url": "http://localhost:3001/images/fuego-gtx.jpg",
+          "alt_text": "Senda Fuego GTX"
+        }
+      ],
+      "options": [
+        {
+          "name": "Talla",
+          "values": [
+            {
+              "label": "7"
+            },
+            {
+              "label": "7.5"
+            },
+            {
+              "label": "8"
+            },
+            {
+              "label": "8.5"
+            },
+            {
+              "label": "9"
+            },
+            {
+              "label": "9.5"
+            },
+            {
+              "label": "10"
+            },
+            {
+              "label": "10.5"
+            },
+            {
+              "label": "11"
+            },
+            {
+              "label": "11.5"
+            },
+            {
+              "label": "12"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "id": "SND-004-7",
+          "sku": "KM-SND-004-7",
+          "title": "Talla 7",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-7.5",
+          "sku": "KM-SND-004-7.5",
+          "title": "Talla 7.5",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-8",
+          "sku": "KM-SND-004-8",
+          "title": "Talla 8",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": false
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-8.5",
+          "sku": "KM-SND-004-8.5",
+          "title": "Talla 8.5",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-9",
+          "sku": "KM-SND-004-9",
+          "title": "Talla 9",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "9"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-9.5",
+          "sku": "KM-SND-004-9.5",
+          "title": "Talla 9.5",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "9.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-10",
+          "sku": "KM-SND-004-10",
+          "title": "Talla 10",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "10"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-10.5",
+          "sku": "KM-SND-004-10.5",
+          "title": "Talla 10.5",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": false
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "10.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-11",
+          "sku": "KM-SND-004-11",
+          "title": "Talla 11",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "11"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-11.5",
+          "sku": "KM-SND-004-11.5",
+          "title": "Talla 11.5",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "11.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-004-12",
+          "sku": "KM-SND-004-12",
+          "title": "Talla 12",
+          "price": {
+            "amount": 14800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "12"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        }
+      ],
+      "metadata": {
+        "terrain": "trail",
+        "brand": "Senda",
+        "shipping": {
+          "country": "GT",
+          "rate": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "handling_business_days": {
+            "min": 2,
+            "max": 3
+          },
+          "transit_business_days": {
+            "min": 5,
+            "max": 7
+          }
+        }
+      }
+    },
+    {
+      "id": "SND-005",
+      "handle": "atitlan-trail",
+      "title": "Senda Atitlán Trail",
+      "description": {
+        "plain": "Tenis de trail de horma angosta para senderos suaves."
+      },
+      "url": "http://localhost:3001/productos/atitlan-trail",
+      "categories": [
+        {
+          "value": "187",
+          "taxonomy": "google_product_category"
+        },
+        {
+          "value": "Calzado > Tenis > Trail",
+          "taxonomy": "merchant"
+        }
+      ],
+      "price_range": {
+        "min": {
+          "amount": 11800,
+          "currency": "USD"
+        },
+        "max": {
+          "amount": 11800,
+          "currency": "USD"
+        }
+      },
+      "media": [
+        {
+          "type": "image",
+          "url": "http://localhost:3001/images/atitlan-trail.jpg",
+          "alt_text": "Senda Atitlán Trail"
+        }
+      ],
+      "options": [
+        {
+          "name": "Talla",
+          "values": [
+            {
+              "label": "7"
+            },
+            {
+              "label": "7.5"
+            },
+            {
+              "label": "8"
+            },
+            {
+              "label": "8.5"
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "id": "SND-005-7",
+          "sku": "KM-SND-005-7",
+          "title": "Talla 7",
+          "price": {
+            "amount": 11800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": false
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-005-7.5",
+          "sku": "KM-SND-005-7.5",
+          "title": "Talla 7.5",
+          "price": {
+            "amount": 11800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "7.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-005-8",
+          "sku": "KM-SND-005-8",
+          "title": "Talla 8",
+          "price": {
+            "amount": 11800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        },
+        {
+          "id": "SND-005-8.5",
+          "sku": "KM-SND-005-8.5",
+          "title": "Talla 8.5",
+          "price": {
+            "amount": 11800,
+            "currency": "USD"
+          },
+          "availability": {
+            "available": true
+          },
+          "options": [
+            {
+              "name": "Talla",
+              "label": "8.5"
+            }
+          ],
+          "tags": [
+            "trail"
+          ]
+        }
+      ],
+      "metadata": {
+        "terrain": "trail",
+        "brand": "Senda",
+        "shipping": {
+          "country": "GT",
+          "rate": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "handling_business_days": {
+            "min": 0,
+            "max": 0
+          },
+          "transit_business_days": {
+            "min": 1,
+            "max": 2
+          }
+        }
+      }
+    }
+  ],
+  "pagination": {
+    "has_next_page": false,
+    "total_count": 5
+  }
+}
