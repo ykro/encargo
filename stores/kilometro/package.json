@@ -1,0 +1,26 @@
+{
+  "name": "encargo-kilometro",
+  "private": true,
+  "description": "Kilómetro: a plain, agent-ready store (SSR, schema.org, Merchant feed, UCP, AP2).",
+  "scripts": {
+    "sync": "node ../sync-shared.mjs",
+    "predev": "npm run sync",
+    "dev": "STORE_KEY=kilometro next dev -p 3001",
+    "prebuild": "npm run sync",
+    "build": "next build",
+    "start": "next start -p ${PORT:-3001}",
+    "typecheck": "npm run sync && tsc --noEmit"
+  },
+  "dependencies": {
+    "jose": "^6.2.12",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^5.9.3"
+  }
+}
