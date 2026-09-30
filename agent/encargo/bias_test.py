@@ -62,6 +62,7 @@ async def one_run(http: httpx.AsyncClient, a: argparse.Namespace, index: int) ->
 
 async def main_async(a: argparse.Namespace) -> int:
     report: dict[str, Any] = {}
+    a.threshold = a.threshold or -(-a.runs * 9 // 10)
     ok = True
     async with httpx.AsyncClient(timeout=150) as http:
         for mode in a.modes.split(","):
@@ -108,7 +109,7 @@ async def main_async(a: argparse.Namespace) -> int:
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--runs", type=int, default=10)
-    p.add_argument("--threshold", type=int, default=9)
+    p.add_argument("--threshold", type=int, default=None, help="wins needed per mode (default: 90%% of runs)")
     p.add_argument("--modes", default="off,on")
     p.add_argument("--agent", default=os.getenv("AGENT_URL", "http://localhost:8000"))
     p.add_argument("--pulso", default=os.getenv("PULSO_URL", "http://localhost:3002"))
