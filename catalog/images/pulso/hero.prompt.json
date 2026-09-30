@@ -1,0 +1,34 @@
+{
+  "model_env": "IMAGE_MODEL",
+  "model": "gemini-3.1-flash-lite-image",
+  "input_image": "images/acatenango-t3.jpg",
+  "prompt": "Turn this product photo into a wide 16:9 cinematic homepage banner for a premium mountain-running store. Keep exactly the same shoe (same shape, colors and design), placed on the right third, the shoe resting on a mossy granite rock on a mountain summit at dawn, layered misty mountain ridges fading into pale blue-grey fog behind it, soft diffuse morning light, airy light palette (fog #E9EEF0, sage #7C8C74, a touch of ember orange), very subtle thin sage-green topographic contour lines drawn over the sky in one corner, premium outdoor-editorial photography, calm and spectacular. Leave generous calm sky on the left. Render exactly three pieces of typography, crisp and perfectly legible, in an elegant widely letter-spaced classic sans-serif (like Tenor Sans), dark slate ink (#1B2226) on the pale sky on the left side:\n1. A large headline, exactly: \"SUBE MÁS ALTO\"\n2. Smaller, below it, exactly: \"Senda Acatenango T3\"\n3. Next to or below the name, exactly: \"139 USD\"\nNo other text, no logos, no brand marks, nothing written on the shoe. 16:9 landscape.",
+  "attempt": 1,
+  "expected": {
+    "headline": "SUBE MÁS ALTO",
+    "name": "Senda Acatenango T3",
+    "price": "139 USD"
+  },
+  "verified": {
+    "verifier_env": "GEMINI_MODEL",
+    "verifier": "gemini-3.8-flash",
+    "all_text": [
+      "SUBE MÁS ALTO",
+      "Senda Acatenango T3",
+      "139 USD"
+    ],
+    "headline": "SUBE MÁS ALTO",
+    "product_name": "Senda Acatenango T3",
+    "price": "139 USD"
+  },
+  "origin": {
+    "type": "synthetic",
+    "generator": "scripts/generate_product_images.py",
+    "model_env": "IMAGE_MODEL",
+    "model": "gemini-3.1-flash-lite-image",
+    "prompt": "Turn this product photo into a wide 16:9 cinematic homepage banner for a premium mountain-running store. Keep exactly the same shoe (same shape, colors and design), placed on the right third, the shoe resting on a mossy granite rock on a mountain summit at dawn, layered misty mountain ridges fading into pale blue-grey fog behind it, soft diffuse morning light, airy light palette (fog #E9EEF0, sage #7C8C74, a touch of ember orange), very subtle thin sage-green topographic contour lines drawn over the sky in one corner, premium outdoor-editorial photography, calm and spectacular. Leave generous calm sky on the left. Render exactly three pieces of typography, crisp and perfectly legible, in an elegant widely letter-spaced classic sans-serif (like Tenor Sans), dark slate ink (#1B2226) on the pale sky on the left side:\n1. A large headline, exactly: \"SUBE MÁS ALTO\"\n2. Smaller, below it, exactly: \"Senda Acatenango T3\"\n3. Next to or below the name, exactly: \"139 USD\"\nNo other text, no logos, no brand marks, nothing written on the shoe. 16:9 landscape.",
+    "attempt": 1,
+    "seed": null,
+    "input_image": "images/acatenango-t3.jpg"
+  }
+}

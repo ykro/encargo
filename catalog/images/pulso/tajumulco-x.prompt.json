@@ -3,7 +3,7 @@
   "model": "gemini-3.1-flash-lite-image",
   "input_image": "images/tajumulco-x.jpg",
   "mode": "edit",
-  "prompt": "Turn this product photo into a stunning, premium editorial sneaker advertisement for a fashion-forward store. Keep exactly the same shoe (same shape, colors and design) as the hero, dramatic but clean lighting, a bold modern background with a tasteful color gradient that complements the shoe, magazine-cover feel. Render exactly two pieces of typography, large, crisp and perfectly legible, in a clean bold sans-serif font with high contrast against the background:\n1. The product name, exactly: \"Senda Tajumulco X\"\n2. The price, exactly: \"165 USD\"\nSpell them exactly as given, character by character. No other text, no logos, no brand marks, no extra words anywhere. Do not put text on the shoe itself. 4:3 landscape.",
+  "prompt": "Turn this product photo into a breathtaking editorial advertisement for a premium mountain-running store. Keep exactly the same shoe (same shape, colors and design) as the hero, the shoe resting on a mossy granite rock on a mountain summit at dawn, layered misty mountain ridges fading into pale blue-grey fog behind it, soft diffuse morning light, airy light palette (fog #E9EEF0, sage #7C8C74, a touch of ember orange), very subtle thin sage-green topographic contour lines drawn over the sky in one corner, premium outdoor-editorial photography, calm and spectacular. Render exactly two pieces of typography, large, crisp and perfectly legible, in an elegant, widely letter-spaced classic sans-serif (like Tenor Sans), dark slate ink color (#1B2226) on a pale misty area of the sky so contrast is high:\n1. The product name in capitals, exactly: \"SENDA TAJUMULCO X\"\n2. The price, exactly: \"165 USD\"\nSpell them exactly as given, character by character, accents included. No other text, no logos, no brand marks, no extra words anywhere. Do not put text on the shoe itself. 4:3 landscape.",
   "attempt": 1,
   "expected": {
     "name": "Senda Tajumulco X",
@@ -13,11 +13,10 @@
     "verifier_env": "GEMINI_MODEL",
     "verifier": "gemini-3.8-flash",
     "all_text": [
-      "Senda",
-      "Tajumulco X",
+      "SENDA TAJUMULCO X",
       "165 USD"
     ],
-    "product_name": "Senda Tajumulco X",
+    "product_name": "SENDA TAJUMULCO X",
     "price": "165 USD"
   },
   "origin": {
@@ -25,7 +24,7 @@
     "generator": "scripts/generate_product_images.py",
     "model_env": "IMAGE_MODEL",
     "model": "gemini-3.1-flash-lite-image",
-    "prompt": "Turn this product photo into a stunning, premium editorial sneaker advertisement for a fashion-forward store. Keep exactly the same shoe (same shape, colors and design) as the hero, dramatic but clean lighting, a bold modern background with a tasteful color gradient that complements the shoe, magazine-cover feel. Render exactly two pieces of typography, large, crisp and perfectly legible, in a clean bold sans-serif font with high contrast against the background:\n1. The product name, exactly: \"Senda Tajumulco X\"\n2. The price, exactly: \"165 USD\"\nSpell them exactly as given, character by character. No other text, no logos, no brand marks, no extra words anywhere. Do not put text on the shoe itself. 4:3 landscape.",
+    "prompt": "Turn this product photo into a breathtaking editorial advertisement for a premium mountain-running store. Keep exactly the same shoe (same shape, colors and design) as the hero, the shoe resting on a mossy granite rock on a mountain summit at dawn, layered misty mountain ridges fading into pale blue-grey fog behind it, soft diffuse morning light, airy light palette (fog #E9EEF0, sage #7C8C74, a touch of ember orange), very subtle thin sage-green topographic contour lines drawn over the sky in one corner, premium outdoor-editorial photography, calm and spectacular. Render exactly two pieces of typography, large, crisp and perfectly legible, in an elegant, widely letter-spaced classic sans-serif (like Tenor Sans), dark slate ink color (#1B2226) on a pale misty area of the sky so contrast is high:\n1. The product name in capitals, exactly: \"SENDA TAJUMULCO X\"\n2. The price, exactly: \"165 USD\"\nSpell them exactly as given, character by character, accents included. No other text, no logos, no brand marks, no extra words anywhere. Do not put text on the shoe itself. 4:3 landscape.",
     "attempt": 1,
     "seed": null,
     "input_image": "images/tajumulco-x.jpg"

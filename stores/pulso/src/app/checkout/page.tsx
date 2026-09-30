@@ -2,9 +2,16 @@
 // Pulso's checkout: the delivery date is revealed only here, at the very end,
 // and only after signing in. Payment is simulated.
 import { useState } from "react";
-import vitrina from "@/vitrina.json";
+import { Page } from "@/components/Chrome";
 import { ClientOnly } from "@/components/ClientOnly";
-import { Header } from "@/components/Header";
+import { Contours } from "@/components/Contours";
+import { Loading } from "@/components/Loading";
+import { SmartImage } from "@/components/SmartImage";
+import { StateMessage } from "@/components/StateMessage";
+import { useBag, writeBag } from "@/components/bag";
+import { findItem } from "@/components/vitrina";
+
+type Step = "sesion" | "entrega" | "listo";
 
 function deliveryDate(businessDays: number): string {
   const d = new Date();
@@ -17,43 +24,132 @@ function deliveryDate(businessDays: number): string {
 }
 
 export default function Checkout() {
-  const [signedIn, setSignedIn] = useState(false);
-  const [paid, setPaid] = useState(false);
   return (
-    <ClientOnly>
-      <Header />
-      <CheckoutBody signedIn={signedIn} paid={paid} onSignIn={() => setSignedIn(true)} onPay={() => setPaid(true)} />
+    <ClientOnly fallback={<Loading />}>
+      <Page>
+        <CheckoutBody />
+      </Page>
     </ClientOnly>
   );
 }
 
-function CheckoutBody(props: { signedIn: boolean; paid: boolean; onSignIn: () => void; onPay: () => void }) {
-  const params = new URLSearchParams(window.location.search);
-  const item = vitrina.find((v) => v.ref === params.get("ref"));
-  if (!item) return <p className="panel">Tu carrito está vacío.</p>;
-  if (!props.signedIn) {
+const STEPS: { id: Step; label: string }[] = [
+  { id: "sesion", label: "Sesión" },
+  { id: "entrega", label: "Entrega y pago" },
+  { id: "listo", label: "Listo" },
+];
+
+function CheckoutBody() {
+  const lines = useBag().filter((l) => findItem(l.ref));
+  const [step, setStep] = useState<Step>("sesion");
+  const [error, setError] = useState("");
+  const [paying, setPaying] = useState(false);
+
+  if (step !== "listo" && lines.length === 0) {
     return (
-      <form
-        className="panel"
-        onSubmit={(e) => {
-          e.preventDefault();
-          props.onSignIn();
-        }}
-      >
-        <h1>Inicia sesión para continuar</h1>
-        <input type="email" required placeholder="Correo" aria-label="Correo" />
-        <input type="password" required placeholder="Contraseña" aria-label="Contraseña" />
-        <button className="cta" type="submit">Entrar</button>
-      </form>
+      <StateMessage
+        title="No hay nada que pagar"
+        text="Tu bolsa está vacía. Elige un par para continuar."
+        action={{ href: "/#coleccion", label: "Explorar la colección" }}
+      />
     );
   }
-  if (props.paid) return <p className="panel">¡Listo! Tu pedido va en camino.</p>;
+  const slowest = Math.max(0, ...lines.map((l) => findItem(l.ref)!.deliveryDays));
+
   return (
-    <div className="panel">
-      <img src={item.image} alt="" />
-      <p>Talla {params.get("t")}</p>
-      <p>Llega el {deliveryDate(item.deliveryDays)}</p>
-      <button className="cta" onClick={props.onPay}>Pagar (simulado)</button>
+    <div className="narrow">
+      <div className="section-head" style={{ marginTop: 24 }}>
+        <div>
+          <p className="eyebrow">Pago</p>
+          <h1 className="display">{step === "listo" ? "Nos vemos arriba" : "Último tramo"}</h1>
+        </div>
+      </div>
+      <div className="panel">
+        <Contours seed={13} lines={7} />
+        <ol className="steps">
+          {STEPS.map((s) => (
+            <li key={s.id} aria-current={s.id === step ? "step" : undefined}>
+              {s.label}
+            </li>
+          ))}
+        </ol>
+
+        {step === "sesion" && (
+          <form
+            className="form"
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              const data = new FormData(e.currentTarget);
+              const email = String(data.get("correo") ?? "");
+              if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || !String(data.get("clave") ?? "")) {
+                setError("Escribe un correo válido y tu contraseña.");
+                return;
+              }
+              setError("");
+              setStep("entrega");
+            }}
+          >
+            <p style={{ margin: 0, color: "var(--muted)" }}>Inicia sesión para ver cuándo llega tu pedido.</p>
+            <div className="field">
+              <label htmlFor="correo">Correo</label>
+              <input id="correo" name="correo" type="email" autoComplete="email" required aria-invalid={!!error} />
+            </div>
+            <div className="field">
+              <label htmlFor="clave">Contraseña</label>
+              <input id="clave" name="clave" type="password" autoComplete="current-password" required aria-invalid={!!error} />
+            </div>
+            <p className="error-text" role="alert">
+              {error}
+            </p>
+            <button className="btn" type="submit">
+              Entrar y continuar
+            </button>
+          </form>
+        )}
+
+        {step === "entrega" && (
+          <div className="form">
+            <div className="checkout-thumbs">
+              {lines.map((l) => (
+                <SmartImage key={`${l.ref}-${l.size}`} src={findItem(l.ref)!.image} />
+              ))}
+            </div>
+            <div className="arrival">
+              <span className="eyebrow">Llega el</span>
+              <strong>{deliveryDate(slowest)}</strong>
+              <span style={{ color: "var(--muted)" }}>
+                {lines.length} {lines.length === 1 ? "par" : "pares"} · envío a Ciudad de Guatemala
+              </span>
+            </div>
+            <button
+              className="btn"
+              disabled={paying}
+              onClick={() => {
+                setPaying(true);
+                setTimeout(() => {
+                  writeBag([]);
+                  setStep("listo");
+                }, 900);
+              }}
+            >
+              {paying ? "Procesando…" : "Pagar (simulado)"}
+            </button>
+            <p className="hint" style={{ margin: 0 }}>
+              Pago simulado: no se cobra dinero real.
+            </p>
+          </div>
+        )}
+
+        {step === "listo" && (
+          <div className="form" role="status">
+            <p style={{ margin: 0, fontSize: 20 }}>Tu pedido va en camino. Te escribiremos cuando salga de bodega.</p>
+            <a className="btn ghost" href="/">
+              Volver al inicio
+            </a>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

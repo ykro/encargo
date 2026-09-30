@@ -107,10 +107,10 @@ def first_image(response) -> bytes | None:
     return None
 
 
-def to_jpeg(data: bytes) -> bytes:
+def to_jpeg(data: bytes, max_width: int = MAX_WIDTH) -> bytes:
     img = Image.open(io.BytesIO(data)).convert("RGB")
-    if img.width > MAX_WIDTH:
-        img = img.resize((MAX_WIDTH, round(img.height * MAX_WIDTH / img.width)), Image.LANCZOS)
+    if img.width > max_width:
+        img = img.resize((max_width, round(img.height * max_width / img.width)), Image.LANCZOS)
     out = io.BytesIO()
     img.save(out, "JPEG", quality=85, optimize=True, progressive=True)
     return out.getvalue()
@@ -141,27 +141,33 @@ def base_prompt(m: dict) -> str:
 def typography(m: dict, price: str) -> str:
     return (
         "Render exactly two pieces of typography, large, crisp and perfectly legible, "
-        "in a clean bold sans-serif font with high contrast against the background:\n"
-        f'1. The product name, exactly: "{m["name"]}"\n'
+        "in an elegant, widely letter-spaced classic sans-serif (like Tenor Sans), dark "
+        "slate ink color (#1B2226) on a pale misty area of the sky so contrast is high:\n"
+        f'1. The product name in capitals, exactly: "{m["name"].upper()}"\n'
         f'2. The price, exactly: "{price}"\n'
-        "Spell them exactly as given, character by character. No other text, no logos, "
-        "no brand marks, no extra words anywhere. Do not put text on the shoe itself. "
-        "4:3 landscape."
+        "Spell them exactly as given, character by character, accents included. No other "
+        "text, no logos, no brand marks, no extra words anywhere. Do not put text on the "
+        "shoe itself. 4:3 landscape."
     )
 
 
-AD_LOOK = (
-    "dramatic but clean lighting, a bold modern background with a tasteful color "
-    "gradient that complements the shoe, magazine-cover feel."
+# Pulso's "Altitud" direction: aspiration, not a spec sheet. Light and misty,
+# never dark; topographic contour lines are the brand's signature.
+ALTITUD_LOOK = (
+    "the shoe resting on a mossy granite rock on a mountain summit at dawn, layered "
+    "misty mountain ridges fading into pale blue-grey fog behind it, soft diffuse "
+    "morning light, airy light palette (fog #E9EEF0, sage #7C8C74, a touch of ember "
+    "orange), very subtle thin sage-green topographic contour lines drawn over the sky "
+    "in one corner, premium outdoor-editorial photography, calm and spectacular."
 )
 
 
 def pulso_prompt(m: dict, price: str) -> str:
     """Preferred path: edit the base photo so both stores show the same shoe."""
     return (
-        "Turn this product photo into a stunning, premium editorial sneaker advertisement "
-        "for a fashion-forward store. Keep exactly the same shoe (same shape, colors and "
-        f"design) as the hero, {AD_LOOK} " + typography(m, price)
+        "Turn this product photo into a breathtaking editorial advertisement for a "
+        "premium mountain-running store. Keep exactly the same shoe (same shape, colors "
+        f"and design) as the hero, {ALTITUD_LOOK} " + typography(m, price)
     )
 
 
@@ -169,9 +175,24 @@ def pulso_text_prompt(m: dict, price: str) -> str:
     """Fallback when image-input quota is exhausted: describe the same shoe."""
     color = COLORS_EN.get(m["color_es"], m["color_es"])
     return (
-        "A stunning, premium editorial sneaker advertisement for a fashion-forward store. "
+        "A breathtaking editorial advertisement for a premium mountain-running store. "
         f"The hero is {CATEGORY_FEATURES[m['category']]}, colorway {color}, in side "
-        f"profile, unbranded, {AD_LOOK} " + typography(m, price)
+        f"profile, unbranded, {ALTITUD_LOOK} " + typography(m, price)
+    )
+
+
+def hero_prompt(m: dict, price: str) -> str:
+    return (
+        "Turn this product photo into a wide 16:9 cinematic homepage banner for a premium "
+        "mountain-running store. Keep exactly the same shoe (same shape, colors and design), "
+        "placed on the right third, " + ALTITUD_LOOK + " Leave generous calm sky on the left. "
+        "Render exactly three pieces of typography, crisp and perfectly legible, in an "
+        "elegant widely letter-spaced classic sans-serif (like Tenor Sans), dark slate ink "
+        "(#1B2226) on the pale sky on the left side:\n"
+        '1. A large headline, exactly: "SUBE MÁS ALTO"\n'
+        f'2. Smaller, below it, exactly: "{m["name"]}"\n'
+        f'3. Next to or below the name, exactly: "{price}"\n'
+        "No other text, no logos, no brand marks, nothing written on the shoe. 16:9 landscape."
     )
 
 
@@ -203,7 +224,7 @@ def norm(text: str) -> str:
     return " ".join(text.replace(" ", " ").split()).casefold()
 
 
-def generate(client, image_model: str, contents, tries: int = 8) -> bytes:
+def generate(client, image_model: str, contents, tries: int = 8, max_width: int = MAX_WIDTH) -> bytes:
     response = with_backoff(
         lambda: client.models.generate_content(
             model=image_model,
@@ -216,7 +237,7 @@ def generate(client, image_model: str, contents, tries: int = 8) -> bytes:
     data = first_image(response)
     if data is None:
         raise RuntimeError("image model returned no image")
-    return to_jpeg(data)
+    return to_jpeg(data, max_width)
 
 
 def save(path: Path, jpeg: bytes, meta: dict) -> None:
@@ -319,10 +340,56 @@ def make_pulso(client, image_model, verifier, m) -> Path:
     raise RuntimeError(f"{m['slug']}: Pulso text never verified as legible")
 
 
+def make_hero(client, image_model, verifier, m) -> Path:
+    """Homepage banner: headline + the model's name and Pulso price, all in pixels."""
+    path = PULSO / "hero.jpg"
+    base = (IMAGES / f"{m['slug']}.jpg").read_bytes()
+    price = f"{m['stores']['pulso']['price_usd']} USD"
+    prompt, feedback = hero_prompt(m, price), ""
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        jpeg = generate(
+            client,
+            image_model,
+            [types.Part.from_bytes(data=base, mime_type="image/jpeg"), prompt + feedback],
+            tries=12,
+            max_width=1920,
+        )
+        ocr = ask_json(
+            client,
+            verifier,
+            jpeg,
+            "Transcribe ALL text visible in this image exactly as written. Answer JSON: "
+            '{"all_text": [string], "headline": string, "product_name": string, "price": string}',
+        )
+        text = norm(" ".join(ocr.get("all_text", [])))
+        ok = all(norm(x) in text for x in ("SUBE MÁS ALTO", m["name"], price))
+        print(f"  hero attempt {attempt}: ok={ok} {ocr}", flush=True)
+        if ok:
+            save(
+                path,
+                jpeg,
+                {
+                    "model_env": "IMAGE_MODEL",
+                    "model": image_model,
+                    "input_image": f"images/{m['slug']}.jpg",
+                    "prompt": prompt + feedback,
+                    "attempt": attempt,
+                    "expected": {"headline": "SUBE MÁS ALTO", "name": m["name"], "price": price},
+                    "verified": {"verifier_env": "GEMINI_MODEL", "verifier": verifier, **ocr},
+                    "origin": origin(image_model, prompt + feedback, attempt, {"input_image": f"images/{m['slug']}.jpg"}),
+                },
+            )
+            return path
+        feedback = f"\nPREVIOUS ATTEMPT WAS REJECTED: the text read {ocr.get('all_text')}. It must read exactly as given, large and crisp."
+    raise RuntimeError("hero text never verified as legible")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--only", action="append", help="slug to (re)generate; repeatable")
     parser.add_argument("--force", action="store_true", help="regenerate existing assets")
+    parser.add_argument("--pulso-only", action="store_true", help="only (re)generate Pulso variants")
+    parser.add_argument("--hero", action="store_true", help="(re)generate Pulso's homepage hero")
     args = parser.parse_args()
 
     image_model = env("IMAGE_MODEL")
@@ -338,10 +405,15 @@ def main() -> None:
 
     started = time.time()
     failures = []
+    if args.hero:
+        errand_model = next(m for m in json.loads(CATALOG.read_text(encoding="utf-8"))["models"] if m["slug"] == "acatenango-t3")
+        make_hero(client, image_model, verifier, errand_model)
+        print(f"hero done in {time.time() - started:.0f}s")
+        return
     for m in models:
         print(f"{m['slug']}", flush=True)
         try:
-            if args.force or not (IMAGES / f"{m['slug']}.jpg").exists():
+            if not args.pulso_only and (args.force or not (IMAGES / f"{m['slug']}.jpg").exists()):
                 make_base(client, image_model, verifier, m)
                 # A new base photo invalidates the Pulso edit made from it.
                 (PULSO / f"{m['slug']}.jpg").unlink(missing_ok=True)
