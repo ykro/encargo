@@ -1,0 +1,836 @@
+{
+  "brand": {
+    "name": "Senda",
+    "fictional": true
+  },
+  "currency": "USD",
+  "ships_to": "GT",
+  "delivery_rule": "Delivery is published as business days (handling + transit). 'Antes del viernes' means arriving no later than the first Friday strictly after the run date; arrival = run date + max handling + max transit business days.",
+  "origin": {
+    "type": "synthetic",
+    "generator": "catalog/seed.py",
+    "seed": 2027,
+    "note": "Fictional brand and models; no real products or brands."
+  },
+  "models": [
+    {
+      "id": "SND-001",
+      "slug": "acatenango-t3",
+      "name": "Senda Acatenango T3",
+      "brand": "Senda",
+      "category": "trail",
+      "tagline_es": "Agarre total para bajar volcanes con confianza.",
+      "description_es": "Tenis de trail con suela de tacos de 5 mm, placa anti-rocas y amortiguación media. Pensado para senderos técnicos y lodo.",
+      "color_es": "Verde musgo con naranja",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+        "10.5",
+        "11",
+        "11.5",
+        "12"
+      ],
+      "image": "images/acatenango-t3.jpg",
+      "pulso_image": "images/pulso/acatenango-t3.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 139,
+          "stock": {
+            "7": 0,
+            "7.5": 3,
+            "8": 0,
+            "8.5": 0,
+            "9": 3,
+            "9.5": 2,
+            "10": 3,
+            "10.5": 6,
+            "11": 1,
+            "11.5": 3,
+            "12": 1
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            0
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        },
+        "kilometro": {
+          "price_usd": 145,
+          "stock": {
+            "7": 2,
+            "7.5": 4,
+            "8": 1,
+            "8.5": 2,
+            "9": 3,
+            "9.5": 6,
+            "10": 4,
+            "10.5": 0,
+            "11": 6,
+            "11.5": 6,
+            "12": 2
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            0
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        }
+      },
+      "demo_role": "fits the errand at both stores",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    },
+    {
+      "id": "SND-002",
+      "slug": "tajumulco-x",
+      "name": "Senda Tajumulco X",
+      "brand": "Senda",
+      "category": "trail",
+      "tagline_es": "Para las cumbres más altas.",
+      "description_es": "Tenis de trail de montaña con membrana impermeable y protección de puntera reforzada.",
+      "color_es": "Gris piedra con rojo",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+        "10.5",
+        "11",
+        "11.5",
+        "12"
+      ],
+      "image": "images/tajumulco-x.jpg",
+      "pulso_image": "images/pulso/tajumulco-x.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 165,
+          "stock": {
+            "7": 2,
+            "7.5": 0,
+            "8": 2,
+            "8.5": 6,
+            "9": 5,
+            "9.5": 3,
+            "10": 4,
+            "10.5": 1,
+            "11": 1,
+            "11.5": 6,
+            "12": 2
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        },
+        "kilometro": {
+          "price_usd": 172,
+          "stock": {
+            "7": 2,
+            "7.5": 1,
+            "8": 3,
+            "8.5": 3,
+            "9": 5,
+            "9.5": 1,
+            "10": 3,
+            "10.5": 2,
+            "11": 6,
+            "11.5": 2,
+            "12": 4
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        }
+      },
+      "demo_role": "trail, size 9 in stock, fast — over budget",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    },
+    {
+      "id": "SND-003",
+      "slug": "pacaya-lite",
+      "name": "Senda Pacaya Lite",
+      "brand": "Senda",
+      "category": "trail",
+      "tagline_es": "Ligero como la ceniza.",
+      "description_es": "Tenis de trail ligero para senderos rápidos y tierra compacta.",
+      "color_es": "Negro con amarillo",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+        "10.5",
+        "11",
+        "11.5",
+        "12"
+      ],
+      "image": "images/pacaya-lite.jpg",
+      "pulso_image": "images/pulso/pacaya-lite.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 124,
+          "stock": {
+            "7": 0,
+            "7.5": 1,
+            "8": 0,
+            "8.5": 2,
+            "9": 0,
+            "9.5": 2,
+            "10": 4,
+            "10.5": 0,
+            "11": 2,
+            "11.5": 3,
+            "12": 3
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        },
+        "kilometro": {
+          "price_usd": 129,
+          "stock": {
+            "7": 4,
+            "7.5": 0,
+            "8": 1,
+            "8.5": 2,
+            "9": 0,
+            "9.5": 0,
+            "10": 0,
+            "10.5": 6,
+            "11": 4,
+            "11.5": 4,
+            "12": 6
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        }
+      },
+      "demo_role": "trail, cheap, fast — size 9 sold out",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    },
+    {
+      "id": "SND-004",
+      "slug": "fuego-gtx",
+      "name": "Senda Fuego GTX",
+      "brand": "Senda",
+      "category": "trail",
+      "tagline_es": "Hecho para el terreno más duro.",
+      "description_es": "Tenis de trail de alta durabilidad con suela de compuesto volcánico. Se fabrica bajo pedido.",
+      "color_es": "Rojo lava con negro",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+        "10.5",
+        "11",
+        "11.5",
+        "12"
+      ],
+      "image": "images/fuego-gtx.jpg",
+      "pulso_image": "images/pulso/fuego-gtx.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 142,
+          "stock": {
+            "7": 4,
+            "7.5": 3,
+            "8": 0,
+            "8.5": 3,
+            "9": 6,
+            "9.5": 1,
+            "10": 0,
+            "10.5": 0,
+            "11": 2,
+            "11.5": 4,
+            "12": 6
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            2,
+            3
+          ],
+          "transit_business_days": [
+            5,
+            7
+          ]
+        },
+        "kilometro": {
+          "price_usd": 148,
+          "stock": {
+            "7": 4,
+            "7.5": 6,
+            "8": 0,
+            "8.5": 4,
+            "9": 6,
+            "9.5": 4,
+            "10": 6,
+            "10.5": 0,
+            "11": 4,
+            "11.5": 1,
+            "12": 2
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            2,
+            3
+          ],
+          "transit_business_days": [
+            5,
+            7
+          ]
+        }
+      },
+      "demo_role": "trail, size 9 in stock, under budget — arrives too late",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    },
+    {
+      "id": "SND-005",
+      "slug": "atitlan-trail",
+      "name": "Senda Atitlán Trail",
+      "brand": "Senda",
+      "category": "trail",
+      "tagline_es": "Alrededor del lago, a tu ritmo.",
+      "description_es": "Tenis de trail de horma angosta para senderos suaves.",
+      "color_es": "Azul lago con blanco",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5"
+      ],
+      "image": "images/atitlan-trail.jpg",
+      "pulso_image": "images/pulso/atitlan-trail.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 113,
+          "stock": {
+            "7": 3,
+            "7.5": 0,
+            "8": 1,
+            "8.5": 0
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            0
+          ],
+          "transit_business_days": [
+            1,
+            2
+          ]
+        },
+        "kilometro": {
+          "price_usd": 118,
+          "stock": {
+            "7": 0,
+            "7.5": 6,
+            "8": 2,
+            "8.5": 6
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            0
+          ],
+          "transit_business_days": [
+            1,
+            2
+          ]
+        }
+      },
+      "demo_role": "trail, cheap, fast — size 9 not offered",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    },
+    {
+      "id": "SND-006",
+      "slug": "reforma-run",
+      "name": "Senda Reforma Run",
+      "brand": "Senda",
+      "category": "road",
+      "tagline_es": "La avenida es tuya.",
+      "description_es": "Tenis de ruta para entrenar a diario sobre asfalto.",
+      "color_es": "Blanco con azul",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+        "10.5",
+        "11",
+        "11.5",
+        "12"
+      ],
+      "image": "images/reforma-run.jpg",
+      "pulso_image": "images/pulso/reforma-run.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 104,
+          "stock": {
+            "7": 2,
+            "7.5": 4,
+            "8": 2,
+            "8.5": 4,
+            "9": 8,
+            "9.5": 3,
+            "10": 3,
+            "10.5": 1,
+            "11": 3,
+            "11.5": 3,
+            "12": 1
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            0
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        },
+        "kilometro": {
+          "price_usd": 109,
+          "stock": {
+            "7": 3,
+            "7.5": 2,
+            "8": 1,
+            "8.5": 4,
+            "9": 8,
+            "9.5": 3,
+            "10": 6,
+            "10.5": 2,
+            "11": 6,
+            "11.5": 6,
+            "12": 4
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            0
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        }
+      },
+      "demo_role": "road — everything else fits",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    },
+    {
+      "id": "SND-007",
+      "slug": "aurora-2",
+      "name": "Senda Aurora 2",
+      "brand": "Senda",
+      "category": "road",
+      "tagline_es": "Sal antes de que salga el sol.",
+      "description_es": "Tenis de ruta con amortiguación máxima para distancias largas.",
+      "color_es": "Coral con gris",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+        "10.5",
+        "11",
+        "11.5",
+        "12"
+      ],
+      "image": "images/aurora-2.jpg",
+      "pulso_image": "images/pulso/aurora-2.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 129,
+          "stock": {
+            "7": 4,
+            "7.5": 1,
+            "8": 1,
+            "8.5": 2,
+            "9": 4,
+            "9.5": 6,
+            "10": 6,
+            "10.5": 1,
+            "11": 0,
+            "11.5": 0,
+            "12": 2
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            1,
+            2
+          ]
+        },
+        "kilometro": {
+          "price_usd": 135,
+          "stock": {
+            "7": 3,
+            "7.5": 3,
+            "8": 1,
+            "8.5": 6,
+            "9": 4,
+            "9.5": 3,
+            "10": 6,
+            "10.5": 1,
+            "11": 2,
+            "11.5": 6,
+            "12": 4
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            1,
+            2
+          ]
+        }
+      },
+      "demo_role": "road",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    },
+    {
+      "id": "SND-008",
+      "slug": "pista-pro",
+      "name": "Senda Pista Pro",
+      "brand": "Senda",
+      "category": "road",
+      "tagline_es": "Cada segundo cuenta.",
+      "description_es": "Tenis de competencia en ruta con placa de carbono.",
+      "color_es": "Amarillo neón",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+        "10.5",
+        "11",
+        "11.5",
+        "12"
+      ],
+      "image": "images/pista-pro.jpg",
+      "pulso_image": "images/pulso/pista-pro.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 179,
+          "stock": {
+            "7": 3,
+            "7.5": 2,
+            "8": 2,
+            "8.5": 1,
+            "9": 2,
+            "9.5": 4,
+            "10": 3,
+            "10.5": 6,
+            "11": 4,
+            "11.5": 0,
+            "12": 6
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            1,
+            2
+          ]
+        },
+        "kilometro": {
+          "price_usd": 189,
+          "stock": {
+            "7": 1,
+            "7.5": 3,
+            "8": 1,
+            "8.5": 6,
+            "9": 2,
+            "9.5": 1,
+            "10": 1,
+            "10.5": 3,
+            "11": 4,
+            "11.5": 2,
+            "12": 1
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            1,
+            2
+          ]
+        }
+      },
+      "demo_role": "road, carbon plate, expensive",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    },
+    {
+      "id": "SND-009",
+      "slug": "ritmo",
+      "name": "Senda Ritmo",
+      "brand": "Senda",
+      "category": "road",
+      "tagline_es": "Tu primer kilómetro empieza aquí.",
+      "description_es": "Tenis de ruta de entrada, cómodos para caminar y trotar.",
+      "color_es": "Negro total",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+        "10.5",
+        "11",
+        "11.5",
+        "12"
+      ],
+      "image": "images/ritmo.jpg",
+      "pulso_image": "images/pulso/ritmo.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 85,
+          "stock": {
+            "7": 2,
+            "7.5": 2,
+            "8": 4,
+            "8.5": 1,
+            "9": 10,
+            "9.5": 3,
+            "10": 2,
+            "10.5": 6,
+            "11": 2,
+            "11.5": 2,
+            "12": 1
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            0
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        },
+        "kilometro": {
+          "price_usd": 89,
+          "stock": {
+            "7": 0,
+            "7.5": 0,
+            "8": 1,
+            "8.5": 2,
+            "9": 10,
+            "9.5": 0,
+            "10": 0,
+            "10.5": 3,
+            "11": 0,
+            "11.5": 6,
+            "12": 1
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            0
+          ],
+          "transit_business_days": [
+            1,
+            1
+          ]
+        }
+      },
+      "demo_role": "road, entry level",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    },
+    {
+      "id": "SND-010",
+      "slug": "maraton-elite",
+      "name": "Senda Maratón Elite",
+      "brand": "Senda",
+      "category": "road",
+      "tagline_es": "42 kilómetros sin pensarlo.",
+      "description_es": "Tenis de ruta para maratón con espuma de alto retorno.",
+      "color_es": "Blanco con verde menta",
+      "sizes": [
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+        "10.5",
+        "11",
+        "11.5",
+        "12"
+      ],
+      "image": "images/maraton-elite.jpg",
+      "pulso_image": "images/pulso/maraton-elite.jpg",
+      "stores": {
+        "pulso": {
+          "price_usd": 152,
+          "stock": {
+            "7": 0,
+            "7.5": 3,
+            "8": 6,
+            "8.5": 4,
+            "9": 3,
+            "9.5": 2,
+            "10": 4,
+            "10.5": 2,
+            "11": 4,
+            "11.5": 3,
+            "12": 0
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            2,
+            3
+          ]
+        },
+        "kilometro": {
+          "price_usd": 159,
+          "stock": {
+            "7": 6,
+            "7.5": 0,
+            "8": 4,
+            "8.5": 3,
+            "9": 3,
+            "9.5": 0,
+            "10": 1,
+            "10.5": 3,
+            "11": 4,
+            "11.5": 4,
+            "12": 2
+          },
+          "shipping_usd": 0,
+          "handling_business_days": [
+            0,
+            1
+          ],
+          "transit_business_days": [
+            2,
+            3
+          ]
+        }
+      },
+      "demo_role": "road, long distance",
+      "origin": {
+        "type": "synthetic",
+        "generator": "catalog/seed.py",
+        "seed": 2027,
+        "note": "Fictional brand and models; no real products or brands."
+      }
+    }
+  ]
+}
