@@ -155,7 +155,7 @@ function Matrix({ run, stores, urlOf }: { run: RunView; stores: StoreRef[]; urlO
 }
 
 function Ticker({ run, stores }: { run: RunView; stores: StoreRef[] }) {
-  const lines = run.steps.filter((s) => s.kind !== "thought" || s.text.length < 160).slice(run.approval ? -2 : -4);
+  const lines = run.steps.filter((s) => s.kind !== "thought" || s.text.length < 160).slice(run.approval ? -1 : -3);
   return (
     <ol className="ticker" aria-live="polite">
       {lines.map((s) => (

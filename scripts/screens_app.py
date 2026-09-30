@@ -117,6 +117,7 @@ async def main(a: argparse.Namespace) -> None:
         await presenter_phone.wait_for_timeout(1000)
         await shot(presenter_phone, "presenter-approval-390")
         await desk.goto(phone.url)
+        await desk.get_by_role("heading", name="Autoriza la compra").wait_for(timeout=20000)
         await shot(desk, "approve-1920")
 
         # Sign the AP2 mandate with the passkey.

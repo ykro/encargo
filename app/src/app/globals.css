@@ -55,6 +55,10 @@ a { color: var(--cobalt); }
 
 /* ─── Phone screens ───────────────────────────────────── */
 .phone { min-height: 100dvh; max-width: 560px; margin: 0 auto; padding: 20px 20px 32px; display: flex; flex-direction: column; }
+@media (min-width: 900px) {
+  /* The phone screens also open on a laptop: frame them instead of leaving a lost column. */
+  .phone { min-height: min(760px, 88vh); margin: 6vh auto; max-width: 540px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 28px 40px 36px; box-shadow: 0 1px 0 var(--line), 0 24px 48px -32px rgba(14, 23, 38, 0.25); }
+}
 .phone-top { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 28px; }
 .phone-top .wordmark { font-size: 22px; }
 .stepper { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 15px; }
@@ -172,10 +176,10 @@ textarea.errand:focus, input.text:focus { outline: 3px solid var(--cobalt); outl
 @keyframes scan { to { background-position: 32px 0; } }
 
 .ticker { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; flex: 1 1 auto; min-height: 80px; overflow: hidden; }
-.ticker li { flex: 0 0 auto; line-height: 34px; font-size: 24px; color: var(--muted); display: grid; grid-template-columns: 16px 1fr; gap: 12px; align-items: center; animation: slide-up 300ms var(--ease); white-space: nowrap; overflow: hidden; }
-.ticker li span { overflow: hidden; text-overflow: ellipsis; }
+.ticker li { flex: 0 0 auto; line-height: 32px; font-size: 24px; color: var(--muted); display: grid; grid-template-columns: 16px 1fr; gap: 12px; align-items: start; animation: slide-up 300ms var(--ease); }
+.ticker li span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .ticker li:last-child { color: var(--ink); font-weight: 500; }
-.ticker li::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); }
+.ticker li::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); margin-top: 11px; }
 .ticker li:last-child::before { background: var(--cobalt); }
 
 .decision { background: var(--cobalt); color: var(--surface); border-radius: var(--r-sm); padding: 22px 28px; font-size: 36px; font-weight: 600; animation: slide-up 400ms var(--ease); display: flex; justify-content: space-between; align-items: center; gap: 24px; }
