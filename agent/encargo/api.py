@@ -20,6 +20,7 @@ import asyncio
 import base64
 import json
 import secrets
+import time
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -85,11 +86,21 @@ async def run_events(run_id: str, request: Request, last_event_id: str | None = 
     async def stream():
         seq = int(last_event_id or 0)
         idle = 0.0
+        gap_since: float | None = None
         while not await request.is_disconnected():
             events = await store.list_events(run_id, seq)
+            # Parallel tool calls write events concurrently, so seq N+1 can become
+            # visible before seq N. Deliver strictly in order; wait briefly for a gap.
+            sent = []
             for e in events:
+                if e["seq"] != seq + 1 and (gap_since is None or time.monotonic() - gap_since < 3):
+                    gap_since = gap_since or time.monotonic()
+                    break
+                gap_since = None
                 seq = e["seq"]
+                sent.append(e)
                 yield f"id: {seq}\nevent: {e['type']}\ndata: {json.dumps(e, ensure_ascii=False, default=str)}\n\n"
+            events = sent or events
             run = await store.get_run(run_id) or {}
             if not events and run.get("status") in TERMINAL_STATUSES:
                 yield "event: end\ndata: {}\n\n"

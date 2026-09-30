@@ -184,7 +184,7 @@ function Outcome({ run, stores }: { run: RunView; stores: StoreRef[] }) {
       {run.phase === "completed" && run.order ? (
         <div className="approval done">
           <span className="a-title"><Check size={36} />Pedido confirmado</span>
-          <span className="a-sub">Mandato AP2 firmado con passkey · {run.order.label} · {Math.round(run.elapsed ?? 0)} s</span>
+          <span className="a-sub">Mandato AP2 firmado con passkey · {(run.order.label ?? "").replace(/^Pedido /, "")} · {Math.round(run.elapsed ?? 0)}{"\u00a0"}s</span>
         </div>
       ) : (
         <div className="approval waiting">

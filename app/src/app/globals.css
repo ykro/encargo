@@ -171,11 +171,11 @@ textarea.errand:focus, input.text:focus { outline: 3px solid var(--cobalt); outl
 .matrix td.state.pending.active { background: repeating-linear-gradient(90deg, var(--surface) 0 8px, var(--cool) 8px 16px); background-size: 32px 100%; animation: scan 900ms linear infinite; }
 @keyframes scan { to { background-position: 32px 0; } }
 
-.ticker { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; flex: 1; min-height: 0; align-content: end; overflow: hidden; }
-.ticker li { font-size: 24px; color: var(--muted); display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: baseline; animation: slide-up 300ms var(--ease); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticker { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; flex: 1 1 auto; min-height: 80px; overflow: hidden; }
+.ticker li { flex: 0 0 auto; line-height: 34px; font-size: 24px; color: var(--muted); display: grid; grid-template-columns: 16px 1fr; gap: 12px; align-items: center; animation: slide-up 300ms var(--ease); white-space: nowrap; overflow: hidden; }
 .ticker li span { overflow: hidden; text-overflow: ellipsis; }
 .ticker li:last-child { color: var(--ink); font-weight: 500; }
-.ticker li::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); transform: translateY(-3px); }
+.ticker li::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); }
 .ticker li:last-child::before { background: var(--cobalt); }
 
 .decision { background: var(--cobalt); color: var(--surface); border-radius: var(--r-sm); padding: 22px 28px; font-size: 36px; font-weight: 600; animation: slide-up 400ms var(--ease); display: flex; justify-content: space-between; align-items: center; gap: 24px; }

@@ -96,10 +96,18 @@ async def main(a: argparse.Namespace) -> None:
         await shot(desk, "errand-1920")
         await phone.get_by_role("button", name="Enviar encargo").click()
         await phone.wait_for_url("**/encargo/**", timeout=20000)
-        await phone.wait_for_timeout(1500)
-        await shot(phone, "progress-390")
-        await presenter.wait_for_timeout(2500)
+        await phone.wait_for_timeout(1200)
+        await shot(phone, "loading-390")
+        await presenter.wait_for_timeout(1500)
+        await shot(presenter, "presenter-starting-1920")
+        # Mid-run: the checklist is filling in.
+        try:
+            await presenter.locator(".matrix td.state.not_verifiable, .matrix td.state.met").first.wait_for(timeout=a.timeout * 1000)
+            await presenter.wait_for_timeout(600)
+        except Exception:  # noqa: BLE001 — a very fast run may skip straight to approval
+            pass
         await shot(presenter, "presenter-running-1920")
+        await shot(phone, "progress-390")
 
         # Approval: the card appears on the phone and on stage.
         await phone.get_by_role("heading", name="Autoriza la compra").wait_for(timeout=a.timeout * 1000)
