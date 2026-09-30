@@ -69,8 +69,11 @@ async def search_catalog(ctx: RunContext, store_url: str, query: str, max_price_
     res = await ctx.http.post(f"{endpoint}/catalog/search", json=body, headers=ucp_headers(ctx))
     if res.status_code != 200:
         return {"store": store, "found": False, "status": res.status_code}
-    products = res.json().get("products", [])
-    return {"store": store, "found": True, "products": [_ucp_offer(ctx, p) for p in products]}
+    products = [_ucp_offer(ctx, p) for p in res.json().get("products", [])]
+    from . import agent_view
+
+    await agent_view.offers(ctx, store, "catálogo UCP", products)
+    return {"store": store, "found": True, "products": products}
 
 
 def summarize_checkout(checkout: dict[str, Any]) -> dict[str, Any]:

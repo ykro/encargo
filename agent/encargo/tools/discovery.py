@@ -38,6 +38,28 @@ def rest_endpoint(profile: dict[str, Any]) -> str | None:
     return None
 
 
+async def _sample_structured_data(ctx: RunContext, store: str, sitemap: httpx.Response | None, home: httpx.Response | None) -> str:
+    """Looks at one product page (from the sitemap or the homepage links) for schema.org JSON-LD."""
+    from urllib.parse import urlparse
+
+    from .structured_data import parse_html
+
+    candidates: list[str] = []
+    if sitemap is not None and sitemap.status_code == 200:
+        candidates = [u.split("</loc>")[0] for u in sitemap.text.split("<loc>")[1:]]
+    elif home is not None and home.status_code == 200:
+        host = urlparse(store).netloc
+        candidates = [u for u in parse_html(home.text, store)["links"] if urlparse(u).netloc == host and u.rstrip("/") != store]
+    for url in candidates[:1]:
+        page = await _get(ctx.http, url)
+        if page is not None and page.status_code == 200:
+            blocks = parse_html(page.text, url)["jsonld"]
+            products = [b for b in blocks if isinstance(b, dict) and b.get("@type") in {"Product", "ProductGroup"}]
+            if products:
+                return f"sí: {len(products)} producto(s) en JSON-LD en {url}"
+    return "no encontrado"
+
+
 async def inspect_store(ctx: RunContext, store_url: str) -> dict[str, Any]:
     store = ctx.store_url(store_url)
     profile = await load_ucp_profile(ctx, store)
@@ -55,6 +77,7 @@ async def inspect_store(ctx: RunContext, store_url: str) -> dict[str, Any]:
         "product_feed": f"{store}/feed.xml" if feed is not None and feed.status_code == 200 else "no encontrado",
         "sitemap": f"{store}/sitemap.xml" if sitemap is not None and sitemap.status_code == 200 else "no encontrado",
     }
+    result["structured_data"] = await _sample_structured_data(ctx, store, sitemap, home)
     if profile:
         caps = sorted((profile.get("ucp", {}).get("capabilities") or {}).keys())
         result["ucp_profile"] = {
@@ -66,4 +89,7 @@ async def inspect_store(ctx: RunContext, store_url: str) -> dict[str, Any]:
         }
     else:
         result["ucp_profile"] = "no encontrado (/.well-known/ucp)"
+    from . import agent_view
+
+    await agent_view.sources(ctx, store, result)
     return result

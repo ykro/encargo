@@ -87,6 +87,11 @@ async def browse_page(ctx: RunContext, url: str) -> dict[str, Any]:
     offers = offers_from_jsonld(r["jsonld"], ctx)
     text = " ".join(rendered["text"].split())[:MAX_TEXT]
     images = rendered["images"]
+    from . import agent_view
+
+    if offers:
+        await agent_view.offers(ctx, store, "schema.org JSON-LD (navegador)", offers, url)
+    await agent_view.page(ctx, store, url, len(rendered["text"].strip()), len(offers))
     return {
         "url": url,
         "title": rendered["title"],

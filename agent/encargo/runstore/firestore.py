@@ -68,6 +68,34 @@ class FirestoreRunStore:
         snap = await self.db.collection("screenshots").document(shot_id).get()
         return snap.to_dict() if snap.exists else None
 
+    async def latest_run(self) -> dict[str, Any] | None:
+        query = self.db.collection("runs").order_by("created_at", direction=firestore.Query.DESCENDING).limit(1)
+        docs = [d.to_dict() async for d in query.stream()]
+        return docs[0] if docs else None
+
+    async def save_passkey(self, passkey: dict[str, Any]) -> None:
+        await self.db.collection("passkeys").document(passkey["id"]).set(passkey)
+
+    async def list_passkeys(self) -> list[dict[str, Any]]:
+        return [d.to_dict() async for d in self.db.collection("passkeys").stream()]
+
+    async def update_passkey(self, passkey_id: str, fields: dict[str, Any]) -> None:
+        await self.db.collection("passkeys").document(passkey_id).set(fields, merge=True)
+
+    async def delete_passkey(self, passkey_id: str) -> None:
+        await self.db.collection("passkeys").document(passkey_id).delete()
+
+    async def save_challenge(self, flow_id: str, data: dict[str, Any]) -> None:
+        await self.db.collection("webauthn_challenges").document(flow_id).set(data)
+
+    async def pop_challenge(self, flow_id: str) -> dict[str, Any] | None:
+        ref = self.db.collection("webauthn_challenges").document(flow_id)
+        snap = await ref.get()
+        if not snap.exists:
+            return None
+        await ref.delete()
+        return snap.to_dict()
+
     async def reset(self) -> None:
         for name in ("runs", "mandates", "orders", "screenshots"):
             await self.db.recursive_delete(self.db.collection(name))

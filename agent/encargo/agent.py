@@ -93,7 +93,9 @@ async def browse_page(url: str, tool_context: ToolContext) -> dict[str, Any]:
     return await browser.browse_page(_ctx(tool_context), url)
 
 
-async def record_check(store_url: str, condition_id: str, status: str, evidence: str, tool_context: ToolContext) -> dict[str, Any]:
+async def record_check(
+    store_url: str, condition_id: str, status: str, evidence: str, tool_context: ToolContext, product: str = ""
+) -> dict[str, Any]:
     """Records one checklist row for a store.
 
     Args:
@@ -101,8 +103,9 @@ async def record_check(store_url: str, condition_id: str, status: str, evidence:
         condition_id: Id of the errand condition.
         status: "met", "not_met" or "not_verifiable".
         evidence: One short sentence in Spanish saying what data supports the status.
+        product: Exact name of the product evaluated, as published by the store; empty if none is readable.
     """
-    return await checklist.record_check(_ctx(tool_context), store_url, condition_id, status, evidence)
+    return await checklist.record_check(_ctx(tool_context), store_url, condition_id, status, evidence, product)
 
 
 async def create_checkout(store_url: str, variant_id: str, tool_context: ToolContext, quantity: int = 1) -> dict[str, Any]:

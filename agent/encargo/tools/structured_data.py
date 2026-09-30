@@ -131,6 +131,12 @@ async def fetch_page(ctx: RunContext, url: str) -> dict[str, Any]:
     page = parse_html(res.text, str(res.url))
     offers = offers_from_jsonld(page["jsonld"], ctx)
     visible = page["text"][:MAX_TEXT]
+    from . import agent_view
+
+    store = ctx.store_url(url)
+    if offers:
+        await agent_view.offers(ctx, store, "schema.org JSON-LD", offers, str(res.url))
+    await agent_view.page(ctx, store, str(res.url), len(page["text"]), len(offers))
     return {
         "url": str(res.url),
         "status": res.status_code,

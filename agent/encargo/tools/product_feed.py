@@ -73,4 +73,7 @@ async def read_product_feed(ctx: RunContext, feed_url: str) -> dict[str, Any]:
         products = parse_feed(res.text, ctx)
     except ET.ParseError:
         return {"feed_url": feed_url, "found": False, "error": "El feed no es XML válido."}
+    from . import agent_view
+
+    await agent_view.offers(ctx, ctx.store_url(feed_url), "feed de productos", products, feed_url)
     return {"feed_url": feed_url, "found": True, "products": products}

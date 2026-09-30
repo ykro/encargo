@@ -14,6 +14,9 @@ class MemoryRunStore:
         self.mandates: dict[str, dict[str, Any]] = {}
         self.orders: list[dict[str, Any]] = []
         self.screenshots: dict[str, dict[str, Any]] = {}
+        if not hasattr(self, "passkeys"):
+            self.passkeys: dict[str, dict[str, Any]] = {}
+            self.challenges: dict[str, dict[str, Any]] = {}
 
     async def create_run(self, run: dict[str, Any]) -> None:
         self.runs[run["id"]] = copy.deepcopy(run)
@@ -54,6 +57,28 @@ class MemoryRunStore:
 
     async def get_screenshot(self, shot_id: str) -> dict[str, Any] | None:
         return self.screenshots.get(shot_id)
+
+    async def latest_run(self) -> dict[str, Any] | None:
+        runs = sorted(self.runs.values(), key=lambda r: r.get("created_at", 0))
+        return copy.deepcopy(runs[-1]) if runs else None
+
+    async def save_passkey(self, passkey: dict[str, Any]) -> None:
+        self.passkeys[passkey["id"]] = copy.deepcopy(passkey)
+
+    async def list_passkeys(self) -> list[dict[str, Any]]:
+        return copy.deepcopy(list(self.passkeys.values()))
+
+    async def update_passkey(self, passkey_id: str, fields: dict[str, Any]) -> None:
+        self.passkeys[passkey_id].update(fields)
+
+    async def delete_passkey(self, passkey_id: str) -> None:
+        self.passkeys.pop(passkey_id, None)
+
+    async def save_challenge(self, flow_id: str, data: dict[str, Any]) -> None:
+        self.challenges[flow_id] = copy.deepcopy(data)
+
+    async def pop_challenge(self, flow_id: str) -> dict[str, Any] | None:
+        return self.challenges.pop(flow_id, None)
 
     async def reset(self) -> None:
         self.__init__()

@@ -41,7 +41,9 @@ async def reject(store: RunStore, mandate_id: str) -> dict[str, Any]:
     return {"ok": True, "status": "rejected"}
 
 
-async def sign_and_complete(store: RunStore, mandate_id: str, approved_by: str, http: httpx.AsyncClient | None = None) -> dict[str, Any]:
+async def sign_and_complete(
+    store: RunStore, mandate_id: str, approved_by: str, http: httpx.AsyncClient | None = None, approval: dict[str, Any] | None = None
+) -> dict[str, Any]:
     mandate = await store.get_mandate(mandate_id)
     if not mandate:
         return {"ok": False, "error": "Mandato no encontrado."}
@@ -52,10 +54,14 @@ async def sign_and_complete(store: RunStore, mandate_id: str, approved_by: str, 
 
     token = build_checkout_mandate(checkout, audience=mandate["store"], issuer=s.profile_url)
     await store.update_mandate(
-        mandate_id, {"status": "signed", "signed_at": time.time(), "approved_by": approved_by, "checkout_mandate": token}
+        mandate_id,
+        {"status": "signed", "signed_at": time.time(), "approved_by": approved_by, "approval": approval or {}, "checkout_mandate": token},
     )
     await store.update_run(run_id, {"status": "completing"})
-    await _emit(store, run_id, "mandate_signed", mandate_id=mandate_id, approved_by=approved_by, vct="mandate.checkout.1")
+    await _emit(
+        store, run_id, "mandate_signed", mandate_id=mandate_id, approved_by=approved_by,
+        method=(approval or {}).get("method", "test"), vct="mandate.checkout.1",
+    )
 
     own_client = http is None
     client = http or httpx.AsyncClient(timeout=20)

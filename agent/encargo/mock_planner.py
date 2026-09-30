@@ -70,7 +70,7 @@ async def run_mock(ctx: RunContext) -> str:
         scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
         _, _, chosen, ev = scored[0]
         for cid, (status, evidence) in ev.items():
-            await checklist.record_check(ctx, store, cid, status, f"{chosen['product']}: {evidence}")
+            await checklist.record_check(ctx, store, cid, status, evidence, chosen["product"])
         if ctx.all_met(store):
             best[store] = (chosen, _price(chosen) or 0)
 

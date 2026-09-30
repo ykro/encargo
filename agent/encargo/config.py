@@ -29,7 +29,11 @@ class Settings:
     public_url: str = field(default_factory=lambda: os.getenv("AGENT_PUBLIC_URL", "http://localhost:8000").rstrip("/"))
     admin_token: str = field(default_factory=lambda: os.getenv("ADMIN_TOKEN", "dev-admin"))
     human_approval_token: str = field(default_factory=lambda: os.getenv("HUMAN_APPROVAL_TOKEN", ""))
+    # passkey: only a WebAuthn assertion approves a mandate (stage).
+    # test: the bearer HUMAN_APPROVAL_TOKEN is accepted too (tests, local rehearsals).
     signer_mode: str = field(default_factory=lambda: os.getenv("SIGNER_MODE", "test"))
+    passkey_rp_id: str = field(default_factory=lambda: os.getenv("PASSKEY_RP_ID", "localhost"))
+    passkey_origin: str = field(default_factory=lambda: os.getenv("PASSKEY_ORIGIN", "http://localhost:3000").rstrip("/"))
     platform_signing_jwk: str = field(default_factory=lambda: os.getenv("PLATFORM_SIGNING_JWK", ""))
     run_timeout_s: float = field(default_factory=lambda: float(os.getenv("RUN_TIMEOUT_S", "110")))
     browser_enabled: bool = field(default_factory=lambda: _flag("BROWSER_ENABLED", "1"))
