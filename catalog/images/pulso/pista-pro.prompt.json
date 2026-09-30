@@ -1,0 +1,32 @@
+{
+  "model_env": "IMAGE_MODEL",
+  "model": "gemini-3.1-flash-lite-image",
+  "input_image": "images/pista-pro.jpg",
+  "mode": "edit",
+  "prompt": "Turn this product photo into a stunning, premium editorial sneaker advertisement for a fashion-forward store. Keep exactly the same shoe (same shape, colors and design) as the hero, dramatic but clean lighting, a bold modern background with a tasteful color gradient that complements the shoe, magazine-cover feel. Render exactly two pieces of typography, large, crisp and perfectly legible, in a clean bold sans-serif font with high contrast against the background:\n1. The product name, exactly: \"Senda Pista Pro\"\n2. The price, exactly: \"179 USD\"\nSpell them exactly as given, character by character. No other text, no logos, no brand marks, no extra words anywhere. Do not put text on the shoe itself. 4:3 landscape.",
+  "attempt": 1,
+  "expected": {
+    "name": "Senda Pista Pro",
+    "price": "179 USD"
+  },
+  "verified": {
+    "verifier_env": "GEMINI_MODEL",
+    "verifier": "gemini-3.8-flash",
+    "all_text": [
+      "Senda Pista Pro",
+      "179 USD"
+    ],
+    "product_name": "Senda Pista Pro",
+    "price": "179 USD"
+  },
+  "origin": {
+    "type": "synthetic",
+    "generator": "scripts/generate_product_images.py",
+    "model_env": "IMAGE_MODEL",
+    "model": "gemini-3.1-flash-lite-image",
+    "prompt": "Turn this product photo into a stunning, premium editorial sneaker advertisement for a fashion-forward store. Keep exactly the same shoe (same shape, colors and design) as the hero, dramatic but clean lighting, a bold modern background with a tasteful color gradient that complements the shoe, magazine-cover feel. Render exactly two pieces of typography, large, crisp and perfectly legible, in a clean bold sans-serif font with high contrast against the background:\n1. The product name, exactly: \"Senda Pista Pro\"\n2. The price, exactly: \"179 USD\"\nSpell them exactly as given, character by character. No other text, no logos, no brand marks, no extra words anywhere. Do not put text on the shoe itself. 4:3 landscape.",
+    "attempt": 1,
+    "seed": null,
+    "input_image": "images/pista-pro.jpg"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "model_env": "IMAGE_MODEL",
+  "model": "gemini-3.1-flash-lite-image",
+  "prompt": "Professional e-commerce studio product photograph. A single shoe, right foot, clean side profile view facing left, centered, the whole shoe visible with margin. Seamless very light warm-grey background, soft even studio lighting, subtle soft shadow under the sole, sharp focus, photorealistic, 4:3 landscape framing. The shoe is a road running shoe with a smooth outsole, breathable engineered mesh upper and a sleek cushioned midsole, colorway coral with grey accents. ABSOLUTELY NO text, NO letters, NO numbers, NO words, NO logos, NO brand marks, NO emblems or symbols anywhere on the shoe, the sole, the tongue, the heel or the background. All surfaces are plain, unbranded material.",
+  "attempt": 1,
+  "verified": {
+    "verifier_env": "GEMINI_MODEL",
+    "verifier": "gemini-3.8-flash",
+    "has_text_or_logo": false,
+    "what": "none",
+    "single_shoe_side_view": true
+  },
+  "origin": {
+    "type": "synthetic",
+    "generator": "scripts/generate_product_images.py",
+    "model_env": "IMAGE_MODEL",
+    "model": "gemini-3.1-flash-lite-image",
+    "prompt": "Professional e-commerce studio product photograph. A single shoe, right foot, clean side profile view facing left, centered, the whole shoe visible with margin. Seamless very light warm-grey background, soft even studio lighting, subtle soft shadow under the sole, sharp focus, photorealistic, 4:3 landscape framing. The shoe is a road running shoe with a smooth outsole, breathable engineered mesh upper and a sleek cushioned midsole, colorway coral with grey accents. ABSOLUTELY NO text, NO letters, NO numbers, NO words, NO logos, NO brand marks, NO emblems or symbols anywhere on the shoe, the sole, the tongue, the heel or the background. All surfaces are plain, unbranded material.",
+    "attempt": 1,
+    "seed": null
+  }
+}
