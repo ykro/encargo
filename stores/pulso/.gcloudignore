@@ -1,0 +1,4 @@
+# Cloud Build context: the synced kit (src/shared, public/images) MUST be uploaded.
+node_modules/
+.next/
+.data/

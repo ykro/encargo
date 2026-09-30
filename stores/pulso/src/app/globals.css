@@ -1,0 +1,14 @@
+/* Functional stub styles — Pulso's spectacular look arrives in Phase 2. */
+:root { --ink: #111; --paper: #faf7f2; --accent: #e5462e; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: var(--paper); color: var(--ink); }
+.pulso-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+.pulso-logo { font-weight: 900; letter-spacing: 0.2em; font-size: 24px; text-decoration: none; color: var(--ink); }
+.vitrina { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 16px; max-width: 1200px; margin: 0 auto; }
+.vitrina img, .hero img { width: 100%; height: auto; display: block; border-radius: 12px; }
+.hero { max-width: 1000px; margin: 0 auto; padding: 16px; display: grid; gap: 24px; }
+.cta { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 14px 28px; font-size: 16px; cursor: pointer; }
+.cta:disabled { opacity: 0.4; cursor: not-allowed; }
+.panel { max-width: 420px; margin: 32px auto; padding: 24px; background: #fff; border-radius: 16px; display: grid; gap: 12px; }
+.panel input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+canvas.size-picker { cursor: pointer; max-width: 100%; }
