@@ -84,7 +84,7 @@ async def main(a: argparse.Namespace) -> None:
         cdp, auth_id = await virtual_passkey(phone)
         await phone.goto(f"{a.app}/configurar?clave={a.setup}")
         await shot(phone, "setup-390")
-        await phone.get_by_role("button", name="Registrar passkey en este teléfono").click()
+        await phone.get_by_role("button", name="Registrar passkey en este dispositivo").click()
         await phone.locator(".notice-ok").wait_for(timeout=20000)
         await shot(phone, "setup-done-390")
         await desk.goto(f"{a.app}/configurar")

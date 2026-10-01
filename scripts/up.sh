@@ -6,7 +6,7 @@ LOGS="$ROOT/.data/logs"; mkdir -p "$LOGS"
 set -a; [ -f "$ROOT/.env" ] && source "$ROOT/.env"; set +a
 trap 'kill 0' EXIT INT TERM
 
-for dir in stores/kilometro stores/pulso app; do
+for dir in stores/shared stores/kilometro stores/pulso app; do
   [ -d "$ROOT/$dir/node_modules" ] || (cd "$ROOT/$dir" && npm ci --silent)
 done
 (cd "$ROOT/stores/kilometro" && npm run dev >"$LOGS/kilometro.log" 2>&1) &

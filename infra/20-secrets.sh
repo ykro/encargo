@@ -2,7 +2,7 @@
 # Creates the secrets the services share (once) and lets the runtime service
 # account read them. Nothing secret is ever written to the repo.
 #   encargo-platform-jwk  — the agent's AP2 mandate signing key (private EC P-256 JWK)
-#   encargo-human-token   — test-mode signer token held by the person's device (Phase 2: passkey)
+#   encargo-human-token   — test-mode signer token (only honored when SIGNER_MODE=test; the cloud uses passkeys)
 #   encargo-admin-token   — `make reset` / control mode
 source "$(dirname "$0")/env.sh"
 REPO_DIR="$(cd "$INFRA_DIR/.." && pwd)"

@@ -48,7 +48,8 @@ deploy: ## Cloud Run: APIs, secrets, stores, agent, app (infra/NN-*.sh)
 
 cloud_env = if [ "$(TARGET)" = cloud ]; then source infra/env.sh; source infra/urls.sh; \
 	  export ADMIN_TOKEN=$$(gcloud secrets versions access latest --secret=encargo-admin-token); \
-	else export APP_URL=http://localhost:3000 AGENT_URL=http://localhost:8000 ADMIN_TOKEN=$${ADMIN_TOKEN:-dev-admin}; fi
+	else export APP_URL=http://localhost:3000 AGENT_URL=http://localhost:8000 ADMIN_TOKEN=$${ADMIN_TOKEN:-dev-admin}; fi; \
+	export APP_URL=$${APP:-$$APP_URL} AGENT_URL=$${AGENT:-$$AGENT_URL}
 
 screens: ## Drive the app in Chrome (virtual passkey) and screenshot every screen to docs/screenshots/app (TARGET=cloud)
 	@$(cloud_env); cd agent && uv run python ../scripts/screens_app.py --app $$APP_URL --agent $$AGENT_URL --setup $$ADMIN_TOKEN
@@ -56,8 +57,12 @@ screens: ## Drive the app in Chrome (virtual passkey) and screenshot every scree
 e2e: ## Passkey flow in Chrome with a virtual authenticator: enroll → errand → sign mandate → order (TARGET=cloud)
 	@$(cloud_env); cd agent && uv run python ../scripts/e2e_passkey.py --app $$APP_URL --agent $$AGENT_URL --setup $$ADMIN_TOKEN
 
-e2e-emulator: ## Phone side on the Android emulator (errand, progress, approval card, cancel) (TARGET=cloud)
-	@$(cloud_env); cd agent && uv run python ../scripts/e2e_emulator.py --app $$APP_URL --try-passkey
+# The emulator cannot reach the laptop's localhost, so this target defaults to the
+# cloud. TARGET=local maps the app port into the emulator with `adb reverse`.
+e2e-emulator: TARGET = cloud
+e2e-emulator: ## Phone side on the Android emulator (errand, progress, approval, cancel); cloud by default, TARGET=local uses adb reverse
+	@$(cloud_env); if [ "$(TARGET)" = local ]; then adb -s $${ANDROID_SERIAL:-emulator-5556} reverse tcp:3000 tcp:3000; fi; \
+	cd agent && uv run python ../scripts/e2e_emulator.py --app $$APP_URL --setup $$ADMIN_TOKEN --try-passkey
 
 phone: ## Open the signing "phone" on the laptop: Chrome window 390×844 (Touch ID passkey) (TARGET=cloud)
 	@$(cloud_env); open -na "Google Chrome" --args --app="$$APP_URL" --window-size=390,844

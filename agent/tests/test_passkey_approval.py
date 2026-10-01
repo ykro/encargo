@@ -109,3 +109,15 @@ def test_passkey_mode_rejects_the_test_token(world, monkeypatch):
     client = TestClient(api.app)
     res = client.post("/mandates/mnd_x/sign", headers={"authorization": "Bearer human-test-token"})
     assert res.status_code == 401
+
+
+def test_status_lists_ids_and_delete_needs_the_setup_token(world):
+    client = TestClient(api.app)
+    phone = SoftwareAuthenticator("http://localhost:3000", "localhost")
+    enroll(client, phone)
+    status = client.get("/passkeys/status").json()
+    assert status["passkeys"][0]["id"] == phone.id
+    assert client.delete(f"/passkeys/{phone.id}").status_code == 401
+    assert client.delete("/passkeys/unknown", headers=ADMIN).status_code == 404
+    assert client.delete(f"/passkeys/{phone.id}", headers=ADMIN).status_code == 200
+    assert client.get("/passkeys/status").json()["registered"] == 0

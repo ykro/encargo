@@ -89,7 +89,7 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
           <div className="p-body">
             {idle ? (
               <div className="p-idle">
-                <strong>Envía un encargo desde el teléfono</strong>
+                <strong>Envía un encargo desde la app</strong>
                 <span>{appHost || "la app de Encargo"}</span>
               </div>
             ) : (
@@ -171,7 +171,7 @@ function Outcome({ run, stores }: { run: RunView; stores: StoreRef[] }) {
   const a = run.approval;
   if (run.phase === "failed") return <div className="decision failed">El encargo se detuvo<small>{run.error ?? ""}</small></div>;
   if (run.phase === "no_purchase") return <div className="decision none">Sin compra: ninguna tienda cumple todo lo verificable</div>;
-  if (run.phase === "rejected") return <div className="decision none">Compra cancelada desde el teléfono</div>;
+  if (run.phase === "rejected") return <div className="decision none">Compra cancelada: no se firmó el mandato</div>;
   if (!a) return null;
   const store = storeName(stores, a.store);
   const item = parseItem(a.items?.[0]);
@@ -188,7 +188,7 @@ function Outcome({ run, stores }: { run: RunView; stores: StoreRef[] }) {
         </div>
       ) : (
         <div className="approval waiting">
-          <span className="a-title"><Key size={36} />{run.phase === "signing" ? "Firmado · la tienda confirma el pago…" : "Esperando la firma en el teléfono"}</span>
+          <span className="a-title"><Key size={36} />{run.phase === "signing" ? "Firmado · la tienda confirma el pago…" : "Esperando tu firma con passkey"}</span>
           <span className="a-sub">{item.product.replace(/^Senda /, "")} · talla {item.size} · llega {humanDate(a.latest_delivery)}</span>
         </div>
       )}

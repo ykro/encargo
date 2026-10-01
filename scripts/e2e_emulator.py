@@ -1,6 +1,6 @@
 """The phone side on the Android emulator: Chrome driven over adb + DevTools.
 
-  make e2e-emulator APP=https://encargo-app-….run.app   (ANDROID_SERIAL=emulator-5556)
+  make e2e-emulator                  (Cloud Run by default; TARGET=local uses adb reverse; ANDROID_SERIAL=emulator-5556)
 
 Checks what the emulator can do without a Google account: open the app, send
 the errand, follow the run and show the approval card. It also records what
@@ -102,7 +102,7 @@ async def main(a: argparse.Namespace) -> int:
             # What Chrome offers when this device is asked to create a passkey.
             await page.goto(f"{a.app}/configurar?clave={a.setup}")
             await foreground(serial, page)
-            await page.get_by_role("button", name="Registrar passkey en este teléfono").click()
+            await page.get_by_role("button", name="Registrar passkey en este dispositivo").click()
             await page.wait_for_timeout(3500)
             screencap(serial, "passkey-sheet")
             adb(serial, "shell", "input", "keyevent", "KEYCODE_BACK")

@@ -54,7 +54,7 @@ gcloud auth application-default login
 make up
 ```
 
-- `make up` (`scripts/up.sh`) carga `.env`, instala dependencias de Node si faltan (en las tiendas y la app, no en `stores/shared`) y arranca cuatro procesos.
+- `make up` (`scripts/up.sh`) carga `.env`, instala dependencias de Node si faltan (en `stores/shared`, las tiendas y la app) y arranca cuatro procesos.
 - Los logs quedan en `.data/logs/{kilometro,pulso,agent,app}.log`.
 - Ctrl-C detiene todo.
 
@@ -138,7 +138,7 @@ Cada script es idempotente.
 
 | Paso | Script | Qué hace |
 | --- | --- | --- |
-| 1 | `infra/10-enable-apis.sh` | Habilita Run, Cloud Build, Artifact Registry, Firestore, Vertex AI y Secret Manager. Crea la base de Firestore `encargo` (`nam5`) si no existe. |
+| 1 | `infra/10-enable-apis.sh` | Habilita Run, Cloud Build, Artifact Registry, Firestore, Vertex AI y Secret Manager. Crea el repositorio de Artifact Registry `charlas2027` y la base de Firestore `encargo` (`nam5`) si no existen, y da a la cuenta de servicio de cómputo los roles `roles/datastore.user` y `roles/aiplatform.user`. Se puede volver a ejecutar sin riesgo. |
 | 2 | `infra/20-secrets.sh` | Genera la llave de la plataforma con el propio código del agente (`encargo.ap2.signer.platform_key`). Crea los tres secretos y da acceso a la cuenta de ejecución. |
 | 3 | `infra/30-deploy-stores.sh` | Para Pulso y Kilómetro: `npm run sync`, Cloud Build → Artifact Registry → Cloud Run. Usa 1 instancia mínima y máxima, 512 MiB, `PULSO_AGENT_READY` (por omisión `false`), `TRUSTED_PLATFORM_PROFILES=<agente>/.well-known/ucp` y `ADMIN_TOKEN` desde Secret Manager. |
 | 4 | `infra/40-deploy-agent.sh` | Agente con CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s y 1 instancia. Toma `GEMINI_MODEL` de `.env`. Fija `RUN_STORE=firestore`, `SIGNER_MODE=passkey` y `PASSKEY_RP_ID`/`PASSKEY_ORIGIN` = el host y el origen de la app. Monta los tres secretos. |
@@ -172,7 +172,7 @@ make audit URL=$KILOMETRO_URL                        # Puntaje: 8/8
 | Llaves AP2 | Nuevas en cada proceso | La de la plataforma viene de Secret Manager; la de cada tienda se genera por proceso (una sola instancia) |
 | Comandos | `make reset`, `make e2e`, … | Los mismos con `TARGET=cloud` (leen las URL de `infra/urls.sh` y `ADMIN_TOKEN` de Secret Manager) |
 
-`TARGET=cloud` aplica a `reset`, `bias-test`, `e2e`, `e2e-emulator`, `screens` y `phone`. `make audit` recibe la URL directamente.
+`TARGET=cloud` aplica a `reset`, `bias-test`, `e2e`, `e2e-emulator`, `screens` y `phone` (`e2e-emulator` usa la nube por defecto). `e2e`, `e2e-emulator`, `screens` y `phone` también aceptan `APP=https://…` y `AGENT=https://…` para apuntar a otra instancia. `make audit` recibe la URL directamente.
 
 ## 6. Pruebas y ensayos
 
@@ -214,7 +214,8 @@ Imprime una línea `✓` por paso y sale con un código distinto de cero si algo
 
 ```bash
 emulator -avd <tu_avd> &                 # el emulador debe ser emulator-5556 (o exporta ANDROID_SERIAL)
-make e2e-emulator TARGET=cloud
+make e2e-emulator                       # Cloud Run por defecto
+make e2e-emulator TARGET=local          # contra make up: adb reverse tcp:3000 tcp:3000 automático
 ```
 
 `scripts/e2e_emulator.py` abre Chrome en el emulador por `adb` y lo controla por DevTools (`adb forward tcp:9333`). Luego:
@@ -225,7 +226,7 @@ make e2e-emulator TARGET=cloud
 
 El Makefile pasa `--try-passkey`, así que también abre `/configurar` y captura la hoja nativa de Chrome («Create passkey on another device?»). Esa hoja es la razón por la que en el escenario firma el portátil. Las capturas quedan en `docs/screenshots/emulator/`.
 
-Usa `TARGET=cloud`: desde el emulador, `localhost` es el propio emulador. Para probar contra `make up`, redirige el puerto antes con `adb reverse tcp:3000 tcp:3000`.
+Por defecto va contra Cloud Run: desde el emulador, `localhost` es el propio emulador. Con `TARGET=local` el Makefile ejecuta `adb -s emulator-5556 reverse tcp:3000 tcp:3000` para que el `localhost:3000` del emulador llegue a la app de `make up`.
 
 ### `make bias-test` — sin sesgo y en menos de 2 minutos
 
@@ -271,7 +272,7 @@ CLAVE=$(gcloud secrets versions access latest --secret=encargo-admin-token)
 open -na "Google Chrome" --args --app="$APP_URL/configurar?clave=$CLAVE" --window-size=390,844
 ```
 
-1. En la página «Configura tu passkey», revisa el nombre del dispositivo y pulsa «Registrar passkey en este teléfono».
+1. En la página «Configura tu passkey», revisa el nombre del dispositivo y pulsa «Registrar passkey en este dispositivo».
 2. Confirma con Touch ID.
 3. La página debe decir «Listo: «…» ya puede firmar pagos». El aviso superior muestra cuántas passkeys hay para `encargo-app-611681112050.us-central1.run.app`.
 
@@ -282,10 +283,10 @@ Abre siempre la app con la URL determinista (`…-611681112050.us-central1.run.a
 **Comprobar:**
 
 ```bash
-curl -s $AGENT_URL/passkeys/status   # {"registered":N,"rp_id":"…","labels":[…]}
+curl -s $AGENT_URL/passkeys/status   # {"registered":N,"rp_id":"…","passkeys":[{"id","label","created_at","last_used_at"}]}
 ```
 
-**Borrar una passkey:** `DELETE /passkeys/{id}` con `authorization: Bearer <ADMIN_TOKEN>`. `/passkeys/status` no expone los id; búscalos en la colección `passkeys` de Firestore (base `encargo`). `make e2e`, `make screens` y `make bias-test` borran solas las credenciales que crean.
+**Borrar una passkey:** en `/configurar` (con el código de configuración escrito) cada dispositivo registrado tiene un botón «Eliminar». Por API: `DELETE /passkeys/{id}` con `authorization: Bearer <ADMIN_TOKEN>`; los id salen en `/passkeys/status`. `make e2e`, `make screens` y `make bias-test` borran solas las credenciales que crean.
 
 ## 8. Encender y apagar el modo de control
 
@@ -416,7 +417,7 @@ Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_r
 | `out_of_stock` o el stock se acabó tras muchos ensayos | El estado de SQLite persiste | `make reset` / `make reset TARGET=cloud` |
 | El presentador muestra una corrida vieja | Sigue `/runs/latest` | `make reset TARGET=cloud` |
 | Pulso aparece legible sin querer | El modo de control quedó encendido | `make reset` o apágalo (sección 8) |
-| `make reset` dice `reset ok` pero algo no se reinició | Las llamadas corren en segundo plano y sus errores no detienen el script | Comprueba cada servicio con los `curl` de la sección 8 o con `/health` |
+| `make reset` termina con `reset FALLÓ: …` | Ese servicio no respondió (apagado, URL o `ADMIN_TOKEN` incorrectos) | Revisa el servicio nombrado con `/health` o los `curl` de la sección 8 y repite |
 | `make e2e-emulator` no conecta | Emulador apagado, otro serial o Chrome sin abrir | `adb devices`; `ANDROID_SERIAL=…`; abre Chrome una vez en el emulador |
 | El despliegue falla en `gcloud builds submit` | Falta el repositorio `charlas2027` o faltan permisos | Ver sección 1 |
 | Puertos 3000–3002 u 8000 ocupados | Quedó un `make up` anterior | `lsof -i :3000` y detén el proceso |

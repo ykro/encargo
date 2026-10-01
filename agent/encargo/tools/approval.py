@@ -50,5 +50,5 @@ async def request_payment_approval(ctx: RunContext, store_url: str, checkout_id:
         "requested": True,
         "mandate_id": mandate_id,
         "status": "pendiente de firma",
-        "next": "Detente aquí. La persona revisa y firma el mandato AP2 desde su teléfono.",
+        "next": "Detente aquí. La persona revisa y firma el mandato AP2 con su passkey.",
     }

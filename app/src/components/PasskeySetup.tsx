@@ -7,13 +7,17 @@ import { PhoneTop } from "./PhoneTop";
 import { Check, Key } from "./Icons";
 
 type State = "idle" | "working" | "done" | "error";
+interface Device { id: string; label?: string; created_at?: number; last_used_at?: number }
+
+const when = (t?: number) => (t ? new Date(t * 1000).toLocaleString("es-GT", { dateStyle: "medium", timeStyle: "short" }) : "nunca");
 
 export function PasskeySetup() {
   const [code, setCode] = useState("");
-  const [label, setLabel] = useState("Teléfono del presentador");
+  const [label, setLabel] = useState("Portátil del presentador");
   const [state, setState] = useState<State>("idle");
   const [message, setMessage] = useState<string | null>(null);
-  const [status, setStatus] = useState<{ registered: number; rp_id: string } | null>(null);
+  const [status, setStatus] = useState<{ registered: number; rp_id: string; passkeys: Device[] } | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null);
   const [supported, setSupported] = useState(true);
 
   const refresh = () =>
@@ -27,6 +31,29 @@ export function PasskeySetup() {
     setSupported(browserSupportsWebAuthn());
     refresh();
   }, []);
+
+  async function remove(device: Device) {
+    if (!code.trim()) {
+      setState("error");
+      setMessage("Escribe el código de configuración para eliminar un dispositivo.");
+      return;
+    }
+    setRemoving(device.id);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/agent/passkeys/${device.id}`, { method: "DELETE", headers: { authorization: `Bearer ${code.trim()}` } });
+      if (res.status === 401) throw new Error("El código de configuración no es válido.");
+      if (!res.ok) throw new Error((await res.json()).detail ?? "No se pudo eliminar.");
+      setState("done");
+      setMessage(`Eliminaste «${device.label ?? "dispositivo"}»: ya no puede firmar pagos.`);
+      refresh();
+    } catch (err) {
+      setState("error");
+      setMessage((err as Error).message);
+    } finally {
+      setRemoving(null);
+    }
+  }
 
   async function register(e: React.FormEvent) {
     e.preventDefault();
@@ -61,11 +88,26 @@ export function PasskeySetup() {
       <PhoneTop />
       <form className="phone-main" onSubmit={register}>
         <h1>Configura tu passkey</h1>
-        <p className="lede">Tu passkey es la única forma de autorizar un pago. Se guarda en este teléfono y se desbloquea con tu huella o tu rostro.</p>
+        <p className="lede">Tu passkey es la única forma de autorizar un pago. Se guarda en este dispositivo y se desbloquea con tu huella o tu rostro.</p>
         {status ? (
           <p className="notice notice-info" role="status">
             {status.registered === 0 ? "Aún no hay passkeys registradas" : `${status.registered} passkey${status.registered === 1 ? "" : "s"} registrada${status.registered === 1 ? "" : "s"}`} para {status.rp_id}.
           </p>
+        ) : null}
+        {status?.passkeys?.length ? (
+          <ul className="devices" aria-label="Dispositivos que pueden firmar">
+            {status.passkeys.map((d) => (
+              <li key={d.id}>
+                <span>
+                  <strong>{d.label ?? "Dispositivo"}</strong>
+                  <small>Registrada {when(d.created_at)} · último uso {when(d.last_used_at)}</small>
+                </span>
+                <button type="button" className="btn btn-quiet" onClick={() => remove(d)} disabled={removing === d.id} aria-label={`Eliminar ${d.label ?? "dispositivo"}`}>
+                  {removing === d.id ? "Eliminando…" : "Eliminar"}
+                </button>
+              </li>
+            ))}
+          </ul>
         ) : null}
         {!supported ? (
           <p className="notice notice-error" role="alert">Este navegador no admite passkeys.</p>
@@ -83,7 +125,7 @@ export function PasskeySetup() {
         <div className="phone-actions">
           <button className="btn btn-primary btn-block" type="submit" disabled={state === "working" || !supported}>
             <Key />
-            {state === "working" ? "Esperando tu passkey…" : "Registrar passkey en este teléfono"}
+            {state === "working" ? "Esperando tu passkey…" : "Registrar passkey en este dispositivo"}
           </button>
           {state === "done" ? (
             <a className="btn btn-quiet btn-block" href="/">Ir a hacer un encargo</a>

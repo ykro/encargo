@@ -202,7 +202,16 @@ class RegisterVerify(BaseModel):
 async def passkeys_status() -> dict[str, Any]:
     s = settings()
     keys = [p for p in await default_store().list_passkeys() if p.get("rp_id") == s.passkey_rp_id]
-    return {"registered": len(keys), "rp_id": s.passkey_rp_id, "labels": [p.get("label") for p in keys]}
+    return {
+        "registered": len(keys),
+        "rp_id": s.passkey_rp_id,
+        "labels": [p.get("label") for p in keys],
+        # Ids are public (WebAuthn allowCredentials exposes them anyway); deleting needs the setup token.
+        "passkeys": [
+            {"id": p["id"], "label": p.get("label"), "created_at": p.get("created_at"), "last_used_at": p.get("last_used_at")}
+            for p in sorted(keys, key=lambda k: k.get("created_at", 0))
+        ],
+    }
 
 
 @app.post("/passkeys/register/options")
@@ -222,7 +231,10 @@ async def passkey_register_verify(req: RegisterVerify, authorization: str | None
 
 @app.delete("/passkeys/{passkey_id}")
 async def passkey_delete(passkey_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    """Removes an enrolled device (setup token required). Unknown ids are a 404."""
     _require_admin(authorization)
+    if not any(p["id"] == passkey_id for p in await default_store().list_passkeys()):
+        raise HTTPException(404, "Esa passkey no está registrada.")
     await default_store().delete_passkey(passkey_id)
     return {"deleted": passkey_id}
 

@@ -1,6 +1,6 @@
 """Automated passkey test: the phone flow in Chrome with a virtual authenticator.
 
-  make e2e APP=https://encargo-app-….run.app
+  make e2e TARGET=cloud              (or APP=https://… AGENT=https://… to point elsewhere)
 
 Phone-sized Chrome window, DevTools virtual authenticator (platform passkey with
 user verification): enroll with the setup code → send the errand → wait for the
@@ -37,7 +37,7 @@ async def main(a: argparse.Namespace) -> int:
         try:
             await page.goto(f"{a.app}/configurar?clave={a.setup}")
             await page.get_by_label("Nombre del dispositivo").fill("e2e (autenticador virtual)")
-            await page.get_by_role("button", name="Registrar passkey en este teléfono").click()
+            await page.get_by_role("button", name="Registrar passkey en este dispositivo").click()
             await page.locator(".notice-ok").wait_for(timeout=20000)
             print("✓ passkey registrada", flush=True)
 

@@ -115,10 +115,10 @@ Variables: `TARGET=local|cloud` (por omisión `local`), `URL` (por omisión `htt
 | --- | --- |
 | `make help` | Lista los comandos con su descripción. |
 | `make up` | Arranca en local la app (3000), Kilómetro (3001), Pulso (3002) y el agente (8000). Los logs quedan en `.data/logs/`. Ctrl-C detiene todo. |
-| `make reset` | Vuelve al estado inicial: stock sembrado, sin carritos, checkouts ni pedidos, Pulso opaco y sin corridas, eventos, mandatos ni capturas. Las passkeys se conservan. `TARGET=cloud` reinicia los servicios de Cloud Run. |
+| `make reset` | Vuelve al estado inicial: stock sembrado, sin carritos, checkouts ni pedidos, Pulso opaco y sin corridas, eventos, mandatos ni capturas. Las passkeys se conservan. Espera cada llamada y falla (con el servicio que no respondió) si alguna falla; solo entonces imprime `reset ok`. `TARGET=cloud` reinicia los servicios de Cloud Run. |
 | `make test` | Kit de comercio (vitest), typecheck de las tiendas y de la app, agente (pytest con `MOCK_AI=1`, Firestore en memoria, sin navegador). |
 | `make e2e` | Flujo de passkey en Chrome con el autenticador virtual de DevTools: registra → envía el encargo → firma el mandato → pedido confirmado. Borra la credencial al final. |
-| `make e2e-emulator` | Lado del teléfono en el emulador Android (`emulator-5556`): encargo, progreso, tarjeta de aprobación y cancelación. Guarda capturas en `docs/screenshots/emulator/`. Úsalo con `TARGET=cloud`. |
+| `make e2e-emulator` | Lado del teléfono en el emulador Android (`emulator-5556`): encargo, progreso, tarjeta de aprobación y cancelación. Guarda capturas en `docs/screenshots/emulator/`. Por defecto va contra Cloud Run (el emulador no ve el `localhost` del portátil); con `TARGET=local` mapea el puerto 3000 con `adb reverse`. |
 | `make bias-test` | 10 corridas con el modo de control apagado (espera Kilómetro) y 10 con el modo encendido (espera Pulso). Cada corrida va del encargo a la firma con passkey y al pedido. Escribe el reporte en `bias-results/`. |
 | `make audit URL=…` | Checklist de preparación para agentes de cualquier tienda. |
 | `make phone` | Abre el «teléfono» que firma: una ventana de Chrome de 390×844 en modo app, con la passkey del Mac (Touch ID). |

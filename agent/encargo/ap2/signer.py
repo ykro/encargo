@@ -4,8 +4,9 @@ Only a human approval reaches this module (the API's sign endpoint, never an
 agent tool). It builds an AP2 v0.2 closed Checkout Mandate (vct
 "mandate.checkout.1") as an SD-JWT, signed with the platform key published in
 the agent's /.well-known/ucp — the "trusted platform provider" model of the
-UCP AP2 Mandates extension. In Phase 2 the approval is a WebAuthn passkey
-assertion from the person's phone; today it is a test-mode signer.
+UCP AP2 Mandates extension. The approval is a WebAuthn passkey assertion
+bound to the checkout (encargo/passkey.py); in test mode a bearer token can
+stand in for it (tests and local rehearsals only).
 """
 
 from __future__ import annotations
