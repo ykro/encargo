@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 756 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="agent-readability-matrix-title agent-readability-matrix-desc">
+      <title id="agent-readability-matrix-title">Lo que el agente puede leer en cada tienda</title>
+      <desc id="agent-readability-matrix-desc">Matriz que compara qué datos del encargo puede verificar el agente en Pulso, en Kilómetro y en Pulso con el modo de control: Pulso los guarda en imágenes, canvas o tras iniciar sesión; Kilómetro y Pulso en modo de control los publican como datos.</desc>
+      <defs>
+        <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');</style>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2346D6"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+      <rect x="12" y="72" width="208" height="52" rx="6" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="116" y="96" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Lo que el agente necesita</text>
+      <text x="116" y="112" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">vs. tienda</text>
+      <rect x="232" y="72" width="148" height="52" rx="6" fill="#2d3142"/>
+      <text x="306" y="92" fill="#ffffff" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Pulso</text>
+      <text x="306" y="108" fill="#ffffff" fill-opacity="0.85" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">control apagado</text>
+      <rect x="396" y="72" width="148" height="52" rx="6" fill="#2d3142"/>
+      <text x="470" y="92" fill="#ffffff" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Kilómetro</text>
+      <text x="470" y="108" fill="#ffffff" fill-opacity="0.85" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">siempre</text>
+      <rect x="560" y="72" width="148" height="52" rx="6" fill="#2d3142"/>
+      <text x="634" y="92" fill="#ffffff" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Pulso</text>
+      <text x="634" y="108" fill="#ffffff" fill-opacity="0.85" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PULSO_AGENT_READY=true</text>
+      <rect x="12" y="140" width="208" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="24" y="162" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Nombre del modelo</text>
+      <text x="208" y="162" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end"></text>
+      <rect x="232" y="140" width="148" height="36" rx="4" fill="#4f5d75" fill-opacity="0.08" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="306" y="162" fill="#4f5d75" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">Dentro de la imagen</text>
+      <rect x="396" y="140" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="470" y="162" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">JSON-LD · feed · UCP</text>
+      <rect x="560" y="140" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="634" y="162" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">JSON-LD · feed · UCP</text>
+      <rect x="12" y="180" width="208" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="24" y="202" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Precio</text>
+      <text x="208" y="202" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">&lt; 150 USD</text>
+      <rect x="232" y="180" width="148" height="36" rx="4" fill="#2346d6" fill-opacity="0.07" stroke="#2346D6" stroke-width="1.4"/>
+      <text x="306" y="198" fill="#2346D6" font-size="10" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Dentro de la imagen</text>
+      <text x="306" y="210" fill="#2346D6" fill-opacity="0.85" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">139 USD · no verificable</text>
+      <rect x="396" y="180" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="470" y="202" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">145.00 USD</text>
+      <rect x="560" y="180" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="634" y="202" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">139.00 USD</text>
+      <rect x="12" y="220" width="208" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="24" y="242" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Tallas en stock</text>
+      <text x="208" y="242" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">talla 9</text>
+      <rect x="232" y="220" width="148" height="36" rx="4" fill="#4f5d75" fill-opacity="0.08" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="306" y="242" fill="#4f5d75" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">Dibujadas en canvas</text>
+      <rect x="396" y="220" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="470" y="242" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">InStock por talla</text>
+      <rect x="560" y="220" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="634" y="242" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">InStock por talla</text>
+      <rect x="12" y="260" width="208" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="24" y="282" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Categoría</text>
+      <text x="208" y="282" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">trail</text>
+      <rect x="232" y="260" width="148" height="36" rx="4" fill="#f5f5f5" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="306" y="282" fill="#7a8399" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">No publicada</text>
+      <rect x="396" y="260" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="470" y="282" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">terreno = trail</text>
+      <rect x="560" y="260" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="634" y="282" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">terreno = trail</text>
+      <rect x="12" y="300" width="208" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="24" y="322" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Fecha de entrega</text>
+      <text x="208" y="322" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">≤ viernes</text>
+      <rect x="232" y="300" width="148" height="36" rx="4" fill="#4f5d75" fill-opacity="0.08" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="306" y="322" fill="#4f5d75" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">Tras iniciar sesión</text>
+      <rect x="396" y="300" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="470" y="322" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">preparación + tránsito</text>
+      <rect x="560" y="300" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="634" y="322" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">preparación + tránsito</text>
+      <rect x="12" y="340" width="208" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="24" y="362" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Feed de productos</text>
+      <text x="208" y="362" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">/feed.xml</text>
+      <rect x="232" y="340" width="148" height="36" rx="4" fill="#f5f5f5" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="306" y="362" fill="#7a8399" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">404</text>
+      <rect x="396" y="340" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="470" y="362" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">Merchant Center</text>
+      <rect x="560" y="340" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="634" y="362" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">Merchant Center</text>
+      <rect x="12" y="380" width="208" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="24" y="402" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Perfil UCP</text>
+      <text x="208" y="402" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">/.well-known/ucp</text>
+      <rect x="232" y="380" width="148" height="36" rx="4" fill="#f5f5f5" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="306" y="402" fill="#7a8399" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">404</text>
+      <rect x="396" y="380" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="470" y="402" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">UCP 2026-08-25</text>
+      <rect x="560" y="380" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="634" y="402" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">UCP 2026-08-25</text>
+      <rect x="12" y="420" width="208" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="24" y="442" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Checkout para agentes</text>
+      <text x="208" y="442" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end"></text>
+      <rect x="232" y="420" width="148" height="36" rx="4" fill="#4f5d75" fill-opacity="0.08" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="306" y="442" fill="#4f5d75" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">Solo con sesión</text>
+      <rect x="396" y="420" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="470" y="442" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">UCP + mandato AP2</text>
+      <rect x="560" y="420" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="634" y="442" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">UCP + mandato AP2</text>
+      <rect x="12" y="460" width="208" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="24" y="482" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Texto sin JavaScript</text>
+      <text x="208" y="482" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">SSR</text>
+      <rect x="232" y="460" width="148" height="36" rx="4" fill="#f5f5f5" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="306" y="482" fill="#7a8399" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">Cascarón vacío</text>
+      <rect x="396" y="460" width="148" height="36" rx="4" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="470" y="482" fill="#2d3142" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">Render en servidor</text>
+      <rect x="560" y="460" width="148" height="36" rx="4" fill="#f5f5f5" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.6"/>
+      <text x="634" y="482" fill="#7a8399" font-size="10" font-weight="400" font-family="'Geist', sans-serif" text-anchor="middle">Cascarón vacío</text>
+      <line x1="12" y1="516" x2="744" y2="516" stroke="#2d3142" stroke-opacity="0.10" stroke-width="0.8"/>
+      <text x="12" y="536" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEYENDA</text>
+      <rect x="84" y="527" width="14" height="12" rx="2" fill="#ffffff" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="104" y="536" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Dato verificable</text>
+      <rect x="216" y="527" width="14" height="12" rx="2" fill="#4f5d75" fill-opacity="0.08" stroke="#2d3142" stroke-opacity="0.12" stroke-width="0.8"/>
+      <text x="236" y="536" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Solo para una persona</text>
+      <rect x="368" y="527" width="14" height="12" rx="2" fill="#f5f5f5" stroke="#2d3142" stroke-opacity="0.20" stroke-width="0.8"/>
+      <text x="388" y="536" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">No publicado</text>
+      <rect x="480" y="527" width="14" height="12" rx="2" fill="#2346d6" fill-opacity="0.07" stroke="#2346D6" stroke-width="1"/>
+      <text x="500" y="536" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Lo que pierde a Pulso</text>
+    </svg>

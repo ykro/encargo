@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 824" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="purchase-sequence-title purchase-sequence-desc">
+      <title id="purchase-sequence-title">Secuencia de una compra</title>
+      <desc id="purchase-sequence-desc">Secuencia de una compra: el agente recibe el encargo, Pulso no publica datos y Kilómetro sí; el agente llena el checklist, crea el checkout, pide aprobación, la persona firma con su passkey y Kilómetro confirma el pedido con el mandato AP2.</desc>
+      <defs>
+        <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');</style>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2346D6"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+      <line x1="120" y1="128" x2="120" y2="752" stroke="#2d3142" stroke-opacity="0.22" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="380" y1="128" x2="380" y2="752" stroke="#2d3142" stroke-opacity="0.22" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="640" y1="128" x2="640" y2="752" stroke="#2d3142" stroke-opacity="0.22" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="860" y1="128" x2="860" y2="752" stroke="#2d3142" stroke-opacity="0.22" stroke-width="1" stroke-dasharray="3,3"/>
+      <rect x="376" y="176" width="8" height="552" fill="#2d3142" fill-opacity="0.06" stroke="#4f5d75" stroke-width="0.8"/>
+      <line x1="120" y1="176" x2="376" y2="176" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="384" y1="220" x2="640" y2="220" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="640" y1="264" x2="384" y2="264" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <line x1="384" y1="308" x2="860" y2="308" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="860" y1="352" x2="384" y2="352" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <line x1="384" y1="472" x2="860" y2="472" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="376" y1="516" x2="120" y2="516" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <line x1="120" y1="636" x2="376" y2="636" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="384" y1="680" x2="860" y2="680" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="860" y1="724" x2="384" y2="724" stroke="#2346D6" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <path d="M 384 396 L 424 396 L 424 428 L 384 428" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <path d="M 120 560 L 160 560 L 160 592 L 124 592" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="192" y="156" width="112" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="248" y="165" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">POST /RUNS · ENCARGO</text>
+      <rect x="456" y="200" width="112" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="512" y="209" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">FEED · UCP · JSON-LD</text>
+      <rect x="458" y="244" width="108" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="512" y="253" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">404 · SOLO IMÁGENES</text>
+      <rect x="708" y="288" width="84" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="750" y="297" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">FEED.XML · UCP</text>
+      <rect x="690" y="332" width="120" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="750" y="341" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PRECIO · TALLA · FECHA</text>
+      <rect x="700" y="452" width="100" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="750" y="461" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CHECKOUT-SESSIONS</text>
+      <rect x="188" y="496" width="120" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="248" y="505" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PIDE APROBACIÓN · SSE</text>
+      <rect x="188" y="616" width="120" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="248" y="625" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">POST /SIGN · ASERCIÓN</text>
+      <rect x="686" y="660" width="128" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="750" y="669" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">COMPLETE + MANDATO AP2</text>
+      <rect x="696" y="704" width="108" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="750" y="713" fill="#2346D6" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PEDIDO CONFIRMADO</text>
+      <rect x="432" y="406" width="136" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="500" y="415" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CHECKLIST · 4 × 2 TIENDAS</text>
+      <rect x="168" y="570" width="128" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="232" y="579" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PASSKEY · TOUCH ID</text>
+      <text x="440" y="520" fill="#4f5d75" font-size="14" font-style="italic" font-family="'Instrument Serif', serif">solo si todo «cumple»</text>
+      <text x="176" y="606" fill="#4f5d75" font-size="14" font-style="italic" font-family="'Instrument Serif', serif">firma ligada al checkout</text>
+      <rect x="40" y="72" width="160" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="40" y="72" width="160" height="56" rx="6" fill="#4f5d75" fill-opacity="0.10" stroke="#7a8399" stroke-width="1"/>
+      <rect x="48" y="78" width="40" height="12" rx="2" fill="none" stroke="#7a8399" stroke-opacity="0.40" stroke-width="0.8"/>
+      <text x="68" y="87" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">LAPTOP</text>
+      <text x="120" y="104" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Persona</text>
+      <text x="120" y="120" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">ventana de firma · app</text>
+      <rect x="300" y="72" width="160" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="300" y="72" width="160" height="56" rx="6" fill="#2346d6" fill-opacity="0.08" stroke="#2346D6" stroke-width="1"/>
+      <rect x="308" y="78" width="28" height="12" rx="2" fill="none" stroke="#2346d6" stroke-opacity="0.50" stroke-width="0.8"/>
+      <text x="322" y="87" fill="#2346D6" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">RUN</text>
+      <text x="380" y="104" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Agente Encargo</text>
+      <text x="380" y="120" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">ADK · Gemini</text>
+      <rect x="560" y="72" width="160" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="560" y="72" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="568" y="78" width="28" height="12" rx="2" fill="none" stroke="#2d3142" stroke-opacity="0.40" stroke-width="0.8"/>
+      <text x="582" y="87" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">RUN</text>
+      <text x="640" y="104" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Pulso</text>
+      <text x="640" y="120" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">solo para humanos</text>
+      <rect x="780" y="72" width="160" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="780" y="72" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="788" y="78" width="28" height="12" rx="2" fill="none" stroke="#2d3142" stroke-opacity="0.40" stroke-width="0.8"/>
+      <text x="802" y="87" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">RUN</text>
+      <text x="860" y="104" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Kilómetro</text>
+      <text x="860" y="120" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">lista para agentes</text>
+      <line x1="40" y1="768" x2="960" y2="768" stroke="#2d3142" stroke-opacity="0.10" stroke-width="0.8"/>
+      <text x="40" y="788" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEYENDA</text>
+      <line x1="112" y1="785" x2="128" y2="785" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="134" y="788" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Llamada</text>
+      <line x1="216" y1="785" x2="232" y2="785" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <text x="238" y="788" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Respuesta</text>
+      <line x1="328" y1="785" x2="344" y2="785" stroke="#2346D6" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <text x="350" y="788" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Pedido confirmado</text>
+      <rect x="480" y="780" width="14" height="10" rx="2" fill="#2346d6" fill-opacity="0.08" stroke="#2346D6" stroke-width="1"/>
+      <text x="502" y="788" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Agente (foco)</text>
+      <rect x="600" y="780" width="14" height="10" rx="2" fill="#4f5d75" fill-opacity="0.10" stroke="#7a8399" stroke-width="1"/>
+      <text x="622" y="788" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Portátil</text>
+      <rect x="696" y="780" width="14" height="10" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="718" y="788" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Cloud Run</text>
+    </svg>

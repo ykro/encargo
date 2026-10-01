@@ -10,7 +10,7 @@ Verificado el 2026-09-30 contra la documentación y los repositorios oficiales.
 | Agent Payments Protocol (AP2) | `v0.2` (CHANGELOG 0.2.0, 2026-04-28) | [ap2-protocol.org](https://ap2-protocol.org), [github.com/google-agentic-commerce/AP2](https://github.com/google-agentic-commerce/AP2) | Mandato de checkout cerrado (`vct: "mandate.checkout.1"`, `checkout_jwt` + `checkout_hash`) como SD-JWT firmado ES256, en el modelo "trusted platform provider" de la extensión AP2 Mandates de UCP. La tienda firma cada checkout (`ap2.merchant_authorization`, JWS desacoplado sobre JCS/RFC 8785) y rechaza `complete` sin un mandato válido. El formato se implementa directamente (TypeScript: `stores/shared/src/ap2/`, Python: `agent/encargo/ap2/`); no se usa la cadena de delegación abierta→cerrada del SDK de AP2 ni el mandato de pago (los pagos son sandbox). |
 | schema.org | versión actual (Product, ProductGroup, Offer, OfferShippingDetails, ShippingDeliveryTime) | [schema.org](https://schema.org) | JSON-LD en cada página de producto de Kilómetro (y de Pulso en modo de control). |
 | Google Merchant Center feed | RSS 2.0 + espacio de nombres `g:` | [Product data specification](https://support.google.com/merchants/answer/7052112) | `/feed.xml`: un `item` por talla con `item_group_id`, `price`, `availability`, `size`, `min/max_handling_time` y `g:shipping` con `min/max_transit_time`. |
-| WebAuthn (passkeys) | — (Fase 2) | [W3C WebAuthn Level 3](https://www.w3.org/TR/webauthn-3/) | En la Fase 1 la firma humana es un firmador de prueba protegido por token (`SIGNER_MODE=test`); la Fase 2 lo reemplaza por una aserción de passkey desde el teléfono. |
+| WebAuthn (passkeys) | Level 3 | [W3C WebAuthn Level 3](https://www.w3.org/TR/webauthn-3/) | La persona aprueba cada pago con una passkey (verificación de usuario obligatoria). El desafío se deriva del checkout firmado por la tienda: `sha256(checkout_hash + "." + nonce)`. Servidor: `webauthn` (py_webauthn) en `agent/encargo/passkey.py`; navegador: `@simplewebauthn/browser` en la app. En la nube solo una aserción de passkey aprueba (`SIGNER_MODE=passkey`); el firmador de prueba con token existe solo con `SIGNER_MODE=test`. |
 
 ## Dependencias principales
 
@@ -22,9 +22,11 @@ Verificado el 2026-09-30 contra la documentación y los repositorios oficiales.
 | Agente | playwright (Chromium headless) | 1.63.0 |
 | Agente | google-cloud-firestore | 2.33.0 |
 | Agente | fastapi | 0.141.1 |
+| Agente | webauthn (py_webauthn) | 3.0.1 |
 | Tiendas | Node.js | 24 (SQLite con `node:sqlite`) |
 | Tiendas | next | 16.3.8 (App Router) |
 | Tiendas | react | 19.3.0 |
 | Tiendas | jose | 6.2.12 |
+| App | @simplewebauthn/browser | ^14.0.0 |
 
 Modelos: siempre desde variables de entorno (`GEMINI_MODEL`, `IMAGE_MODEL`), ver `.env.example`.

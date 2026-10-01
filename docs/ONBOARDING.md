@@ -1,0 +1,455 @@
+# Onboarding — Encargo
+
+Guía para instalar, desplegar, probar y presentar Encargo. Para entender qué enseña la demo y por qué está hecha así, lee primero el [README](../README.md).
+
+## Contenido
+
+1. [Requisitos](#1-requisitos)
+2. [Configuración local](#2-configuración-local)
+3. [Credenciales: ADC y Secret Manager](#3-credenciales-adc-y-secret-manager)
+4. [Google Cloud: los scripts de `infra/` en orden](#4-google-cloud-los-scripts-de-infra-en-orden)
+5. [Local frente a nube](#5-local-frente-a-nube)
+6. [Pruebas y ensayos](#6-pruebas-y-ensayos)
+7. [Registrar la passkey (`/configurar`)](#7-registrar-la-passkey-configurar)
+8. [Encender y apagar el modo de control](#8-encender-y-apagar-el-modo-de-control)
+9. [Recorrido del código: una corrida](#9-recorrido-del-código-una-corrida)
+10. [Solución de problemas](#10-solución-de-problemas)
+11. [Checklist del día de la charla](#11-checklist-del-día-de-la-charla)
+
+---
+
+## 1. Requisitos
+
+| Herramienta | Versión | Para qué |
+| --- | --- | --- |
+| macOS con Touch ID | — | `make phone` usa `open -na "Google Chrome"`, y la passkey del escenario usa el autenticador del Mac |
+| Node.js + npm | Node 24 (probado con 24.21.0, npm 12) | Tiendas y app (Next.js 16.3.8, React 19.3). Las tiendas usan `node:sqlite` |
+| uv | 0.8 (probado con 0.8.22) | Agente en Python. `agent/.python-version` fija Python **3.13**; uv lo instala si falta (`uv python install 3.13`) |
+| Google Cloud SDK | probado con 587.0.0 | ADC, Secret Manager, Cloud Build, Cloud Run |
+| Google Chrome | estable | `make phone`, `make e2e` y `make screens` (si no está, usan el Chromium de Playwright) |
+| Chromium de Playwright | 1.63 (lo fija `agent/uv.lock`) | `browse_page` y las capturas del presentador: `cd agent && uv run playwright install chromium` |
+| Android SDK platform-tools (`adb`) + emulador | adb 1.0.41; emulador `emulator-5556` con Chrome | Solo para `make e2e-emulator` |
+| `curl`, `openssl`, `make`, `bash` | los del sistema | `make reset` y `infra/20-secrets.sh` |
+
+Acceso a Google Cloud:
+
+- Proyecto `ai-experiments-487722`, región `us-central1`.
+- Repositorio de Artifact Registry `charlas2027` (Docker, `us-central1`). Ya existe y lo comparten las demos de la charla. Si no existe:
+
+  ```bash
+  gcloud artifacts repositories create charlas2027 --repository-format=docker --location=us-central1
+  ```
+
+- Tu cuenta necesita permisos para habilitar APIs, administrar secretos, construir con Cloud Build y desplegar en Cloud Run.
+- La cuenta de servicio de ejecución (`PROJECT_NUMBER-compute@developer.gserviceaccount.com`) necesita leer los secretos (eso lo da `infra/20-secrets.sh`), escribir en Firestore y llamar a Vertex AI.
+
+## 2. Configuración local
+
+```bash
+git clone <repo> encargo && cd encargo
+cp .env.example .env
+for d in stores/shared stores/kilometro stores/pulso app; do (cd "$d" && npm ci); done
+(cd agent && uv sync && uv run playwright install chromium)
+gcloud auth application-default login
+make up
+```
+
+- `make up` (`scripts/up.sh`) carga `.env`, instala dependencias de Node si faltan (en las tiendas y la app, no en `stores/shared`) y arranca cuatro procesos.
+- Los logs quedan en `.data/logs/{kilometro,pulso,agent,app}.log`.
+- Ctrl-C detiene todo.
+
+| URL | Qué es |
+| --- | --- |
+| `http://localhost:3000` | App Encargo: el «teléfono» (encargo y aprobación) |
+| `http://localhost:3000/presenter` | Vista del presentador (1920×1080) |
+| `http://localhost:3000/configurar?clave=dev-admin` | Registro de la passkey |
+| `http://localhost:3000/auditoria` | Auditoría de preparación para agentes |
+| `http://localhost:3001` | Kilómetro |
+| `http://localhost:3002` | Pulso |
+| `http://localhost:8000/health` | Agente (`{"ok":true,"mode":"gemini"\|"mock",…}`) |
+
+Las tiendas copian el kit compartido y el catálogo en `src/shared/` antes de `dev`, `build` y `typecheck` (`npm run sync`, `stores/sync-shared.mjs`). Esas copias están en `.gitignore`. Edita siempre `stores/shared/src/` y `catalog/`, nunca la copia.
+
+### Variables de `.env`
+
+| Variable | Valor local | Qué controla |
+| --- | --- | --- |
+| `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, `GOOGLE_GENAI_USE_VERTEXAI` | `ai-experiments-487722`, `global`, `true` | Gemini vía Vertex AI con ADC |
+| `GEMINI_MODEL` | ver `.env.example` | Modelo del agente y verificador de imágenes. No está escrito en el código |
+| `IMAGE_MODEL` | ver `.env.example` | Modelo de imágenes de `make images` |
+| `MOCK_AI` | `0` | `1` = planificador determinista, sin modelo |
+| `AGENT_PUBLIC_URL` | `http://localhost:8000` | Origen del perfil UCP del agente (`/.well-known/ucp`) |
+| `STORE_URLS` | `http://localhost:3002,http://localhost:3001` | Tiendas por omisión de `POST /runs` |
+| `RUN_STORE` | `memory` | `firestore` en la nube |
+| `FIRESTORE_DATABASE` | `encargo` | Base de Firestore |
+| `RUN_TIMEOUT_S` | `110` | Tope de una corrida (hasta pedir la aprobación) |
+| `BROWSER_ENABLED` | `1` | `0` desactiva las capturas «lo que ve una persona» |
+| `SIGNER_MODE` | `test` | `passkey` en la nube: solo una aserción WebAuthn aprueba |
+| `PASSKEY_RP_ID`, `PASSKEY_ORIGIN` | `localhost`, `http://localhost:3000` | A qué host y origen se ligan las passkeys |
+| `HUMAN_APPROVAL_TOKEN` | `change-me-human` | Firmador de prueba, solo con `SIGNER_MODE=test` |
+| `PLATFORM_SIGNING_JWK` | vacío | Llave estable del mandato AP2. Vacía = una llave nueva por proceso |
+| `AGENT_URL`, `PULSO_URL`, `KILOMETRO_URL` | localhost | Dónde la app encuentra al agente y las tiendas |
+| `ADMIN_TOKEN` | `dev-admin` | `make reset`, modo de control y registro de passkeys |
+| `PULSO_AGENT_READY` | `false` | Modo de control al arrancar |
+| `TRUSTED_PLATFORM_PROFILES` | `http://localhost:8000/.well-known/ucp` | Plataformas cuyos mandatos aceptan las tiendas |
+| `MERCHANT_SIGNING_JWK` | vacío | Llave estable de la tienda. Vacía = una llave nueva por proceso |
+| `MODEL_HEDGE_AFTER_S` | no está en `.env.example`; por omisión `6` | Segundos antes de enviar una llamada de cobertura al modelo |
+
+## 3. Credenciales: ADC y Secret Manager
+
+**ADC.** Gemini (Vertex AI) y Firestore usan Application Default Credentials, sin llaves en archivos:
+
+```bash
+gcloud auth application-default login
+gcloud auth application-default set-quota-project ai-experiments-487722
+```
+
+En Cloud Run, las mismas bibliotecas usan la cuenta de servicio de ejecución. Con `MOCK_AI=1` y `RUN_STORE=memory` no hace falta ADC para correr en local; `make test` nunca lo necesita.
+
+**Secret Manager.** `infra/20-secrets.sh` crea tres secretos una sola vez (si ya existen, no los toca) y le da a la cuenta de ejecución `roles/secretmanager.secretAccessor`:
+
+| Secreto | Contenido | Lo usa |
+| --- | --- | --- |
+| `encargo-platform-jwk` | Llave privada EC P-256 (JWK) con la que el agente firma los mandatos AP2 | Agente (`PLATFORM_SIGNING_JWK`) |
+| `encargo-admin-token` | Código de configuración y de administración | Tiendas y agente (`ADMIN_TOKEN`); `make reset`, `bias-test`, `e2e` y `screens` con `TARGET=cloud`; `/configurar` |
+| `encargo-human-token` | Token del firmador de prueba | Agente (`HUMAN_APPROVAL_TOKEN`). En la nube no aprueba nada, porque el agente corre con `SIGNER_MODE=passkey` |
+
+Leer un secreto:
+
+```bash
+gcloud secrets versions access latest --secret=encargo-admin-token --project ai-experiments-487722
+```
+
+- Para rotar un secreto, agrega una versión (`gcloud secrets versions add encargo-admin-token --data-file=-`) y vuelve a desplegar los servicios que lo usan.
+- Cloud Run lee `:latest` cuando crea la revisión.
+- Ningún secreto se escribe en el repositorio. `.env` está en `.gitignore`.
+
+## 4. Google Cloud: los scripts de `infra/` en orden
+
+Todos los scripts cargan `infra/env.sh`:
+
+- `PROJECT_ID=ai-experiments-487722`, `REGION=us-central1` y `AR_REPO=charlas2027`.
+- `CLOUDSDK_CORE_PROJECT`, para no tocar tu configuración global de gcloud.
+- `APP=encargo`, desde `infra/app.env`.
+
+Cada script es idempotente.
+
+`infra/urls.sh` calcula las URL deterministas de Cloud Run (`https://SERVICIO-NUMERO_DE_PROYECTO.us-central1.run.app`). Así, cada servicio conoce a los demás antes de que existan, y el orden de despliegue no rompe referencias.
+
+| Paso | Script | Qué hace |
+| --- | --- | --- |
+| 1 | `infra/10-enable-apis.sh` | Habilita Run, Cloud Build, Artifact Registry, Firestore, Vertex AI y Secret Manager. Crea la base de Firestore `encargo` (`nam5`) si no existe. |
+| 2 | `infra/20-secrets.sh` | Genera la llave de la plataforma con el propio código del agente (`encargo.ap2.signer.platform_key`). Crea los tres secretos y da acceso a la cuenta de ejecución. |
+| 3 | `infra/30-deploy-stores.sh` | Para Pulso y Kilómetro: `npm run sync`, Cloud Build → Artifact Registry → Cloud Run. Usa 1 instancia mínima y máxima, 512 MiB, `PULSO_AGENT_READY` (por omisión `false`), `TRUSTED_PLATFORM_PROFILES=<agente>/.well-known/ucp` y `ADMIN_TOKEN` desde Secret Manager. |
+| 4 | `infra/40-deploy-agent.sh` | Agente con CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s y 1 instancia. Toma `GEMINI_MODEL` de `.env`. Fija `RUN_STORE=firestore`, `SIGNER_MODE=passkey` y `PASSKEY_RP_ID`/`PASSKEY_ORIGIN` = el host y el origen de la app. Monta los tres secretos. |
+| 5 | `infra/50-deploy-app.sh` | App con 1 a 2 instancias y 512 MiB. Le pasa las URL del agente y las tiendas y `APP_PUBLIC_HOST`. Al final imprime la URL de configuración de la passkey. |
+
+`make deploy` ejecuta los cinco en orden. Para volver a desplegar un solo servicio, ejecuta su script:
+
+```bash
+./infra/40-deploy-agent.sh                              # solo el agente
+PULSO_AGENT_READY=true ./infra/30-deploy-stores.sh      # tiendas con el modo de control encendido al arrancar
+```
+
+Comprobación rápida después de desplegar:
+
+```bash
+source infra/env.sh && source infra/urls.sh
+curl -s "$AGENT_URL/health"                         # {"ok":true,"mode":"gemini","run_store":"firestore"}
+curl -s -o /dev/null -w '%{http_code}\n' "$PULSO_URL/.well-known/ucp"       # 404 (Pulso opaco)
+curl -s -o /dev/null -w '%{http_code}\n' "$KILOMETRO_URL/.well-known/ucp"   # 200
+make audit URL=$KILOMETRO_URL                        # Puntaje: 8/8
+```
+
+## 5. Local frente a nube
+
+| Aspecto | Local (`make up`) | Nube (`make deploy`) |
+| --- | --- | --- |
+| Estado de las corridas | `RUN_STORE=memory`: se pierde al detener el agente, **incluidas las passkeys** | Firestore `encargo`: sobrevive a reinicios; `make reset` conserva las passkeys |
+| Quién aprueba un pago | `SIGNER_MODE=test`: passkey o el token de prueba | `SIGNER_MODE=passkey`: solo una passkey |
+| RP ID de la passkey | `localhost` (WebAuthn permite `http://localhost`) | El host `encargo-app-611681112050.us-central1.run.app` |
+| Modelo | Gemini con ADC, o `MOCK_AI=1` | Gemini (`MOCK_AI=0`) |
+| Llaves AP2 | Nuevas en cada proceso | La de la plataforma viene de Secret Manager; la de cada tienda se genera por proceso (una sola instancia) |
+| Comandos | `make reset`, `make e2e`, … | Los mismos con `TARGET=cloud` (leen las URL de `infra/urls.sh` y `ADMIN_TOKEN` de Secret Manager) |
+
+`TARGET=cloud` aplica a `reset`, `bias-test`, `e2e`, `e2e-emulator`, `screens` y `phone`. `make audit` recibe la URL directamente.
+
+## 6. Pruebas y ensayos
+
+### `make test` — sin red, en segundos
+
+```bash
+make test
+```
+
+Corre cuatro grupos de pruebas:
+
+1. **Kit de comercio** (`stores/shared/tests/`, vitest, 15 pruebas): lo que publican schema.org, el feed y UCP; las fechas de entrega; y que no hay pago sin mandato. Esto último cubre un mandato ausente, una llave desconocida, una plataforma sin confianza, términos distintos, otro checkout, un mandato vencido y un mandato para otra tienda.
+2. **Typecheck** de Kilómetro, Pulso y la app.
+3. **Agente** (`agent/tests/`, pytest, 31 pruebas). `conftest.py` fija `MOCK_AI=1`, `RUN_STORE=memory`, `BROWSER_ENABLED=0` y `SIGNER_MODE=test`. Las tiendas falsas (`tests/fake_stores.py`) sirven fixtures reales de Kilómetro y Pulso. Las pruebas que más enseñan:
+   - `test_pulso_page_has_no_facts_for_a_machine`.
+   - `test_control_mode_buys_where_it_is_cheaper`.
+   - `test_guardrail_refuses_approval_when_a_condition_is_not_verified`.
+   - `test_agent_has_no_tool_that_signs_or_pays`.
+   - `test_wrong_origin_unregistered_key_or_replay_never_pays`.
+   - `test_friday_is_the_first_friday_after_the_run_date`.
+
+### `make e2e` — passkey real en Chrome
+
+```bash
+make e2e                # contra make up (en otra terminal)
+make e2e TARGET=cloud   # contra Cloud Run
+```
+
+`scripts/e2e_passkey.py` abre Chrome de 390×844 con el autenticador virtual de DevTools (una passkey de plataforma con verificación de usuario). Luego:
+
+1. Registra la passkey en `/configurar` con el código de configuración.
+2. Envía el encargo.
+3. Espera «Autoriza la compra».
+4. Firma el mandato y espera el pedido confirmado.
+
+Imprime una línea `✓` por paso y sale con un código distinto de cero si algo falla. Al terminar borra la credencial virtual del agente. Usa `--headed` (corriendo el script a mano) para ver la ventana.
+
+### `make e2e-emulator` — el teléfono en el emulador Android
+
+```bash
+emulator -avd <tu_avd> &                 # el emulador debe ser emulator-5556 (o exporta ANDROID_SERIAL)
+make e2e-emulator TARGET=cloud
+```
+
+`scripts/e2e_emulator.py` abre Chrome en el emulador por `adb` y lo controla por DevTools (`adb forward tcp:9333`). Luego:
+
+1. Envía el encargo y sigue la corrida.
+2. Espera la tarjeta de aprobación e informa si el botón «Firmar mandato con passkey» está habilitado.
+3. **Cancela**: no se cobra nada.
+
+El Makefile pasa `--try-passkey`, así que también abre `/configurar` y captura la hoja nativa de Chrome («Create passkey on another device?»). Esa hoja es la razón por la que en el escenario firma el portátil. Las capturas quedan en `docs/screenshots/emulator/`.
+
+Usa `TARGET=cloud`: desde el emulador, `localhost` es el propio emulador. Para probar contra `make up`, redirige el puerto antes con `adb reverse tcp:3000 tcp:3000`.
+
+### `make bias-test` — sin sesgo y en menos de 2 minutos
+
+```bash
+make bias-test TARGET=cloud              # 10 + 10 corridas, ~10–15 min
+make bias-test TARGET=cloud RUNS=2       # ensayo corto
+```
+
+`agent/encargo/bias_test.py` hace lo siguiente:
+
+1. Registra una passkey de software con el código de configuración.
+2. Para cada modo (apagado y encendido), cambia el modo de control de Pulso. En cada corrida reinicia las dos tiendas, alterna el orden de las tiendas, envía el encargo, firma con la passkey y espera el pedido.
+3. Imprime una línea por corrida y un resumen por modo.
+4. Deja el modo de control apagado y borra la passkey.
+
+Pasa si cada modo acierta en al menos el 90 % de las corridas y ninguna llega a 120 s. El JSON queda en `bias-results/<target>-<fecha>.json`.
+
+Para un solo modo, ejecútalo a mano:
+
+```bash
+cd agent && uv run python -m encargo.bias_test --runs 3 --modes on
+```
+
+### Otros comandos
+
+- `make audit URL=https://…` — el checklist de la charla para cualquier tienda. Agrega `--json` ejecutando `cd agent && uv run python -m encargo.audit URL --json`.
+- `make screens TARGET=cloud` — vuelve a capturar todas las pantallas de la app en `docs/screenshots/app/` (1920×1080 y 390×844).
+- `make reset` — en menos de 10 s (cada `curl` tiene un tope de 8 s y corren en paralelo).
+
+### Ensayar sin red
+
+Pon `MOCK_AI=1` en `.env` y ejecuta `make up`. El planificador determinista (`agent/encargo/mock_planner.py`) recorre las mismas herramientas contra las tiendas locales: lee el feed, el perfil UCP o la página, llena el checklist, arma el checkout y pide la aprobación. El checklist, el guardarraíl y el flujo del mandato son los reales.
+
+## 7. Registrar la passkey (`/configurar`)
+
+La passkey es la única forma de aprobar un pago en la nube. Se registra una vez por dispositivo y sobrevive a `make reset`.
+
+**En la nube (el portátil del escenario):**
+
+```bash
+source infra/env.sh && source infra/urls.sh
+CLAVE=$(gcloud secrets versions access latest --secret=encargo-admin-token)
+open -na "Google Chrome" --args --app="$APP_URL/configurar?clave=$CLAVE" --window-size=390,844
+```
+
+1. En la página «Configura tu passkey», revisa el nombre del dispositivo y pulsa «Registrar passkey en este teléfono».
+2. Confirma con Touch ID.
+3. La página debe decir «Listo: «…» ya puede firmar pagos». El aviso superior muestra cuántas passkeys hay para `encargo-app-611681112050.us-central1.run.app`.
+
+Abre siempre la app con la URL determinista (`…-611681112050.us-central1.run.app`). Con el alias `…-uc.a.run.app` el origen no coincide con `PASSKEY_ORIGIN` y la verificación falla. Usa el mismo perfil de Chrome que va a abrir `make phone TARGET=cloud`.
+
+**En local:** abre `http://localhost:3000/configurar?clave=dev-admin`. Con `RUN_STORE=memory` la passkey se pierde al reiniciar el agente; vuelve a registrarla después de cada `make up`.
+
+**Comprobar:**
+
+```bash
+curl -s $AGENT_URL/passkeys/status   # {"registered":N,"rp_id":"…","labels":[…]}
+```
+
+**Borrar una passkey:** `DELETE /passkeys/{id}` con `authorization: Bearer <ADMIN_TOKEN>`. `/passkeys/status` no expone los id; búscalos en la colección `passkeys` de Firestore (base `encargo`). `make e2e`, `make screens` y `make bias-test` borran solas las credenciales que crean.
+
+## 8. Encender y apagar el modo de control
+
+Con el modo de control encendido, Pulso publica la misma capa para máquinas que Kilómetro (feed, sitemap, perfil UCP, API de checkout y JSON-LD en la página de producto), y Encargo debe comprar en Pulso porque es más barata.
+
+**Ver el estado:**
+
+- La vista del presentador muestra una etiqueta abajo a la derecha: «Control apagado» o «Control: Pulso legible para agentes» (`app/src/app/api/control/route.ts`).
+- O consulta el endpoint:
+
+  ```bash
+  curl -s $PULSO_URL/api/admin/agent-ready   # {"store":"pulso","agent_ready":false}
+  ```
+
+**Encender o apagar en caliente** (sin volver a desplegar):
+
+```bash
+# nube: source infra/env.sh && source infra/urls.sh && ADMIN_TOKEN=$(gcloud secrets versions access latest --secret=encargo-admin-token)
+# local: PULSO_URL=http://localhost:3002 ADMIN_TOKEN=dev-admin
+curl -s -XPOST -H "authorization: Bearer $ADMIN_TOKEN" -H 'content-type: application/json' \
+  -d '{"enabled":true}' "$PULSO_URL/api/admin/agent-ready"     # encender
+curl -s -XPOST -H "authorization: Bearer $ADMIN_TOKEN" -H 'content-type: application/json' \
+  -d '{"enabled":false}' "$PULSO_URL/api/admin/agent-ready"    # apagar
+```
+
+- `make reset` (y `make reset TARGET=cloud`) también lo apaga.
+- El cambio en caliente vive en la memoria del proceso de Pulso, que corre como una sola instancia. Si la instancia se reinicia, vuelve al valor de `PULSO_AGENT_READY`.
+- Para que arranque encendido: `PULSO_AGENT_READY=true` en `.env` (local) o `PULSO_AGENT_READY=true ./infra/30-deploy-stores.sh` (nube).
+- La auditoría de `/auditoria` y `make audit` reflejan el cambio al instante.
+
+## 9. Recorrido del código: una corrida
+
+Lo que pasa desde que la persona escribe el encargo hasta el pedido. Los eventos entre paréntesis son los que dibujan el teléfono y el presentador.
+
+### 1. El encargo
+
+- `app/src/components/ErrandForm.tsx` hace `POST /api/agent/runs` con `{errand, stores}`: solo el texto y las URL de Pulso y Kilómetro.
+- El proxy `app/src/app/api/agent/[...path]/route.ts` lo reenvía al agente.
+- La app navega a `/encargo/<id>`, que se suscribe a `GET /runs/<id>/events` (SSE) con `app/src/lib/useRun.ts`.
+
+### 2. La corrida empieza
+
+- `agent/encargo/api.py` `create_run` → `runner.start_run`.
+- `errand.parse_errand` convierte el texto en cuatro condiciones con id estable: `categoria`, `talla`, `precio` y `entrega` (el viernes calculado desde hoy).
+- Guarda la corrida en el `RunStore` y lanza `execute_run` en segundo plano. `POST /runs` responde de inmediato.
+
+### 3. El agente trabaja
+
+- `execute_run` crea un `RunContext` y emite `run_started`.
+- En paralelo, `_human_views` toma con Playwright una captura de la portada de cada tienda (`human_view`).
+- `_run_adk` le da a ADK un prompt con el encargo, la fecha de hoy, las condiciones con su id y las tiendas.
+- El `Agent` de `agent/encargo/agent.py` usa `HedgedGemini` (`model.py`). Cada llamada a una herramienta se emite como `step`, cada resultado como `observation` y cada frase del modelo como `thought`.
+
+### 4. Leer las tiendas
+
+`tools/discovery.inspect_store` pide `/.well-known/ucp`, `/robots.txt`, `/feed.xml`, `/sitemap.xml` y la portada, y muestrea una página de producto buscando JSON-LD (`agent_view` tipo `sources`).
+
+- **Kilómetro:** responde con todo. `tools/product_feed.read_product_feed` o `tools/ucp_client.search_catalog` normalizan cada producto con `tools/offer_facts.offer`. Esa función también calcula `arrives_by` con días hábiles (`agent_view` tipo `offers`).
+- **Pulso:** responde 404 en las rutas para máquinas. El agente prueba `tools/browser.browse_page`: Chromium renderiza la página, la captura va al presentador y al agente le llega un DOM sin precio ni tallas, con un `canvas` (`agent_view` tipo `page`).
+
+### 5. El checklist
+
+- `tools/checklist.record_check` registra cada condición por tienda como `met`, `not_met` o `not_verifiable`, con una frase de evidencia (`checklist`).
+- Kilómetro queda en 4 × «cumple».
+- Pulso queda en «no verificable».
+
+### 6. El checkout
+
+`tools/ucp_client.create_checkout` hace `POST {endpoint}/checkout-sessions` en Kilómetro, con el `variant_id` de la talla 9 y el encabezado `UCP-Agent`.
+
+- La tienda (`stores/shared/src/ucp/checkoutApi.ts`) arma el checkout, con la fecha de entrega en `fulfillment`, y lo firma (`ap2.merchant_authorization`).
+- El agente verifica esa firma con la llave del perfil de la tienda (`ap2/merchant_signature.py`) antes de seguir (`checkout_created`).
+
+### 7. El guardarraíl y la solicitud de aprobación
+
+- `tools/approval.request_payment_approval` comprueba `ctx.all_met(store)`.
+- Guarda un mandato `pending_signature`, pone la corrida en `awaiting_approval` y emite `approval_requested`, con artículos, total, entrega y la razón.
+- El modelo recibe la orden de detenerse. Al terminar ADK, `execute_run` emite `decision`.
+
+### 8. La persona firma
+
+`app/src/components/RunPhone.tsx` muestra «Autoriza la compra». Al pulsar «Firmar mandato con passkey»:
+
+1. `POST /mandates/<id>/passkey-options` → `passkey.signing_options`. Calcula `checkout_hash = base64url(sha256(checkout_jwt))` y el desafío `sha256(checkout_hash + "." + nonce)`, y guarda el flujo.
+2. `startAuthentication` (`@simplewebauthn/browser`) → Touch ID.
+3. `POST /mandates/<id>/sign` con `{flow_id, credential}` → `passkey.verify_signature`, que:
+   - consume el desafío (no se puede reutilizar);
+   - recalcula el hash, por si el carrito cambió;
+   - verifica la aserción con la llave pública registrada, el RP ID, el origen, la verificación de usuario y el contador de firmas.
+
+### 9. El mandato y la compra
+
+`purchase.sign_and_complete` hace lo siguiente:
+
+1. Construye el mandato AP2 (`ap2/signer.build_checkout_mandate`): un SD-JWT ES256 con `iss` = el perfil del agente, `aud` = la tienda, expiración de 15 min, `nonce` = el id del checkout, y las divulgaciones `vct` + `checkout_hash` + `checkout_jwt`. Emite `mandate_signed`.
+2. Llama a `POST /checkout-sessions/<id>/complete` con el instrumento sandbox y `ap2.checkout_mandate`.
+
+### 10. La tienda verifica
+
+`completeCheckout` hace lo siguiente:
+
+1. `platformKeysFor` comprueba que el perfil del encabezado `UCP-Agent` esté en `TRUSTED_PLATFORM_PROFILES` y descarga sus llaves.
+2. `verifyCheckoutMandate` verifica la firma, la expiración, el `aud`, la cadena de divulgaciones, el `checkout_hash` y que los términos aprobados sean exactamente los que firmó la tienda (JCS).
+3. Revisa el instrumento sandbox y descuenta el stock.
+4. Crea el pedido.
+
+### 11. Confirmación
+
+- El agente guarda el pedido y emite `order_confirmed` y `run_finished` con el tiempo total.
+- El teléfono muestra «Pedido confirmado» y el presentador cierra la corrida.
+
+Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_rejected`: rechazar nunca mueve dinero, así que no requiere passkey.
+
+## 10. Solución de problemas
+
+| Síntoma | Causa probable | Qué hacer |
+| --- | --- | --- |
+| La corrida falla con `GEMINI_MODEL no está definido` | Falta `.env` o la variable | `cp .env.example .env`, o `MOCK_AI=1` |
+| Errores de permisos con Vertex AI o Firestore en local | No hay ADC o falta el proyecto de cuota | `gcloud auth application-default login` y `set-quota-project ai-experiments-487722` |
+| `Executable doesn't exist` (Playwright) | Falta Chromium | `cd agent && uv run playwright install chromium` |
+| «Se acabó el tiempo del encargo» | El modelo tardó más que `RUN_TIMEOUT_S` | Revisa los logs (`gcloud run services logs read encargo-agent --region us-central1`); busca `sending hedge`. Vuelve a intentar |
+| El botón «Firmar mandato con passkey» está deshabilitado | No hay passkey para ese RP ID | Regístrala en `/configurar` (sección 7) |
+| «Esta passkey no está registrada» o falla la firma | La passkey es de otro entorno (local o nube), el agente local se reinició (memoria) o se abrió la app con el alias `…-uc.a.run.app` | Usa la URL determinista y vuelve a registrar |
+| «El código de configuración no es válido» | `clave` distinta de `ADMIN_TOKEN` | Copia el valor de `encargo-admin-token` (nube) o `dev-admin` (local) |
+| `401 Solo la persona puede aprobar este pago` | Se intentó firmar sin passkey con `SIGNER_MODE=passkey` | Firma desde la app |
+| La tienda responde «La plataforma que firma este mandato no es de confianza» | `TRUSTED_PLATFORM_PROFILES` ≠ `AGENT_PUBLIC_URL/.well-known/ucp` | Ajusta `.env`, o vuelve a desplegar las tiendas con `infra/30` |
+| «El mandato está firmado con una llave desconocida» | El agente local generó una llave nueva al reiniciar y la tienda tiene la anterior en caché (60 s) | `make reset` (vacía la caché) o espera un minuto; en la nube la llave es fija |
+| `out_of_stock` o el stock se acabó tras muchos ensayos | El estado de SQLite persiste | `make reset` / `make reset TARGET=cloud` |
+| El presentador muestra una corrida vieja | Sigue `/runs/latest` | `make reset TARGET=cloud` |
+| Pulso aparece legible sin querer | El modo de control quedó encendido | `make reset` o apágalo (sección 8) |
+| `make reset` dice `reset ok` pero algo no se reinició | Las llamadas corren en segundo plano y sus errores no detienen el script | Comprueba cada servicio con los `curl` de la sección 8 o con `/health` |
+| `make e2e-emulator` no conecta | Emulador apagado, otro serial o Chrome sin abrir | `adb devices`; `ANDROID_SERIAL=…`; abre Chrome una vez en el emulador |
+| El despliegue falla en `gcloud builds submit` | Falta el repositorio `charlas2027` o faltan permisos | Ver sección 1 |
+| Puertos 3000–3002 u 8000 ocupados | Quedó un `make up` anterior | `lsof -i :3000` y detén el proceso |
+
+## 11. Checklist del día de la charla
+
+### El día anterior
+
+- [ ] `make test` pasa.
+- [ ] Si hubo cambios: `make deploy`.
+- [ ] `make audit URL=$KILOMETRO_URL` → 8/8 y `make audit URL=$PULSO_URL` → 0/8.
+- [ ] `make e2e TARGET=cloud` termina con el pedido confirmado.
+- [ ] `make bias-test TARGET=cloud` pasa (o `RUNS=3` si hay poco tiempo).
+- [ ] Passkey del portátil del escenario registrada en la nube (sección 7). `curl $AGENT_URL/passkeys/status` muestra al menos 1.
+- [ ] Emulador `emulator-5556` arranca y `make e2e-emulator TARGET=cloud` llega a la tarjeta de aprobación.
+
+### Una hora antes, en el lugar
+
+- [ ] Internet en el portátil (Wi-Fi del lugar o datos móviles). `curl -s $AGENT_URL/health` responde `"mode":"gemini"`.
+- [ ] `make reset TARGET=cloud` → `reset ok`.
+- [ ] Proyector a 1920×1080. Abre `$APP_URL/presenter` en pantalla completa: muestra «Control apagado».
+- [ ] `make phone TARGET=cloud` y coloca la ventana del «teléfono» junto al presentador. Touch ID listo (sin guantes, con el portátil abierto).
+- [ ] El emulador, abierto en la app, para mostrar el lado del teléfono.
+- [ ] Haz una corrida completa de prueba y después `make reset TARGET=cloud`.
+
+### Durante la charla
+
+1. Envía el encargo desde la ventana del «teléfono». La misma ventana recibe la tarjeta de aprobación, porque la aprobación vive en `/encargo/<id>`.
+2. Narra el presentador: «Lo que ve una persona», el razonamiento con el checklist y «Lo que ve el agente».
+3. Firma con Touch ID cuando aparezca «Autoriza la compra». El pedido llega en menos de 2 minutos.
+4. Modo de control: enciéndelo (sección 8) y envía el mismo encargo. Ahora compra en Pulso.
+5. Cierra con `/auditoria`: «Probar con Pulso» y «Probar con Kilómetro».
+
+### Después
+
+- [ ] `make reset TARGET=cloud`: deja el modo de control apagado y el stock completo.
