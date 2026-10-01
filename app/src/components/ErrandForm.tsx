@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { StoreRef } from "@/lib/config";
 import { PhoneTop } from "./PhoneTop";
 import { Arrow } from "./Icons";
+import { stageHeaders } from "@/lib/stage";
 
 const DEFAULT = "Tenis para trail, talla 9, menos de 150 USD, que lleguen antes del viernes.";
 
@@ -12,6 +13,7 @@ export function ErrandForm({ stores }: { stores: StoreRef[] }) {
   const [errand, setErrand] = useState(DEFAULT);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,10 +23,15 @@ export function ErrandForm({ stores }: { stores: StoreRef[] }) {
     try {
       const res = await fetch("/api/agent/runs", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ errand: errand.trim(), stores: stores.map((s) => s.url) }),
+        headers: { "content-type": "application/json", ...stageHeaders() },
+        body: JSON.stringify({ errand: errand.trim() }),
       });
       const body = await res.json();
+      if (res.status === 401) {
+        setLocked(true);
+        setSending(false);
+        return;
+      }
       if (!res.ok) throw new Error(body.detail ?? "No se pudo enviar el encargo.");
       router.push(`/encargo/${body.id}`);
     } catch (err) {
@@ -53,6 +60,13 @@ export function ErrandForm({ stores }: { stores: StoreRef[] }) {
             </span>
           ))}
         </div>
+        {locked ? (
+          <p className="notice notice-info" role="alert" style={{ marginTop: 16 }}>
+            <span>
+              Este dispositivo todavía no puede enviar encargos. Ábrelo una vez desde el <a href="/configurar">enlace de configuración</a>.
+            </span>
+          </p>
+        ) : null}
         {error ? (
           <p className="notice notice-error" role="alert" style={{ marginTop: 16 }}>
             {error}

@@ -114,7 +114,8 @@ async def create_checkout(ctx: RunContext, store_url: str, variant_id: str, quan
     ok, detail = verify_merchant_authorization(checkout, (ctx.profiles.get(store) or {}).get("keys") or [])
     if not ok:
         return {"store": store, "created": False, "error": detail}
-    ctx.checkouts[checkout["id"]] = {"store": store, "endpoint": endpoint, "checkout": checkout}
+    # The checkout's key (to update or cancel it) stays with the agent, never in events.
+    ctx.checkouts[checkout["id"]] = {"store": store, "endpoint": endpoint, "checkout": checkout, "key": res.headers.get("ucp-checkout-token")}
     summary = summarize_checkout(checkout)
     await ctx.emit("checkout_created", store=store, **summary, merchant_signature="verificada")
     return {"store": store, "created": True, **summary, "merchant_signature": detail}

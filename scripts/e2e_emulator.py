@@ -78,6 +78,9 @@ async def main(a: argparse.Namespace) -> int:
         browser = await pw.chromium.connect_over_cdp(f"http://localhost:{PORT}")
         page = await browser.contexts[0].new_page()  # our own tab, never someone else's
         await page.bring_to_front()
+        # Enroll this browser for the stage (same setup link as the signing device).
+        await page.goto(f"{a.app}/configurar?clave={a.setup}")
+        await wait_for(serial, page, page.get_by_text("Este dispositivo puede enviar encargos"), 30)
         await page.goto(a.app)
         await wait_for(serial, page, page.get_by_role("heading", name="¿Qué necesitas?"), 30)
         await shot(page, "errand")
@@ -98,7 +101,7 @@ async def main(a: argparse.Namespace) -> int:
         await cancel.click()
         await wait_for(serial, page, page.get_by_role("heading", name="Compra cancelada"), 30)
         await shot(page, "cancelled")
-        if a.try_passkey and a.setup:
+        if a.try_passkey:
             # What Chrome offers when this device is asked to create a passkey.
             await page.goto(f"{a.app}/configurar?clave={a.setup}")
             await foreground(serial, page)

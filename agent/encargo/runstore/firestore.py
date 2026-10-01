@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
+from google.api_core.exceptions import NotFound
 from google.cloud import firestore
 
 
@@ -27,7 +28,11 @@ class FirestoreRunStore:
         return snap.to_dict() if snap.exists else None
 
     async def update_run(self, run_id: str, fields: dict[str, Any]) -> None:
-        await self.db.collection("runs").document(run_id).set(fields, merge=True)
+        # update(), not set(merge=True): a run deleted by `make reset` must not come back.
+        try:
+            await self.db.collection("runs").document(run_id).update(fields)
+        except NotFound:
+            pass
 
     async def append_event(self, run_id: str, event: dict[str, Any]) -> int:
         if self._seq[run_id] == 0:
@@ -53,7 +58,25 @@ class FirestoreRunStore:
         return snap.to_dict() if snap.exists else None
 
     async def update_mandate(self, mandate_id: str, fields: dict[str, Any]) -> None:
-        await self.db.collection("mandates").document(mandate_id).set(fields, merge=True)
+        try:
+            await self.db.collection("mandates").document(mandate_id).update(fields)
+        except NotFound:
+            pass
+
+    async def claim_mandate(self, mandate_id: str, expected: str, fields: dict[str, Any]) -> dict[str, Any] | None:
+        """Firestore transaction: two concurrent signatures cannot both move the mandate."""
+        ref = self.db.collection("mandates").document(mandate_id)
+        transaction = self.db.transaction()
+
+        @firestore.async_transactional
+        async def claim(tx: Any) -> dict[str, Any] | None:
+            snap = await ref.get(transaction=tx)
+            if not snap.exists or snap.get("status") != expected:
+                return None
+            tx.update(ref, fields)
+            return {**snap.to_dict(), **fields}
+
+        return await claim(transaction)
 
     async def save_order(self, order: dict[str, Any]) -> None:
         await self.db.collection("orders").document(order["id"]).set(order)
@@ -97,6 +120,8 @@ class FirestoreRunStore:
         return snap.to_dict()
 
     async def reset(self) -> None:
-        for name in ("runs", "mandates", "orders", "screenshots"):
-            await self.db.recursive_delete(self.db.collection(name))
+        import asyncio
+
+        names = ("runs", "mandates", "orders", "screenshots", "webauthn_challenges")
+        await asyncio.gather(*(self.db.recursive_delete(self.db.collection(n)) for n in names))
         self._seq.clear()

@@ -14,6 +14,7 @@ import argparse
 import asyncio
 import sys
 import time
+from pathlib import Path
 
 import httpx
 from playwright.async_api import async_playwright
@@ -56,7 +57,9 @@ async def main(a: argparse.Namespace) -> int:
             print(f"✓ mandato firmado con passkey · pedido {order} · {time.monotonic() - started:.0f}s", flush=True)
             return 0
         except Exception as e:  # noqa: BLE001
-            await page.screenshot(path="e2e-passkey-failure.png")
+            shot = Path(__file__).resolve().parents[1] / ".data" / "e2e-passkey-failure.png"
+            shot.parent.mkdir(parents=True, exist_ok=True)
+            await page.screenshot(path=str(shot))
             print(f"✗ {e.__class__.__name__}: {e}", file=sys.stderr)
             return 1
         finally:

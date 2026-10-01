@@ -3,7 +3,8 @@
 # account read them. Nothing secret is ever written to the repo.
 #   encargo-platform-jwk  — the agent's AP2 mandate signing key (private EC P-256 JWK)
 #   encargo-human-token   — test-mode signer token (only honored when SIGNER_MODE=test; the cloud uses passkeys)
-#   encargo-admin-token   — `make reset` / control mode
+#   encargo-admin-token   — setup code + store/agent admin (`make reset`, control mode)
+#   encargo-stage-token   — what an enrolled device presents to start errands / cancel payments
 source "$(dirname "$0")/env.sh"
 REPO_DIR="$(cd "$INFRA_DIR/.." && pwd)"
 PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
@@ -24,4 +25,5 @@ PLATFORM_JWK="$(cd "$REPO_DIR/agent" && uv run --quiet python -c \
 create_secret encargo-platform-jwk "$PLATFORM_JWK"
 create_secret encargo-human-token "$(openssl rand -hex 24)"
 create_secret encargo-admin-token "$(openssl rand -hex 24)"
+create_secret encargo-stage-token "$(openssl rand -hex 24)"
 say "Secrets ready. Read the tokens with: gcloud secrets versions access latest --secret=encargo-human-token"

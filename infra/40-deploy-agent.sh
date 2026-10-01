@@ -14,4 +14,4 @@ deploy_run encargo-agent "$REPO_DIR/agent" \
   --allow-unauthenticated --min-instances 1 --max-instances 1 --no-cpu-throttling \
   --cpu 2 --memory 2Gi --timeout 3600 \
   --set-env-vars "^|^GEMINI_MODEL=$GEMINI_MODEL|GOOGLE_GENAI_USE_VERTEXAI=true|GOOGLE_CLOUD_PROJECT=$PROJECT_ID|GOOGLE_CLOUD_LOCATION=global|RUN_STORE=firestore|FIRESTORE_DATABASE=encargo|AGENT_PUBLIC_URL=$AGENT_URL|STORE_URLS=$PULSO_URL,$KILOMETRO_URL|SIGNER_MODE=passkey|PASSKEY_RP_ID=${APP_URL#https://}|PASSKEY_ORIGIN=$APP_URL|MOCK_AI=0" \
-  --set-secrets "HUMAN_APPROVAL_TOKEN=encargo-human-token:latest,PLATFORM_SIGNING_JWK=encargo-platform-jwk:latest,ADMIN_TOKEN=encargo-admin-token:latest"
+  --set-secrets "HUMAN_APPROVAL_TOKEN=encargo-human-token:latest,PLATFORM_SIGNING_JWK=encargo-platform-jwk:latest,ADMIN_TOKEN=encargo-admin-token:latest,STAGE_TOKEN=encargo-stage-token:latest"

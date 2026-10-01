@@ -6,7 +6,8 @@ import { merchantKey } from "../ap2/merchantKey";
 import { signCheckout, type Checkout } from "../ap2/merchantAuthorization";
 import { verifyCheckoutMandate } from "../ap2/checkoutMandate";
 import { platformKeysFor } from "../ap2/platformKeys";
-import { loadDoc, saveDoc, saveOrder, takeStock } from "../db";
+import { checkoutStatus, checkoutToken, claimCheckout, loadDoc, releaseCheckout, saveDoc, saveOrder, setCheckoutToken, takeStock } from "../db";
+import { isAdmin } from "../admin";
 import { addBusinessDays, spanishDate, todayInGuatemala } from "../delivery";
 import { baseUrlFrom, currentStore, requestHost } from "../store";
 import { json, newId, readJson, ucpError, ucpMeta } from "./http";
@@ -84,7 +85,10 @@ export async function createCheckout(req: Request): Promise<Response> {
   const built = await buildCheckout(newId("chk"), inputs, baseUrlFrom(req.headers));
   if (!built.ok) return ucpError(built.code, built.content);
   saveDoc("checkouts", built.checkout.id, built.checkout, built.checkout.status);
-  return json(built.checkout, 201);
+  const token = crypto.randomUUID().replace(/-/g, "");
+  setCheckoutToken(built.checkout.id, token);
+  // The checkout's key: needed to update or cancel it (completing needs the mandate instead).
+  return json(built.checkout, 201, { "ucp-checkout-token": token, "access-control-expose-headers": "ucp-checkout-token" });
 }
 
 export async function getCheckout(_req: Request, id: string): Promise<Response> {
@@ -92,9 +96,17 @@ export async function getCheckout(_req: Request, id: string): Promise<Response> 
   return checkout ? json(checkout) : ucpError("not_found", "Checkout no encontrado.", 404);
 }
 
+/** Only the checkout's creator (its key) or the store admin may change or cancel it. */
+function mayModify(req: Request, id: string): boolean {
+  const token = checkoutToken(id);
+  return isAdmin(req) || (Boolean(token) && req.headers.get("authorization") === `Bearer ${token}`);
+}
+
 export async function updateCheckout(req: Request, id: string): Promise<Response> {
   const existing = loadDoc<StoredCheckout>("checkouts", id);
   if (!existing) return ucpError("not_found", "Checkout no encontrado.", 404);
+  if (!mayModify(req, id)) return ucpError("unauthorized", "Falta la llave de este checkout.", 401);
+  if (checkoutStatus(id) !== "ready_for_complete") return ucpError("invalid_state", "Este checkout ya no se puede cambiar.", 409);
   if (existing.status === "completed" || existing.status === "canceled") {
     return ucpError("invalid_state", "Este checkout ya está cerrado.", 409);
   }
@@ -105,9 +117,11 @@ export async function updateCheckout(req: Request, id: string): Promise<Response
   return json(built.checkout);
 }
 
-export async function cancelCheckout(_req: Request, id: string): Promise<Response> {
+export async function cancelCheckout(req: Request, id: string): Promise<Response> {
   const existing = loadDoc<StoredCheckout>("checkouts", id);
   if (!existing) return ucpError("not_found", "Checkout no encontrado.", 404);
+  if (!mayModify(req, id)) return ucpError("unauthorized", "Falta la llave de este checkout.", 401);
+  if (checkoutStatus(id) !== "ready_for_complete") return ucpError("invalid_state", "Este checkout ya está cerrado o en pago.", 409);
   const canceled = await signCheckout({ ...existing, status: "canceled" });
   saveDoc("checkouts", id, canceled, "canceled");
   return json(canceled);
@@ -121,15 +135,20 @@ interface CompleteRequest {
 export async function completeCheckout(req: Request, id: string, fetcher: typeof fetch = fetch): Promise<Response> {
   const checkout = loadDoc<StoredCheckout>("checkouts", id);
   if (!checkout) return ucpError("not_found", "Checkout no encontrado.", 404);
-  if (checkout.status !== "ready_for_complete") {
-    return ucpError("invalid_state", `El checkout está en estado ${checkout.status}.`, 409);
-  }
   if (Date.parse(String(checkout.expires_at)) < Date.now()) return ucpError("expired", "El checkout expiró.", 409);
+  // Claim before the first await: a second concurrent /complete finds it taken.
+  if (!claimCheckout(id)) {
+    return ucpError("invalid_state", `El checkout está en estado ${checkoutStatus(id) ?? "desconocido"}.`, 409);
+  }
+  const refuse = (r: Response) => {
+    releaseCheckout(id);
+    return r;
+  };
   const body = (await readJson<CompleteRequest>(req)) ?? {};
 
   // The person's authorization comes first: without a valid mandate nothing else is looked at.
   const platform = await platformKeysFor(req.headers.get("ucp-agent"), fetcher);
-  if (platform.error && body.ap2?.checkout_mandate) return ucpError("mandate_signature", platform.error, 403);
+  if (platform.error && body.ap2?.checkout_mandate) return refuse(ucpError("mandate_signature", platform.error, 403));
   const check = await verifyCheckoutMandate({
     mandate: body.ap2?.checkout_mandate,
     checkout,
@@ -137,16 +156,16 @@ export async function completeCheckout(req: Request, id: string, fetcher: typeof
     merchantPublicJwk: (await merchantKey()).publicJwk,
     audienceHost: requestHost(req.headers),
   });
-  if (!check.ok) return ucpError(check.code!, check.reason!, 403);
+  if (!check.ok) return refuse(ucpError(check.code!, check.reason!, 403));
 
   const instrument = body.payment?.instruments?.[0];
   if (instrument?.handler_id !== "sandbox_pay" || instrument.credential?.token !== SANDBOX_TOKEN) {
-    return ucpError("payment_declined", "Instrumento de pago no aceptado (solo sandbox).", 402);
+    return refuse(ucpError("payment_declined", "Instrumento de pago no aceptado (solo sandbox).", 402));
   }
 
   for (const li of checkout.line_items) {
     if (!takeStock(li.item.id, li.quantity)) {
-      return ucpError("out_of_stock", `${li.item.title} se agotó mientras se aprobaba el pago.`, 409);
+      return refuse(ucpError("out_of_stock", `${li.item.title} se agotó mientras se aprobaba el pago.`, 409));
     }
   }
 

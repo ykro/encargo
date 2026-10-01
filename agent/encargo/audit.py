@@ -23,6 +23,30 @@ from .tools.structured_data import parse_html
 G = "{http://base.google.com/ns/1.0}"
 
 
+class UnsafeURL(ValueError):
+    """The audit only reads public http(s) sites (SSRF guard)."""
+
+
+async def assert_public(url: str, allowed_hosts: set[str]) -> None:
+    import asyncio
+    import ipaddress
+    import socket
+
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise UnsafeURL("Solo se auditan direcciones http(s).")
+    if parsed.netloc in allowed_hosts:
+        return
+    try:
+        infos = await asyncio.get_running_loop().getaddrinfo(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80), type=socket.SOCK_STREAM)
+    except socket.gaierror as e:
+        raise UnsafeURL(f"No se pudo resolver {parsed.hostname}.") from e
+    for info in infos:
+        ip = ipaddress.ip_address(info[4][0])
+        if not ip.is_global or ip.is_multicast:
+            raise UnsafeURL(f"{parsed.hostname} no es una dirección pública.")
+
+
 def _item(key: str, label: str, ok: bool, evidence: str, fix: str) -> dict[str, Any]:
     return {"key": key, "label": label, "ok": ok, "evidence": evidence, "fix": "" if ok else fix}
 
@@ -47,15 +71,26 @@ def _offers(node: dict[str, Any]) -> list[dict[str, Any]]:
 async def _get(http: httpx.AsyncClient, url: str) -> httpx.Response | None:
     try:
         return await http.get(url, follow_redirects=True)
-    except httpx.HTTPError:
+    except (httpx.HTTPError, UnsafeURL):
         return None
 
 
-async def audit_store(url: str) -> dict[str, Any]:
+async def audit_store(url: str, guard: bool = False, allowed_hosts: set[str] | None = None) -> dict[str, Any]:
+    """guard=True (the public API): every request — including redirects and URLs
+    found in sitemaps or feeds — must go to a public host. The CLI runs unguarded."""
     base = url.rstrip("/")
     if "://" not in base:
         base = f"https://{base}"
-    async with httpx.AsyncClient(timeout=15, headers={"user-agent": "EncargoAudit/1.0"}) as http:
+    allowed = allowed_hosts or set()
+    hooks: dict[str, list] = {}
+    if guard:
+        await assert_public(base, allowed)
+
+        async def check(request: httpx.Request) -> None:
+            await assert_public(str(request.url), allowed)
+
+        hooks = {"request": [check]}
+    async with httpx.AsyncClient(timeout=15, headers={"user-agent": "EncargoAudit/1.0"}, event_hooks=hooks) as http:
         home, profile_res, feed_res, sitemap_res = await asyncio.gather(
             _get(http, base), _get(http, f"{base}/.well-known/ucp"), _get(http, f"{base}/feed.xml"), _get(http, f"{base}/sitemap.xml")
         )

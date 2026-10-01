@@ -996,12 +996,12 @@
     },
     {
       "id": "SND-004",
-      "handle": "fuego-gtx",
-      "title": "Senda Fuego GTX",
+      "handle": "fuego-tormenta",
+      "title": "Senda Fuego Tormenta",
       "description": {
         "plain": "Tenis de trail de alta durabilidad con suela de compuesto volcánico. Se fabrica bajo pedido."
       },
-      "url": "http://localhost:3001/productos/fuego-gtx",
+      "url": "http://localhost:3001/productos/fuego-tormenta",
       "categories": [
         {
           "value": "187",
@@ -1025,8 +1025,8 @@
       "media": [
         {
           "type": "image",
-          "url": "http://localhost:3001/images/fuego-gtx.jpg",
-          "alt_text": "Senda Fuego GTX"
+          "url": "http://localhost:3001/images/fuego-tormenta.jpg",
+          "alt_text": "Senda Fuego Tormenta"
         }
       ],
       "options": [

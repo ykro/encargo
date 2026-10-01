@@ -47,14 +47,14 @@ Las herramientas del agente son exactamente ese embudo corto: `inspect_store`, `
 ### 3. El modo de control demuestra que el agente no tiene sesgo
 
 - `PULSO_AGENT_READY` (`stores/shared/src/store.ts`) enciende en Pulso la misma capa para máquinas que tiene Kilómetro. `agentReadyOnly` (`stores/shared/src/ucp/http.ts`) abre o cierra el feed, el sitemap, el perfil UCP y los endpoints de UCP. La página de producto (`stores/pulso/src/app/p/[slug]/page.tsx`) agrega el mismo JSON-LD.
-- El agente no recibe ninguna pista: `POST /runs` solo lleva el encargo y la lista de URLs (`agent/encargo/api.py`). La instrucción dice «trata a todas las tiendas exactamente igual».
-- `make bias-test` hace 10 corridas con el modo apagado y 10 con el modo encendido. Alterna el orden de las tiendas para que la posición no explique el resultado (`agent/encargo/bias_test.py`). Prueba rápida sin red: `test_control_mode_buys_where_it_is_cheaper`.
+- El agente no recibe ninguna pista: `POST /runs` solo lleva el encargo. Las tiendas las fija el servidor (`STORE_URLS`) y las baraja en cada corrida, así que la posición en la lista no puede decidir (`agent/encargo/api.py`). La instrucción dice «trata a todas las tiendas exactamente igual».
+- `make bias-test` hace 10 corridas con el modo apagado y 10 con el modo encendido, y registra el orden que vio cada corrida (`agent/encargo/bias_test.py`). Prueba rápida sin red: `test_control_mode_buys_where_it_is_cheaper`.
 
 ### 4. Confianza: un mandato AP2 firmado con passkey
 
 El agente puede armar el carrito, pero no puede pagar:
 
-- `request_payment_approval` (`agent/encargo/tools/approval.py`) solo pide la aprobación si **todas** las condiciones de esa tienda están en «cumple».
+- `request_payment_approval` (`agent/encargo/tools/approval.py`) solo pide la aprobación si las **cuatro** condiciones de esa tienda están en «cumple» (un encargo sin las cuatro nunca se compra). Además revisa, sin el modelo, el checkout que firmó la tienda (`agent/encargo/checkout_rules.py`): exactamente un par, la talla pedida, total menor al tope en USD y entrega a más tardar en la fecha límite.
 - La tienda firma cada checkout (`merchant_authorization`, `stores/shared/src/ap2/merchantAuthorization.ts`). El agente verifica esa firma con la llave del perfil UCP de la tienda antes de mostrarle los términos a la persona (`agent/encargo/ap2/merchant_signature.py`).
 - La persona firma con su passkey un desafío derivado de ese checkout: `sha256(checkout_hash + "." + nonce)` (`agent/encargo/passkey.py`). Por eso la firma aprueba ese carrito y ningún otro.
 - Solo después de esa firma la plataforma emite el mandato AP2 (`agent/encargo/ap2/signer.py`) y completa la compra (`agent/encargo/purchase.py`). A ese módulo solo se llega desde el endpoint humano; ninguna herramienta del agente lo alcanza.
@@ -101,7 +101,7 @@ gcloud auth application-default login      # ADC para Gemini en Vertex AI (o MOC
 make up                                    # app :3000, Kilómetro :3001, Pulso :3002, agente :8000
 ```
 
-- Abre `http://localhost:3000/configurar?clave=dev-admin` y registra una passkey (Touch ID).
+- Abre `http://localhost:3000/configurar?clave=dev-admin` y registra una passkey (Touch ID). En la nube, ese mismo enlace (con el `ADMIN_TOKEN` real) también habilita el dispositivo para enviar encargos.
 - Envía el encargo desde `http://localhost:3000` y míralo en `http://localhost:3000/presenter`.
 - `make test` corre todas las pruebas sin red.
 
@@ -195,7 +195,8 @@ El `robots.txt` de Pulso dice `User-agent: *` / `Allow: /`. No hay CAPTCHAs, 403
 
 La regla «solo se compra donde todo cumple» está en el código, no solo en la instrucción:
 
-- `request_payment_approval` se niega si `ctx.all_met(store)` es falso. En ese caso le devuelve al modelo el estado de cada condición.
+- `request_payment_approval` se niega si `ctx.all_met(store)` es falso (o si faltan condiciones) y le devuelve al modelo el estado de cada una. También se niega si `checkout_problems` encuentra que el checkout firmado no es el encargo.
+- Una sola firma gana: el mandato pasa de `pending_signature` a `signing` en una transacción de Firestore, y la tienda reclama el checkout (`UPDATE … WHERE status='ready_for_complete'`) antes del primer `await`. Si la tienda responde con un error (aunque no sea JSON), la corrida termina en «fallida», con su evento, y el presentador lo muestra.
 - Hay un solo mandato pendiente por corrida.
 - Ninguna herramienta firma ni completa un pago (`test_agent_has_no_tool_that_signs_or_pays`).
 
@@ -222,7 +223,16 @@ Las corridas, los eventos, los mandatos, los pedidos, las capturas, las passkeys
 
 - Los eventos son una subcolección `runs/{id}/events/{seq}`. Así, «eventos después de N» no necesita un índice compuesto.
 - El endpoint SSE consulta cada 0.4 s y entrega los eventos en orden estricto. Las herramientas en paralelo pueden escribir el evento N+1 antes que el N.
-- `make reset` borra corridas, mandatos, pedidos y capturas. Las passkeys sobreviven, porque son de la persona y no de una corrida.
+- `make reset` cancela las corridas en curso y borra en paralelo corridas, mandatos, pedidos, capturas y desafíos WebAuthn pendientes. Las escrituras tardías no resucitan corridas borradas (`update`, no `set(merge=True)`). Las passkeys sobreviven, porque son de la persona y no de una corrida.
+
+### Quién puede hacer qué durante la charla
+
+- **Enviar un encargo o cancelar un pago** (`POST /runs`, `POST /mandates/{id}/reject`): en modo `passkey`, solo un dispositivo habilitado. El enlace de configuración (`/configurar?clave=<ADMIN_TOKEN>`) le entrega el token de escenario (`STAGE_TOKEN`) y borra la clave de la barra de direcciones.
+- **Pagar:** solo una passkey registrada, con un desafío atado al checkout.
+- **Ver:** el presentador es anónimo. `/runs/latest` no le muestra el `mandate_id`.
+- **Cambiar o cancelar un checkout en la tienda:** solo quien tenga su llave (encabezado `ucp-checkout-token` al crearlo) o la llave de administración de la tienda.
+- **Auditar:** `/audit` solo consulta hosts públicos http(s), además de las dos tiendas de la demo (protección SSRF, también en redirecciones).
+- **Administrar** (reset, modo de control, registrar o borrar passkeys): `ADMIN_TOKEN`. Sin él, en producción o en modo `passkey`, esos endpoints fallan cerrados; `dev-admin` solo existe en local.
 - Las pruebas usan `MemoryRunStore`, con la misma interfaz.
 
 **Por qué:** el agente, la app, el presentador y la prueba de sesgo leen el mismo estado, y un reinicio de la instancia no borra lo que el público está viendo.
@@ -268,7 +278,7 @@ En la nube, el agente corre con `SIGNER_MODE=passkey`: solo una aserción WebAut
 
 - **Plazo:** el primer viernes *estrictamente posterior* a la fecha de la corrida. Entregar ese viernes cuenta como a tiempo. Si la corrida es un viernes, el plazo es el viernes siguiente.
 - **Llegada:** la fecha de la corrida + el máximo de preparación + el máximo de tránsito, en días hábiles (lunes a viernes).
-- **Consecuencia:** el modelo del encargo, Senda Acatenango T3 (0 + 1 días hábiles), siempre llega a tiempo. El peor caso es una corrida en jueves, que llega el viernes. Senda Fuego GTX (7 a 10 días) nunca llega.
+- **Consecuencia:** el modelo del encargo, Senda Acatenango T3 (0 + 1 días hábiles), siempre llega a tiempo. El peor caso es una corrida en jueves, que llega el viernes. Senda Fuego Tormenta (7 a 10 días) nunca llega.
 
 El encargo se interpreta con un parser determinista (expresiones regulares) y no con el modelo. Así, las cuatro condiciones (`categoria`, `talla`, `precio`, `entrega`) son idénticas en todas las corridas, que es lo que necesita la prueba de sesgo. Pruebas: `agent/tests/test_errand.py`.
 

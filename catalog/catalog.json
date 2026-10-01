@@ -282,8 +282,8 @@
     },
     {
       "id": "SND-004",
-      "slug": "fuego-gtx",
-      "name": "Senda Fuego GTX",
+      "slug": "fuego-tormenta",
+      "name": "Senda Fuego Tormenta",
       "brand": "Senda",
       "category": "trail",
       "tagline_es": "Hecho para el terreno más duro.",
@@ -307,8 +307,8 @@
         "drop_mm": 8,
         "outsole_es": "Compuesto volcánico, tacos de 6 mm"
       },
-      "image": "images/fuego-gtx.jpg",
-      "pulso_image": "images/pulso/fuego-gtx.jpg",
+      "image": "images/fuego-tormenta.jpg",
+      "pulso_image": "images/pulso/fuego-tormenta.jpg",
       "stores": {
         "pulso": {
           "price_usd": 142,

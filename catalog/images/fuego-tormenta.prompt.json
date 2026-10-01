@@ -7,7 +7,7 @@
     "verifier_env": "GEMINI_MODEL",
     "verifier": "gemini-3.8-flash",
     "has_text_or_logo": false,
-    "what": "",
+    "what": "none",
     "single_shoe_side_view": true
   },
   "origin": {

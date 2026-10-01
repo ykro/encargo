@@ -30,4 +30,4 @@ def test_friday_is_the_first_friday_after_the_run_date(run_date, friday):
 def test_errand_model_always_arrives_in_time_and_slow_model_never_does(run_date):
     friday = next_weekday(run_date, 4)
     assert add_business_days(run_date, 1) <= friday  # errand model: 0 + 1 business days
-    assert add_business_days(run_date, 7) > friday  # Fuego GTX: at least 7 business days
+    assert add_business_days(run_date, 7) > friday  # Fuego Tormenta: at least 7 business days

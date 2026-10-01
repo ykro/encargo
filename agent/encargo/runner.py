@@ -64,6 +64,15 @@ async def start_run(store: RunStore, errand: str, stores: list[str], run_date=No
     return run_id
 
 
+async def cancel_all() -> int:
+    """`make reset`: stop runs in flight so they cannot write into the fresh state."""
+    tasks = [t for t in _tasks if not t.done()]
+    for t in tasks:
+        t.cancel()
+    await asyncio.gather(*tasks, return_exceptions=True)
+    return len(tasks)
+
+
 async def wait_idle() -> None:
     """Waits for background runs (tests)."""
     while _tasks:

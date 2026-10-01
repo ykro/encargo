@@ -1,7 +1,7 @@
 // The trust rule of the talk: no order is placed without a checkout mandate
 // signed on the person's behalf, bound to exactly the terms the store signed.
 import { beforeEach, describe, expect, it } from "vitest";
-import { completeCheckout, createCheckout } from "../src/ucp/checkoutApi";
+import { cancelCheckout, completeCheckout, createCheckout } from "../src/ucp/checkoutApi";
 import { resetStore, stockOf, listOrders } from "../src/db";
 import { clearPlatformKeyCache } from "../src/ap2/platformKeys";
 import { makeMandate, platformKeyPair, PLATFORM_PROFILE } from "./mandateHelper";
@@ -13,6 +13,8 @@ const VARIANT = "SND-001-9";
 
 const headers = { host: HOST, "content-type": "application/json", "ucp-agent": `profile="${PLATFORM_PROFILE}"` };
 
+let lastToken = "";
+
 async function newCheckout(): Promise<Checkout> {
   const res = await createCheckout(
     new Request(`http://${HOST}/ucp/v1/checkout-sessions`, {
@@ -22,6 +24,7 @@ async function newCheckout(): Promise<Checkout> {
     }),
   );
   expect(res.status).toBe(201);
+  lastToken = res.headers.get("ucp-checkout-token") ?? "";
   return (await res.json()) as Checkout;
 }
 
@@ -118,5 +121,36 @@ describe("checkout completion requires a signed AP2 mandate", async () => {
     const replay = await complete(checkout, mandate, fetcher);
     expect(replay.status).toBe(409);
     expect(listOrders()).toHaveLength(1);
+  });
+
+  it("completes once when two signed completes race", async () => {
+    const checkout = await newCheckout();
+    const mandate = await makeMandate({ checkout, privateKey: platform.privateKey, kid: platform.kid, aud: `https://${HOST}` });
+    const [a, b] = await Promise.all([complete(checkout, mandate, fetcher), complete(checkout, mandate, fetcher)]);
+    expect([a.status, b.status].sort()).toEqual([200, 409]);
+    expect(listOrders()).toHaveLength(1);
+    expect(stockOf(VARIANT)).toBe(2);
+  });
+
+  it("a refused mandate gives the checkout back for a valid one", async () => {
+    const checkout = await newCheckout();
+    expect((await complete(checkout, undefined, fetcher)).status).toBe(403);
+    const mandate = await makeMandate({ checkout, privateKey: platform.privateKey, kid: platform.kid, aud: `https://${HOST}` });
+    expect((await complete(checkout, mandate, fetcher)).status).toBe(200);
+  });
+
+  it("only the checkout's key (or the store admin) can cancel it", async () => {
+    const checkout = await newCheckout();
+    const cancel = (auth?: string) =>
+      cancelCheckout(
+        new Request(`http://${HOST}/ucp/v1/checkout-sessions/${checkout.id}/cancel`, {
+          method: "POST",
+          headers: auth ? { authorization: auth } : {},
+        }),
+        checkout.id,
+      );
+    expect((await cancel()).status).toBe(401);
+    expect((await cancel("Bearer guess")).status).toBe(401);
+    expect((await cancel(`Bearer ${lastToken}`)).status).toBe(200);
   });
 });

@@ -5,9 +5,19 @@ import { currentStore, isAgentReady, setAgentReady } from "./store";
 import { clearPlatformKeyCache } from "./ap2/platformKeys";
 import { json, readJson } from "./ucp/http";
 
+/** The store key. Fails closed: the "dev-admin" fallback exists only outside production. */
+export function adminToken(): string | undefined {
+  if (process.env.ADMIN_TOKEN) return process.env.ADMIN_TOKEN;
+  return process.env.NODE_ENV === "production" ? undefined : "dev-admin";
+}
+
+export function isAdmin(req: Request): boolean {
+  const token = adminToken();
+  return Boolean(token) && req.headers.get("authorization") === `Bearer ${token}`;
+}
+
 function authorized(req: Request): boolean {
-  const token = process.env.ADMIN_TOKEN ?? "dev-admin";
-  return req.headers.get("authorization") === `Bearer ${token}`;
+  return isAdmin(req);
 }
 
 export async function adminReset(req: Request): Promise<Response> {

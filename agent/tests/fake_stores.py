@@ -28,6 +28,12 @@ class FakeStores:
         self.kid = "km-test"
         self.checkouts: dict[str, dict[str, Any]] = {}
         self.complete_calls: list[dict[str, Any]] = []
+        # Knobs for guardrail tests: what the store puts in the checkout it signs.
+        self.checkout_quantity = 1
+        self.checkout_total_cents = 14500
+        self.checkout_delivery_days = 1
+        self.checkout_variant: str | None = None
+        self.complete_response: httpx.Response | None = None
         # The real feed was captured from Kilómetro at localhost:3001.
         self.feed = (FIX / "kilometro_feed.xml").read_text().replace("http://localhost:3001", KM)
 
@@ -64,14 +70,22 @@ class FakeStores:
         if path == "/robots.txt":
             return httpx.Response(200, text="User-agent: *\nAllow: /\n")
         if path == "/ucp/v1/checkout-sessions" and request.method == "POST":
+            from encargo.errand import add_business_days, today_gt
+
             body = json.loads(request.content)
-            variant = body["line_items"][0]["item"]["id"]
+            variant = self.checkout_variant or body["line_items"][0]["item"]["id"]
+            size = variant.rsplit("-", 1)[-1]
+            total = self.checkout_total_cents
+            latest = add_business_days(today_gt(), self.checkout_delivery_days).isoformat() + "T23:59:00Z"
             checkout = {
                 "id": f"chk_{secrets.token_hex(4)}",
                 "status": "ready_for_complete",
                 "currency": "USD",
-                "line_items": [{"id": "li_1", "item": {"id": variant, "title": "Senda Acatenango T3 — talla 9", "price": 14500}, "quantity": 1}],
-                "totals": [{"type": "subtotal", "amount": 14500}, {"type": "fulfillment", "amount": 0}, {"type": "total", "amount": 14500}],
+                "line_items": [
+                    {"id": "li_1", "item": {"id": variant, "title": f"Senda Acatenango T3 — talla {size}", "price": total}, "quantity": self.checkout_quantity}
+                ],
+                "totals": [{"type": "subtotal", "amount": total}, {"type": "fulfillment", "amount": 0}, {"type": "total", "amount": total}],
+                "fulfillment": {"methods": [{"id": "shipping", "type": "shipping", "groups": [{"id": "g1", "selected_option_id": "std", "options": [{"id": "std", "latest_fulfillment_time": latest, "totals": [{"type": "total", "amount": 0}]}]}]}]},
                 "links": [],
             }
             signed = self.sign(checkout)
@@ -80,6 +94,8 @@ class FakeStores:
         if path.endswith("/complete"):
             body = json.loads(request.content)
             self.complete_calls.append({"path": path, "body": body, "headers": dict(request.headers)})
+            if self.complete_response is not None:
+                return self.complete_response
             if not (body.get("ap2") or {}).get("checkout_mandate"):
                 return httpx.Response(403, json={"messages": [{"code": "mandate_missing", "content": "Falta el mandato"}]})
             checkout_id = path.split("/")[-2]

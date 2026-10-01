@@ -4,7 +4,7 @@ import { agentUrl } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED = /^(runs(\/[\w-]+(\/events)?)?|mandates\/[\w-]+(\/(sign|reject|passkey-options))?|passkeys\/(status|register\/(options|verify)|[\w-]+)|audit|screenshots\/[\w-]+\.jpg)$/;
+const ALLOWED = /^(runs(\/[\w-]+(\/events)?)?|mandates\/[\w-]+(\/(sign|reject|passkey-options))?|passkeys\/(status|register\/(options|verify)|[\w-]+)|stage\/session|audit|screenshots\/[\w-]+\.jpg)$/;
 
 async function forward(req: Request, ctx: { params: Promise<{ path: string[] }> }): Promise<Response> {
   const path = (await ctx.params).path.join("/");

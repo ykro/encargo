@@ -3,7 +3,8 @@
 "Tenis para trail, talla 9, menos de 150 USD, que lleguen antes del viernes"
 becomes four conditions. Dates are computed from the run date, never stored:
 
-    deadline = the first Friday strictly after the run date (inclusive)
+    deadline = the first Friday after the run date (never the run date itself);
+               a delivery on that Friday counts as on time
     arrival  = run date + max handling + max transit business days
 
 All dates use Guatemala time (UTC-6, no daylight saving).

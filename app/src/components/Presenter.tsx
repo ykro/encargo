@@ -169,6 +169,18 @@ function Ticker({ run, stores }: { run: RunView; stores: StoreRef[] }) {
 
 function Outcome({ run, stores }: { run: RunView; stores: StoreRef[] }) {
   const a = run.approval;
+  if (run.phase === "failed" && a) {
+    // Designed failure after approval: the decision stands, the payment did not happen.
+    return (
+      <>
+        <div className="decision"><span>Decisión: {storeName(stores, a.store)} · {a.total_amount !== undefined ? `${a.total_amount.toFixed(0)} USD` : a.total}</span></div>
+        <div className="approval failed" role="alert">
+          <span className="a-title"><Cross size={36} />La tienda no completó el pago</span>
+          <span className="a-sub">{run.error ?? "Sin respuesta de la tienda."} · No se cobró nada.</span>
+        </div>
+      </>
+    );
+  }
   if (run.phase === "failed") return <div className="decision failed">El encargo se detuvo<small>{run.error ?? ""}</small></div>;
   if (run.phase === "no_purchase") return <div className="decision none">Sin compra: ninguna tienda cumple todo lo verificable</div>;
   if (run.phase === "rejected") return <div className="decision none">Compra cancelada: no se firmó el mandato</div>;

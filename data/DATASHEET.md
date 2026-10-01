@@ -9,7 +9,7 @@
 **Regla de "antes del viernes".** Las fechas no se guardan: se calculan desde la fecha de la corrida (hora de Guatemala, UTC-6).
 - Plazo = el primer viernes estrictamente posterior a la fecha de la corrida; entregar ese viernes cuenta como a tiempo.
 - Llegada = fecha de la corrida + máximo de preparación + máximo de tránsito, en días hábiles (lunes a viernes).
-- El modelo del encargo (1 día hábil) siempre llega a tiempo (peor caso: corrida en jueves, llega el viernes). "Senda Fuego GTX" (7–10 días hábiles) nunca llega: el plazo está a lo sumo a 5 días hábiles.
+- El modelo del encargo (1 día hábil) siempre llega a tiempo (peor caso: corrida en jueves, llega el viernes). "Senda Fuego Tormenta" (7–10 días hábiles) nunca llega: el plazo está a lo sumo a 5 días hábiles.
 
 **Generación.** `catalog/seed.py` con semilla 2027; stock de las tallas distintas de la 9 elegido al azar con esa semilla. Imágenes con `scripts/generate_product_images.py` (prompts junto a cada imagen).
 

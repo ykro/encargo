@@ -9,6 +9,7 @@ import { useRun } from "@/lib/useRun";
 import { humanDate, SHORT_LABEL, STATUS_TEXT, type RunView } from "@/lib/runState";
 import { parseItem, storeName } from "@/lib/names";
 import { PhoneTop } from "./PhoneTop";
+import { stageHeaders } from "@/lib/stage";
 import { Check, Cross, Dash, Key } from "./Icons";
 
 type SignState = "idle" | "waiting" | "sending" | "error";
@@ -53,7 +54,12 @@ export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] 
 
   async function cancel() {
     const mid = run.approval?.mandate_id;
-    if (mid) await fetch(`/api/agent/mandates/${mid}/reject`, { method: "POST" });
+    if (!mid) return;
+    const res = await fetch(`/api/agent/mandates/${mid}/reject`, { method: "POST", headers: stageHeaders() });
+    if (!res.ok) {
+      setSignError(res.status === 401 ? "Este dispositivo no puede cancelar: ábrelo desde el enlace de configuración." : "No se pudo cancelar. Intenta de nuevo.");
+      setSign("error");
+    }
   }
 
   if (run.phase === "completed" && run.order) return <Confirmed run={run} stores={stores} />;

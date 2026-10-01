@@ -17,3 +17,4 @@ local.properties
 .data/
 *.db
 bias-results/
+e2e-passkey-failure.png

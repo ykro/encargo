@@ -94,9 +94,9 @@ MODELS = [
         "size9_stock": 0,
     },
     {
-        "slug": "fuego-gtx",
+        "slug": "fuego-tormenta",
         "specs": {"weight_g": 360, "drop_mm": 8, "outsole_es": "Compuesto volcánico, tacos de 6 mm"},
-        "name": "Senda Fuego GTX",
+        "name": "Senda Fuego Tormenta",
         "category": "trail",
         "role": "trail, size 9 in stock, under budget — arrives too late",
         "tagline_es": "Hecho para el terreno más duro.",

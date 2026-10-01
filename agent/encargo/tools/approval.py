@@ -25,6 +25,12 @@ async def request_payment_approval(ctx: RunContext, store_url: str, checkout_id:
         return {"requested": False, "error": "No se puede pedir el pago: no todas las condiciones están verificadas.", "checklist": pending}
     if ctx.mandate_id:
         return {"requested": False, "error": "Ya hay una aprobación pendiente en este encargo."}
+    # ...and only for a checkout that is exactly the errand (deterministic, no model judgment).
+    from ..checkout_rules import checkout_problems
+
+    problems = checkout_problems(entry["checkout"], ctx.conditions)
+    if problems:
+        return {"requested": False, "error": "El checkout no corresponde al encargo.", "problems": problems}
 
     from .ucp_client import summarize_checkout
 

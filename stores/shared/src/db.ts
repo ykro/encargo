@@ -10,7 +10,7 @@ import { currentStore } from "./store";
 const g = globalThis as unknown as { __storeDb?: DatabaseSync };
 
 function dbPath(): string {
-  return process.env.DB_PATH ?? `./.data/${currentStore().key}.db`;
+  return process.env.DB_PATH || `./.data/${currentStore().key}.db`;
 }
 
 export function db(): DatabaseSync {
@@ -23,6 +23,7 @@ export function db(): DatabaseSync {
     CREATE TABLE IF NOT EXISTS carts (id TEXT PRIMARY KEY, body TEXT, created_at TEXT);
     CREATE TABLE IF NOT EXISTS checkouts (id TEXT PRIMARY KEY, body TEXT, status TEXT, created_at TEXT);
     CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, checkout_id TEXT, body TEXT, created_at TEXT);
+    CREATE TABLE IF NOT EXISTS checkout_tokens (id TEXT PRIMARY KEY, token TEXT);
   `);
   g.__storeDb = conn;
   const count = conn.prepare("SELECT COUNT(*) AS n FROM stock").get() as { n: number };
@@ -38,7 +39,7 @@ function seedDb(conn: DatabaseSync): void {
 /** Back to the initial state: seed stock, no carts, no checkouts, no orders. */
 export function resetStore(): void {
   const conn = db();
-  conn.exec("DELETE FROM stock; DELETE FROM carts; DELETE FROM checkouts; DELETE FROM orders;");
+  conn.exec("DELETE FROM stock; DELETE FROM carts; DELETE FROM checkouts; DELETE FROM orders; DELETE FROM checkout_tokens;");
   seedDb(conn);
 }
 
@@ -105,4 +106,33 @@ export function listOrders(): unknown[] {
   return (db().prepare("SELECT body FROM orders ORDER BY created_at").all() as { body: string }[]).map((r) =>
     JSON.parse(r.body),
   );
+}
+
+/**
+ * Moves a checkout from ready_for_complete to complete_in_progress atomically.
+ * Called before any await, so two concurrent /complete calls cannot both pass.
+ */
+export function claimCheckout(id: string): boolean {
+  const r = db()
+    .prepare("UPDATE checkouts SET status = 'complete_in_progress' WHERE id = ? AND status = 'ready_for_complete'")
+    .run(id);
+  return Number(r.changes) === 1;
+}
+
+/** Gives the checkout back (the mandate or payment was refused). */
+export function releaseCheckout(id: string): void {
+  db().prepare("UPDATE checkouts SET status = 'ready_for_complete' WHERE id = ? AND status = 'complete_in_progress'").run(id);
+}
+
+export function checkoutStatus(id: string): string | undefined {
+  return (db().prepare("SELECT status FROM checkouts WHERE id = ?").get(id) as { status: string } | undefined)?.status;
+}
+
+/** Per-checkout key handed to its creator: only its holder (or the store admin) may change or cancel it. */
+export function setCheckoutToken(id: string, token: string): void {
+  db().prepare("INSERT INTO checkout_tokens (id, token) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET token = excluded.token").run(id, token);
+}
+
+export function checkoutToken(id: string): string | undefined {
+  return (db().prepare("SELECT token FROM checkout_tokens WHERE id = ?").get(id) as { token: string } | undefined)?.token;
 }

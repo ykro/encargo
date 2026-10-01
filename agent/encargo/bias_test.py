@@ -5,7 +5,8 @@
 
 Every run goes errand → approval → passkey signature → order confirmation,
 must finish in under 2 minutes, and starts from a reset store (same stock).
-The store order in the request alternates so position cannot explain the result.
+The agent service shuffles the store order on every run, so position cannot
+explain the result; the order each run used is reported.
 
   uv run python -m encargo.bias_test --runs 10
 
@@ -40,20 +41,21 @@ async def one_run(http: httpx.AsyncClient, a: argparse.Namespace, index: int) ->
     await asyncio.gather(
         _admin(http, a.pulso, a.admin_token, "/api/admin/reset"), _admin(http, a.kilometro, a.admin_token, "/api/admin/reset")
     )
-    stores = [a.pulso, a.kilometro] if index % 2 == 0 else [a.kilometro, a.pulso]
     started = time.monotonic()
-    res = await http.post(f"{a.agent}/runs", json={"stores": stores})
+    res = await http.post(f"{a.agent}/runs", json={}, headers=a.stage_headers)
     res.raise_for_status()
     run_id = res.json()["id"]
     run: dict[str, Any] = {}
     while time.monotonic() - started < RUN_LIMIT_S:
-        run = (await http.get(f"{a.agent}/runs/{run_id}")).json()
+        run = (await http.get(f"{a.agent}/runs/{run_id}", headers=a.stage_headers)).json()
         if run["status"] != "running":
             break
         await asyncio.sleep(1)
     to_approval = round(time.monotonic() - started, 1)
     chosen = run.get("chosen_store")
-    result: dict[str, Any] = {"run_id": run_id, "status": run.get("status"), "to_approval_s": to_approval, "chosen": chosen}
+    result: dict[str, Any] = {
+        "run_id": run_id, "status": run.get("status"), "to_approval_s": to_approval, "chosen": chosen, "order_seen": run.get("stores"),
+    }
     if run.get("status") == "awaiting_approval" and run.get("mandate_id"):
         mid = run["mandate_id"]
         opts = (await http.post(f"{a.agent}/mandates/{mid}/passkey-options")).json()
@@ -71,6 +73,8 @@ async def main_async(a: argparse.Namespace) -> int:
     a.threshold = a.threshold or -(-a.runs * 9 // 10)
     async with httpx.AsyncClient(timeout=150) as http:
         admin = {"authorization": f"Bearer {a.admin_token}"}
+        stage = (await http.post(f"{a.agent}/stage/session", headers=admin)).json()
+        a.stage_headers = {"authorization": f"Bearer {stage['stage_token']}"} if stage.get("stage_token") else {}
         rp_id = (await http.get(f"{a.agent}/passkeys/status")).json()["rp_id"]
         a.authenticator = SoftwareAuthenticator(a.origin, rp_id)
         opts = (await http.post(f"{a.agent}/passkeys/register/options", json={"label": "bias-test"}, headers=admin)).json()

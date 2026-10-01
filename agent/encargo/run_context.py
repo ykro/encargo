@@ -17,6 +17,8 @@ from .runstore import RunStore
 # A run is looked up by id from inside ADK tools (they only receive a ToolContext).
 _ACTIVE: dict[str, "RunContext"] = {}
 
+REQUIRED_KINDS = {"category", "size", "max_price_usd", "deliver_by"}
+
 STATUS_LABEL = {"met": "cumple", "not_met": "no cumple", "not_verifiable": "no verificable"}
 
 
@@ -73,5 +75,11 @@ class RunContext:
         )
 
     def all_met(self, store_url: str) -> bool:
+        """Every one of the four errand conditions was recorded as met at this store.
+
+        An errand that did not yield all four conditions can never be bought.
+        """
+        if {c.kind for c in self.conditions} != REQUIRED_KINDS:
+            return False
         checks = self.checklist.get(store_url, {})
         return all(checks.get(c.id, {}).get("status") == "met" for c in self.conditions)

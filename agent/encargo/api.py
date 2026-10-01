@@ -19,6 +19,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import random
 import secrets
 import time
 from typing import Any
@@ -30,7 +31,9 @@ from pydantic import BaseModel, Field
 
 from . import passkey, purchase
 from .ap2.signer import platform_key
-from .audit import audit_store
+from urllib.parse import urlparse
+
+from .audit import UnsafeURL, audit_store
 from .config import settings
 from .errand import DEFAULT_ERRAND
 from .runner import start_run
@@ -43,8 +46,9 @@ UCP_VERSION = "2026-08-25"
 
 
 class RunRequest(BaseModel):
-    errand: str = DEFAULT_ERRAND
-    stores: list[str] = Field(default_factory=lambda: settings().default_stores)
+    # Only the errand comes from the client. The stores are fixed on the server
+    # (STORE_URLS): nobody can point the agent at another site during the talk.
+    errand: str = Field(default=DEFAULT_ERRAND, max_length=300)
 
 
 @app.get("/health")  # not /healthz: Cloud Run reserves paths ending in "z"
@@ -53,28 +57,67 @@ async def health() -> dict[str, Any]:
     return {"ok": True, "mode": "mock" if s.mock_ai else "gemini", "run_store": s.run_store}
 
 
+def _bearer_ok(authorization: str | None, token: str) -> bool:
+    return bool(token) and bool(authorization) and secrets.compare_digest(authorization, f"Bearer {token}")
+
+
+def _require_stage(authorization: str | None) -> None:
+    """Starting an errand or rejecting a payment needs an enrolled device (passkey mode)."""
+    s = settings()
+    if not s.stage_required:
+        return
+    if not s.stage_token:
+        raise HTTPException(503, "El acceso de escenario no está configurado (STAGE_TOKEN).")
+    if not _bearer_ok(authorization, s.stage_token):
+        raise HTTPException(401, "Este dispositivo no está habilitado. Ábrelo desde el enlace de configuración.")
+
+
+def _is_stage(authorization: str | None) -> bool:
+    s = settings()
+    return not s.stage_required or _bearer_ok(authorization, s.stage_token)
+
+
+def _public_run(run: dict[str, Any], authorization: str | None) -> dict[str, Any]:
+    # Anonymous viewers (the presenter) never get the mandate id.
+    return run if _is_stage(authorization) else {k: v for k, v in run.items() if k != "mandate_id"}
+
+
 @app.post("/runs", status_code=201)
-async def create_run(req: RunRequest) -> dict[str, str]:
-    if len(req.stores) < 1:
-        raise HTTPException(400, "Se necesita al menos una tienda.")
-    run_id = await start_run(default_store(), req.errand, [s.rstrip("/") for s in req.stores])
+async def create_run(req: RunRequest, authorization: str | None = Header(default=None)) -> dict[str, str]:
+    _require_stage(authorization)
+    stores = [s.rstrip("/") for s in settings().default_stores]
+    # Shuffled per run, so list position can never be what decides.
+    random.shuffle(stores)
+    if not stores:
+        raise HTTPException(503, "No hay tiendas configuradas (STORE_URLS).")
+    run_id = await start_run(default_store(), req.errand, stores)
     return {"id": run_id, "events": f"/runs/{run_id}/events"}
 
 
+@app.post("/stage/session")
+async def stage_session(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    """The setup link (/configurar?clave=…) trades the setup code for the stage token."""
+    _require_admin(authorization)
+    s = settings()
+    if s.stage_required and not s.stage_token:
+        raise HTTPException(503, "El acceso de escenario no está configurado (STAGE_TOKEN).")
+    return {"stage_token": s.stage_token, "required": s.stage_required}
+
+
 @app.get("/runs/latest")
-async def latest_run() -> dict[str, Any]:
+async def latest_run(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     run = await default_store().latest_run()
     if not run:
         raise HTTPException(404, "Todavía no hay encargos.")
-    return run
+    return _public_run(run, authorization)
 
 
 @app.get("/runs/{run_id}")
-async def get_run(run_id: str) -> dict[str, Any]:
+async def get_run(run_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
     run = await default_store().get_run(run_id)
     if not run:
         raise HTTPException(404, "Encargo no encontrado.")
-    return run
+    return _public_run(run, authorization)
 
 
 @app.get("/runs/{run_id}/events")
@@ -136,7 +179,10 @@ def _test_signer(authorization: str | None) -> bool:
 
 
 def _require_admin(authorization: str | None) -> None:
-    if not authorization or not secrets.compare_digest(authorization, f"Bearer {settings().admin_token}"):
+    token = settings().admin_token
+    if not token:  # fail closed: no ADMIN_TOKEN outside test mode means no admin at all
+        raise HTTPException(503, "Administración deshabilitada: falta ADMIN_TOKEN.")
+    if not _bearer_ok(authorization, token):
         raise HTTPException(401, "No autorizado.")
 
 
@@ -181,8 +227,9 @@ async def sign_mandate(mandate_id: str, body: SignRequest | None = None, authori
 
 
 @app.post("/mandates/{mandate_id}/reject")
-async def reject_mandate(mandate_id: str) -> dict[str, Any]:
-    # Saying no needs no proof: rejecting can never move money.
+async def reject_mandate(mandate_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    # Rejecting never moves money, but only the enrolled device may cancel a live demo.
+    _require_stage(authorization)
     result = await purchase.reject(default_store(), mandate_id)
     if not result["ok"]:
         raise HTTPException(409, result["error"])
@@ -256,7 +303,12 @@ async def platform_profile() -> dict[str, Any]:
 
 @app.get("/audit")
 async def audit(url: str) -> dict[str, Any]:
-    return await audit_store(url)
+    # SSRF guard: public http(s) hosts only (plus the demo's own stores).
+    allowed = {urlparse(s).netloc for s in settings().default_stores}
+    try:
+        return await audit_store(url, guard=True, allowed_hosts=allowed)
+    except UnsafeURL as e:
+        raise HTTPException(400, str(e)) from e
 
 
 @app.get("/screenshots/{shot_id}.jpg")
@@ -270,5 +322,8 @@ async def get_screenshot(shot_id: str) -> Response:
 @app.post("/admin/reset")
 async def reset(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     _require_admin(authorization)
+    from .runner import cancel_all
+
+    cancelled = await cancel_all()
     await default_store().reset()
-    return {"reset": True}
+    return {"reset": True, "cancelled_runs": cancelled}

@@ -31,10 +31,9 @@ async def _emit(store: RunStore, run_id: str, type_: str, **data: Any) -> None:
 
 
 async def reject(store: RunStore, mandate_id: str) -> dict[str, Any]:
-    mandate = await store.get_mandate(mandate_id)
-    if not mandate or mandate["status"] != "pending_signature":
+    mandate = await store.claim_mandate(mandate_id, "pending_signature", {"status": "rejected", "rejected_at": time.time()})
+    if not mandate:
         return {"ok": False, "error": "Mandato no encontrado o ya resuelto."}
-    await store.update_mandate(mandate_id, {"status": "rejected", "rejected_at": time.time()})
     await store.update_run(mandate["run_id"], {"status": "rejected"})
     await _emit(store, mandate["run_id"], "approval_rejected", mandate_id=mandate_id)
     await _emit(store, mandate["run_id"], "run_finished", status="rejected")
@@ -44,11 +43,12 @@ async def reject(store: RunStore, mandate_id: str) -> dict[str, Any]:
 async def sign_and_complete(
     store: RunStore, mandate_id: str, approved_by: str, http: httpx.AsyncClient | None = None, approval: dict[str, Any] | None = None
 ) -> dict[str, Any]:
-    mandate = await store.get_mandate(mandate_id)
-    if not mandate:
-        return {"ok": False, "error": "Mandato no encontrado."}
-    if mandate["status"] != "pending_signature":
-        return {"ok": False, "error": f"El mandato ya está {mandate['status']}."}
+    # Exactly one signature wins, even if two arrive at once (transaction in Firestore).
+    claimed = await store.claim_mandate(mandate_id, "pending_signature", {"status": "signing", "signing_at": time.time()})
+    if not claimed:
+        current = await store.get_mandate(mandate_id)
+        return {"ok": False, "error": "Mandato no encontrado." if not current else f"El mandato ya está {current['status']}."}
+    mandate = claimed
     run_id, checkout = mandate["run_id"], mandate["checkout"]
     s = settings()
 
@@ -65,19 +65,27 @@ async def sign_and_complete(
 
     own_client = http is None
     client = http or httpx.AsyncClient(timeout=20)
+    status_code, body = 0, {}
     try:
         res = await client.post(
             f"{mandate['endpoint']}/checkout-sessions/{checkout['id']}/complete",
             json={"payment": {"instruments": [SANDBOX_INSTRUMENT]}, "ap2": {"checkout_mandate": token}},
             headers={"UCP-Agent": f'profile="{s.profile_url}"', "content-type": "application/json"},
         )
-        body = res.json()
+        status_code = res.status_code
+        try:
+            body = res.json()
+        except ValueError:
+            body = {"messages": [{"content": f"La tienda respondió HTTP {res.status_code} sin un cuerpo JSON."}]}
+    except httpx.HTTPError as e:
+        body = {"messages": [{"content": f"La tienda no respondió ({e.__class__.__name__})."}]}
     finally:
         if own_client:
             await client.aclose()
 
-    if res.status_code != 200 or body.get("status") != "completed":
-        reason = "; ".join(m.get("content", "") for m in body.get("messages", [])) or f"HTTP {res.status_code}"
+    if status_code != 200 or not isinstance(body, dict) or body.get("status") != "completed":
+        messages = body.get("messages", []) if isinstance(body, dict) else []
+        reason = "; ".join(m.get("content", "") for m in messages if isinstance(m, dict)) or f"HTTP {status_code}"
         await store.update_mandate(mandate_id, {"status": "failed", "error": reason})
         await store.update_run(run_id, {"status": "failed", "error": reason})
         await _emit(store, run_id, "order_failed", reason=reason)

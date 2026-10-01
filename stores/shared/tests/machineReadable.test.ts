@@ -84,3 +84,15 @@ describe("business days", () => {
     expect(addBusinessDays(thursday, 2).getUTCDay()).toBe(1);
   });
 });
+
+describe("store admin key", () => {
+  it("fails closed in production without ADMIN_TOKEN", async () => {
+    const { isAdmin } = await import("../src/admin");
+    const env = { ...process.env };
+    process.env.NODE_ENV = "production";
+    delete process.env.ADMIN_TOKEN;
+    expect(isAdmin(new Request("http://x", { headers: { authorization: "Bearer dev-admin" } }))).toBe(false);
+    process.env.NODE_ENV = env.NODE_ENV;
+    process.env.ADMIN_TOKEN = env.ADMIN_TOKEN;
+  });
+});

@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { browserSupportsWebAuthn, startRegistration } from "@simplewebauthn/browser";
 import { PhoneTop } from "./PhoneTop";
+import { saveStageToken, stageToken } from "@/lib/stage";
 import { Check, Key } from "./Icons";
 
 type State = "idle" | "working" | "done" | "error";
@@ -26,8 +27,29 @@ export function PasskeySetup() {
       .then(setStatus)
       .catch(() => setStatus(null));
 
+  const [enabled, setEnabled] = useState(false);
+
+  async function enableDevice(setup: string) {
+    try {
+      const res = await fetch("/api/agent/stage/session", { method: "POST", headers: { authorization: `Bearer ${setup}` } });
+      if (!res.ok) return;
+      const body = await res.json();
+      if (body.stage_token) saveStageToken(body.stage_token);
+      setEnabled(true);
+    } catch {
+      /* the registration step will report connectivity problems */
+    }
+  }
+
   useEffect(() => {
-    setCode(new URLSearchParams(window.location.search).get("clave") ?? "");
+    const clave = new URLSearchParams(window.location.search).get("clave") ?? "";
+    setCode(clave);
+    setEnabled(Boolean(stageToken()));
+    if (clave) {
+      // Never leave the setup code in the address bar or the history.
+      window.history.replaceState(null, "", window.location.pathname);
+      enableDevice(clave);
+    }
     setSupported(browserSupportsWebAuthn());
     refresh();
   }, []);
@@ -73,6 +95,7 @@ export function PasskeySetup() {
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.detail ?? "No se pudo verificar la passkey.");
+      await enableDevice(code.trim());
       setState("done");
       setMessage(`Listo: «${body.label}» ya puede firmar pagos.`);
       refresh();
@@ -108,6 +131,11 @@ export function PasskeySetup() {
               </li>
             ))}
           </ul>
+        ) : null}
+        {enabled ? (
+          <p className="notice notice-ok" role="status" style={{ marginTop: 12 }}>
+            <Check size={18} /> Este dispositivo puede enviar encargos y cancelar pagos.
+          </p>
         ) : null}
         {!supported ? (
           <p className="notice notice-error" role="alert">Este navegador no admite passkeys.</p>

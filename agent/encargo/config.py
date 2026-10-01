@@ -27,7 +27,13 @@ class Settings:
     run_store: str = field(default_factory=lambda: os.getenv("RUN_STORE", "memory"))  # memory | firestore
     firestore_database: str = field(default_factory=lambda: os.getenv("FIRESTORE_DATABASE", "encargo"))
     public_url: str = field(default_factory=lambda: os.getenv("AGENT_PUBLIC_URL", "http://localhost:8000").rstrip("/"))
-    admin_token: str = field(default_factory=lambda: os.getenv("ADMIN_TOKEN", "dev-admin"))
+    # Fail closed: the "dev-admin" / "dev-stage" fallbacks exist only in test mode.
+    admin_token: str = field(
+        default_factory=lambda: os.getenv("ADMIN_TOKEN") or ("dev-admin" if os.getenv("SIGNER_MODE", "test") == "test" else "")
+    )
+    # Stage token: what an enrolled device (phone window) presents to start an errand
+    # or reject a payment. Required in passkey mode; obtained through /configurar.
+    stage_token: str = field(default_factory=lambda: os.getenv("STAGE_TOKEN", ""))
     human_approval_token: str = field(default_factory=lambda: os.getenv("HUMAN_APPROVAL_TOKEN", ""))
     # passkey: only a WebAuthn assertion approves a mandate (stage).
     # test: the bearer HUMAN_APPROVAL_TOKEN is accepted too (tests, local rehearsals).
@@ -42,6 +48,10 @@ class Settings:
             s.strip() for s in os.getenv("STORE_URLS", "http://localhost:3002,http://localhost:3001").split(",") if s.strip()
         ]
     )
+
+    @property
+    def stage_required(self) -> bool:
+        return self.signer_mode != "test"
 
     @property
     def profile_url(self) -> str:

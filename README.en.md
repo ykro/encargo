@@ -47,14 +47,14 @@ The agent's tools are exactly that short funnel: `inspect_store`, `read_product_
 ### 3. Control mode proves the agent has no bias
 
 - `PULSO_AGENT_READY` (`stores/shared/src/store.ts`) turns on the same machine layer at Pulso that Kilómetro has. `agentReadyOnly` (`stores/shared/src/ucp/http.ts`) opens or closes the feed, the sitemap, the UCP profile and the UCP endpoints. The product page (`stores/pulso/src/app/p/[slug]/page.tsx`) adds the same JSON-LD.
-- The agent gets no hint: `POST /runs` carries only the errand and the list of URLs (`agent/encargo/api.py`). The instruction says "treat every store exactly the same way".
-- `make bias-test` does 10 runs with control mode off and 10 with it on. It alternates the store order so position cannot explain the result (`agent/encargo/bias_test.py`). Quick offline test: `test_control_mode_buys_where_it_is_cheaper`.
+- The agent gets no hint: `POST /runs` carries only the errand. The server fixes the stores (`STORE_URLS`) and shuffles them on every run, so list position cannot decide (`agent/encargo/api.py`). The instruction says "treat every store exactly the same way".
+- `make bias-test` does 10 runs with control mode off and 10 with it on, and records the order each run saw (`agent/encargo/bias_test.py`). Quick offline test: `test_control_mode_buys_where_it_is_cheaper`.
 
 ### 4. Trust: an AP2 mandate signed with a passkey
 
 The agent can build the cart, but it cannot pay:
 
-- `request_payment_approval` (`agent/encargo/tools/approval.py`) only asks for approval if **every** condition at that store is "met".
+- `request_payment_approval` (`agent/encargo/tools/approval.py`) only asks for approval if all **four** conditions at that store are "met" (an errand without all four is never bought). It also checks, without the model, the checkout the store signed (`agent/encargo/checkout_rules.py`): exactly one pair, the requested size, a total under the cap in USD and delivery by the deadline.
 - The store signs every checkout (`merchant_authorization`, `stores/shared/src/ap2/merchantAuthorization.ts`). The agent verifies that signature against the key in the store's UCP profile before showing the terms to the person (`agent/encargo/ap2/merchant_signature.py`).
 - The person signs, with a passkey, a challenge derived from that checkout: `sha256(checkout_hash + "." + nonce)` (`agent/encargo/passkey.py`). That is why the signature approves this cart and no other.
 - Only after that signature does the platform issue the AP2 mandate (`agent/encargo/ap2/signer.py`) and complete the purchase (`agent/encargo/purchase.py`). That module is reachable only from the human endpoint; no agent tool reaches it.
@@ -101,7 +101,7 @@ gcloud auth application-default login      # ADC for Gemini on Vertex AI (or MOC
 make up                                    # app :3000, Kilómetro :3001, Pulso :3002, agent :8000
 ```
 
-- Open `http://localhost:3000/configurar?clave=dev-admin` and register a passkey (Touch ID).
+- Open `http://localhost:3000/configurar?clave=dev-admin` and register a passkey (Touch ID). In the cloud, the same link (with the real `ADMIN_TOKEN`) also enables the device to start errands.
 - Send the errand from `http://localhost:3000` and watch it at `http://localhost:3000/presenter`.
 - `make test` runs every test offline.
 
@@ -195,7 +195,8 @@ Pulso's `robots.txt` says `User-agent: *` / `Allow: /`. There are no CAPTCHAs, 4
 
 The rule "buy only where everything is met" lives in code, not only in the instruction:
 
-- `request_payment_approval` refuses if `ctx.all_met(store)` is false. In that case it returns the status of each condition to the model.
+- `request_payment_approval` refuses if `ctx.all_met(store)` is false (or conditions are missing) and returns each condition's status to the model. It also refuses if `checkout_problems` finds the signed checkout is not the errand.
+- One signature wins: the mandate moves from `pending_signature` to `signing` in a Firestore transaction, and the store claims the checkout (`UPDATE … WHERE status='ready_for_complete'`) before its first `await`. If the store answers with an error (even a non-JSON one), the run ends as failed, with its event, and the presenter shows it.
 - There is a single pending mandate per run.
 - No tool signs or completes a payment (`test_agent_has_no_tool_that_signs_or_pays`).
 
@@ -222,7 +223,16 @@ Runs, events, mandates, orders, screenshots, passkeys and WebAuthn challenges li
 
 - Events are a subcollection `runs/{id}/events/{seq}`. So "events after N" needs no composite index.
 - The SSE endpoint polls every 0.4 s and delivers events in strict order. Parallel tool calls can write event N+1 before event N.
-- `make reset` deletes runs, mandates, orders and screenshots. Passkeys survive, because they belong to the person, not to a run.
+- `make reset` cancels runs in flight and deletes runs, mandates, orders, screenshots and pending WebAuthn challenges in parallel. Late writes cannot resurrect deleted runs (`update`, not `set(merge=True)`). Passkeys survive, because they belong to the person, not to a run.
+
+### Who can do what during the talk
+
+- **Start an errand or cancel a payment** (`POST /runs`, `POST /mandates/{id}/reject`): in `passkey` mode, only an enrolled device. The setup link (`/configurar?clave=<ADMIN_TOKEN>`) hands it the stage token (`STAGE_TOKEN`) and clears the code from the address bar.
+- **Pay:** only a registered passkey, with a challenge bound to the checkout.
+- **Watch:** the presenter is anonymous; `/runs/latest` hides the `mandate_id` from it.
+- **Change or cancel a store checkout:** only its key holder (the `ucp-checkout-token` header returned at creation) or the store admin key.
+- **Audit:** `/audit` only fetches public http(s) hosts plus the two demo stores (SSRF guard, redirects included).
+- **Administer** (reset, control mode, enroll or delete passkeys): `ADMIN_TOKEN`. Without it, in production or `passkey` mode, those endpoints fail closed; `dev-admin` exists only locally.
 - Tests use `MemoryRunStore`, which has the same interface.
 
 **Why:** the agent, the app, the presenter and the bias test read the same state, and an instance restart does not erase what the audience is watching.
@@ -268,7 +278,7 @@ In the cloud the agent runs with `SIGNER_MODE=passkey`: only a WebAuthn assertio
 
 - **Deadline:** the first Friday *strictly after* the run date. Delivering on that Friday counts as on time. A run on a Friday gets the following Friday.
 - **Arrival:** the run date + max handling + max transit, in business days (Monday to Friday).
-- **Consequence:** the errand's model, Senda Acatenango T3 (0 + 1 business days), always arrives in time. The worst case is a Thursday run, which arrives on Friday. Senda Fuego GTX (7–10 days) never does.
+- **Consequence:** the errand's model, Senda Acatenango T3 (0 + 1 business days), always arrives in time. The worst case is a Thursday run, which arrives on Friday. Senda Fuego Tormenta (7–10 days) never does.
 
 The errand is parsed with a deterministic parser (regular expressions), not by the model. So the four conditions (`categoria`, `talla`, `precio`, `entrega`) are identical in every run, which is what the bias test needs. Tests: `agent/tests/test_errand.py`.
 

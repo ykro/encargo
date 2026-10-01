@@ -106,12 +106,13 @@ gcloud auth application-default set-quota-project ai-experiments-487722
 
 En Cloud Run, las mismas bibliotecas usan la cuenta de servicio de ejecución. Con `MOCK_AI=1` y `RUN_STORE=memory` no hace falta ADC para correr en local; `make test` nunca lo necesita.
 
-**Secret Manager.** `infra/20-secrets.sh` crea tres secretos una sola vez (si ya existen, no los toca) y le da a la cuenta de ejecución `roles/secretmanager.secretAccessor`:
+**Secret Manager.** `infra/20-secrets.sh` crea cuatro secretos una sola vez (si ya existen, no los toca) y le da a la cuenta de ejecución `roles/secretmanager.secretAccessor`:
 
 | Secreto | Contenido | Lo usa |
 | --- | --- | --- |
 | `encargo-platform-jwk` | Llave privada EC P-256 (JWK) con la que el agente firma los mandatos AP2 | Agente (`PLATFORM_SIGNING_JWK`) |
 | `encargo-admin-token` | Código de configuración y de administración | Tiendas y agente (`ADMIN_TOKEN`); `make reset`, `bias-test`, `e2e` y `screens` con `TARGET=cloud`; `/configurar` |
+| `encargo-stage-token` | Token de escenario: habilita un dispositivo para enviar encargos y cancelar pagos | Agente (`STAGE_TOKEN`). El navegador lo recibe al abrir `/configurar?clave=…` y lo guarda en `localStorage` |
 | `encargo-human-token` | Token del firmador de prueba | Agente (`HUMAN_APPROVAL_TOKEN`). En la nube no aprueba nada, porque el agente corre con `SIGNER_MODE=passkey` |
 
 Leer un secreto:
@@ -184,15 +185,18 @@ make test
 
 Corre cuatro grupos de pruebas:
 
-1. **Kit de comercio** (`stores/shared/tests/`, vitest, 15 pruebas): lo que publican schema.org, el feed y UCP; las fechas de entrega; y que no hay pago sin mandato. Esto último cubre un mandato ausente, una llave desconocida, una plataforma sin confianza, términos distintos, otro checkout, un mandato vencido y un mandato para otra tienda.
+1. **Kit de comercio** (`stores/shared/tests/`, vitest, 19 pruebas): lo que publican schema.org, el feed y UCP; las fechas de entrega; y que no hay pago sin mandato. Esto último cubre un mandato ausente, una llave desconocida, una plataforma sin confianza, términos distintos, otro checkout, un mandato vencido y un mandato para otra tienda. También: dos `/complete` simultáneos dejan un solo pedido, un mandato rechazado devuelve el checkout, solo la llave del checkout (o la del administrador) lo cancela, y la llave de administración falla cerrada en producción.
 2. **Typecheck** de Kilómetro, Pulso y la app.
-3. **Agente** (`agent/tests/`, pytest, 31 pruebas). `conftest.py` fija `MOCK_AI=1`, `RUN_STORE=memory`, `BROWSER_ENABLED=0` y `SIGNER_MODE=test`. Las tiendas falsas (`tests/fake_stores.py`) sirven fixtures reales de Kilómetro y Pulso. Las pruebas que más enseñan:
+3. **Agente** (`agent/tests/`, pytest, 52 pruebas). `conftest.py` fija `MOCK_AI=1`, `RUN_STORE=memory`, `BROWSER_ENABLED=0` y `SIGNER_MODE=test`. Las tiendas falsas (`tests/fake_stores.py`) sirven fixtures reales de Kilómetro y Pulso. Las pruebas que más enseñan:
    - `test_pulso_page_has_no_facts_for_a_machine`.
    - `test_control_mode_buys_where_it_is_cheaper`.
    - `test_guardrail_refuses_approval_when_a_condition_is_not_verified`.
    - `test_agent_has_no_tool_that_signs_or_pays`.
    - `test_wrong_origin_unregistered_key_or_replay_never_pays`.
    - `test_friday_is_the_first_friday_after_the_run_date`.
+   - `test_no_approval_for_a_checkout_that_is_not_the_errand` (dos pares, otra talla, 150 USD o más, entrega tardía) y `test_an_errand_missing_a_condition_can_never_be_bought`.
+   - `test_two_concurrent_signatures_complete_one_order` y `test_non_json_store_error_fails_the_run_visibly`.
+   - `test_runs_need_the_stage_token_and_ignore_client_stores`, `test_latest_run_hides_the_mandate_from_anonymous_callers`, `test_admin_fails_closed_without_a_token`, `test_audit_refuses_non_public_hosts`.
 
 ### `make e2e` — passkey real en Chrome
 
@@ -211,6 +215,8 @@ make e2e TARGET=cloud   # contra Cloud Run
 Imprime una línea `✓` por paso y sale con un código distinto de cero si algo falla. Al terminar borra la credencial virtual del agente. Usa `--headed` (corriendo el script a mano) para ver la ventana.
 
 ### `make e2e-emulator` — el teléfono en el emulador Android
+
+El script abre primero `/configurar?clave=…` en el emulador para habilitar ese navegador con el token de escenario.
 
 ```bash
 emulator -avd <tu_avd> &                 # el emulador debe ser emulator-5556 (o exporta ANDROID_SERIAL)
@@ -274,7 +280,9 @@ open -na "Google Chrome" --args --app="$APP_URL/configurar?clave=$CLAVE" --windo
 
 1. En la página «Configura tu passkey», revisa el nombre del dispositivo y pulsa «Registrar passkey en este dispositivo».
 2. Confirma con Touch ID.
-3. La página debe decir «Listo: «…» ya puede firmar pagos». El aviso superior muestra cuántas passkeys hay para `encargo-app-611681112050.us-central1.run.app`.
+3. La página debe decir «Listo: «…» ya puede firmar pagos» y «Este dispositivo puede enviar encargos y cancelar pagos». El aviso superior muestra cuántas passkeys hay para `encargo-app-611681112050.us-central1.run.app`.
+
+Al abrir el enlace, la app canjea la clave por el token de escenario y la borra de la barra de direcciones (`history.replaceState`). Cualquier navegador que vaya a enviar encargos en la nube (la ventana del «teléfono», el emulador) debe abrir este enlace una vez; sin él, el formulario muestra «Este dispositivo todavía no puede enviar encargos».
 
 Abre siempre la app con la URL determinista (`…-611681112050.us-central1.run.app`). Con el alias `…-uc.a.run.app` el origen no coincide con `PASSKEY_ORIGIN` y la verificación falla. Usa el mismo perfil de Chrome que va a abrir `make phone TARGET=cloud`.
 

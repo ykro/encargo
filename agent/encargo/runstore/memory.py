@@ -26,9 +26,12 @@ class MemoryRunStore:
         return copy.deepcopy(run) if run else None
 
     async def update_run(self, run_id: str, fields: dict[str, Any]) -> None:
-        self.runs[run_id].update(copy.deepcopy(fields))
+        if run_id in self.runs:  # a reset run stays deleted
+            self.runs[run_id].update(copy.deepcopy(fields))
 
     async def append_event(self, run_id: str, event: dict[str, Any]) -> int:
+        if run_id not in self.runs:
+            return 0
         seq = len(self.events[run_id]) + 1
         self.events[run_id].append({**copy.deepcopy(event), "seq": seq})
         return seq
@@ -44,7 +47,16 @@ class MemoryRunStore:
         return copy.deepcopy(m) if m else None
 
     async def update_mandate(self, mandate_id: str, fields: dict[str, Any]) -> None:
-        self.mandates[mandate_id].update(copy.deepcopy(fields))
+        if mandate_id in self.mandates:
+            self.mandates[mandate_id].update(copy.deepcopy(fields))
+
+    async def claim_mandate(self, mandate_id: str, expected: str, fields: dict[str, Any]) -> dict[str, Any] | None:
+        # No await between check and set: atomic within the event loop.
+        m = self.mandates.get(mandate_id)
+        if not m or m.get("status") != expected:
+            return None
+        m.update(copy.deepcopy(fields))
+        return copy.deepcopy(m)
 
     async def save_order(self, order: dict[str, Any]) -> None:
         self.orders.append(copy.deepcopy(order))
@@ -82,3 +94,4 @@ class MemoryRunStore:
 
     async def reset(self) -> None:
         self.__init__()
+        self.challenges = {}
