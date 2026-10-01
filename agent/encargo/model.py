@@ -26,7 +26,7 @@ log = logging.getLogger("encargo.model")
 
 class HedgedGemini(Gemini):
     hedge_after_s: float = float(os.getenv("MODEL_HEDGE_AFTER_S", "6"))
-    max_parallel: int = 3
+    max_parallel: int = int(os.getenv("MODEL_MAX_PARALLEL", "5"))
 
     async def _collect(self, request: LlmRequest) -> list[LlmResponse]:
         return [r async for r in super().generate_content_async(request, False)]
