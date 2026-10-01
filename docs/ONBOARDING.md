@@ -172,7 +172,7 @@ make audit URL=$KILOMETRO_URL                        # Puntaje: 8/8
 | Llaves AP2 | Nuevas en cada proceso | La de la plataforma viene de Secret Manager; la de cada tienda se genera por proceso (una sola instancia) |
 | Comandos | `make reset`, `make e2e`, … | Los mismos con `TARGET=cloud` (leen las URL de `infra/urls.sh` y `ADMIN_TOKEN` de Secret Manager) |
 
-`TARGET=cloud` aplica a `reset`, `bias-test`, `e2e`, `e2e-emulator`, `screens` y `phone` (`e2e-emulator` usa la nube por defecto). `e2e`, `e2e-emulator`, `screens` y `phone` también aceptan `APP=https://…` y `AGENT=https://…` para apuntar a otra instancia. `make audit` recibe la URL directamente.
+`TARGET=cloud` aplica a `reset`, `bias-test`, `e2e`, `e2e-emulator`, `screens` y `phone` (`e2e-emulator` usa la nube por defecto). `e2e`, `e2e-emulator`, `screens` y `phone` también aceptan `APP_URL=https://…` y `AGENT_URL=https://…` para apuntar a otra instancia. `make audit` recibe la URL directamente.
 
 ## 6. Pruebas y ensayos
 

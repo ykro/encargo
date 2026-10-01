@@ -46,10 +46,13 @@ deploy: ## Cloud Run: APIs, secrets, stores, agent, app (infra/NN-*.sh)
 	./infra/50-deploy-app.sh
 
 
-cloud_env = if [ "$(TARGET)" = cloud ]; then source infra/env.sh; source infra/urls.sh; \
+# APP_URL / AGENT_URL given on the command line win over the TARGET defaults.
+# (Not APP: infra/app.env already uses APP=encargo for the service prefix.)
+cloud_env = app_override="$(APP_URL)"; agent_override="$(AGENT_URL)"; \
+	if [ "$(TARGET)" = cloud ]; then source infra/env.sh; source infra/urls.sh; \
 	  export ADMIN_TOKEN=$$(gcloud secrets versions access latest --secret=encargo-admin-token); \
 	else export APP_URL=http://localhost:3000 AGENT_URL=http://localhost:8000 ADMIN_TOKEN=$${ADMIN_TOKEN:-dev-admin}; fi; \
-	export APP_URL=$${APP:-$$APP_URL} AGENT_URL=$${AGENT:-$$AGENT_URL}
+	export APP_URL=$${app_override:-$$APP_URL} AGENT_URL=$${agent_override:-$$AGENT_URL}
 
 screens: ## Drive the app in Chrome (virtual passkey) and screenshot every screen to docs/screenshots/app (TARGET=cloud)
 	@$(cloud_env); cd agent && uv run python ../scripts/screens_app.py --app $$APP_URL --agent $$AGENT_URL --setup $$ADMIN_TOKEN

@@ -1,6 +1,6 @@
 """Automated passkey test: the phone flow in Chrome with a virtual authenticator.
 
-  make e2e TARGET=cloud              (or APP=https://… AGENT=https://… to point elsewhere)
+  make e2e TARGET=cloud              (or APP_URL=https://… AGENT_URL=https://… to point elsewhere)
 
 Phone-sized Chrome window, DevTools virtual authenticator (platform passkey with
 user verification): enroll with the setup code → send the errand → wait for the
