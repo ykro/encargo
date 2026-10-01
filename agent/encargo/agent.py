@@ -154,5 +154,7 @@ def build_agent() -> Agent:
         tools=TOOLS,
         generate_content_config=types.GenerateContentConfig(
             thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.LOW),
+            # A hard ceiling per HTTP call, so a stuck connection fails instead of hanging the run.
+            http_options=types.HttpOptions(timeout=45_000),
         ),
     )

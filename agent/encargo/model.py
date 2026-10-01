@@ -57,8 +57,16 @@ class HedgedGemini(Gemini):
                         return
                     errors.append(task.exception())
         finally:
+            # Losing calls are left to finish on their own, not cancelled: cancelling
+            # in-flight HTTP requests can leave pooled connections stuck, and after a
+            # few runs every new call waits on the pool (seen on Cloud Run).
             for task in pending:
-                task.cancel()
+                task.add_done_callback(_swallow)
+
+
+def _swallow(task: asyncio.Task) -> None:
+    if not task.cancelled():
+        task.exception()
 
 
 def build_model(name: str) -> HedgedGemini:

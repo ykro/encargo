@@ -99,7 +99,11 @@ async def main(a: argparse.Namespace) -> int:
         await cancel.scroll_into_view_if_needed()
         await page.wait_for_timeout(600)  # let the approval card settle (slide-in)
         await cancel.click()
-        await wait_for(serial, page, page.get_by_role("heading", name="Compra cancelada"), 30)
+        try:
+            await wait_for(serial, page, page.get_by_role("heading", name="Compra cancelada"), 20)
+        except Exception:  # noqa: BLE001 — a backgrounded tab may miss the live event; the reload replays it
+            await page.reload()
+            await wait_for(serial, page, page.get_by_role("heading", name="Compra cancelada"), 30)
         await shot(page, "cancelled")
         if a.try_passkey:
             # What Chrome offers when this device is asked to create a passkey.
