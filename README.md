@@ -302,6 +302,8 @@ El criterio es ≥ 9 de 10 por modo y cada corrida < 120 s, del encargo al pedid
 - 14:53: promedio de 44.9 s y 23.8 s.
 - 16:21: promedio de 32.1 s y 40.3 s; el máximo fue 110.6 s, el caso que motivó las llamadas cubiertas.
 
+Serie de liberación, 2026-10-01, con las protecciones de escenario (token de escenario, tiendas fijas en el servidor y barajadas, revisión determinista del checkout) y con Gemini más lento ese día: Kilómetro **9/10** con el modo apagado (promedio 54.9 s; la corrida restante se quedó sin tiempo a los 110 s y no compró nada) y Pulso **10/10** con el modo encendido (promedio 51.9 s, máximo 85.3 s). Todas las corridas terminaron en menos de 120 s y las 19 compras se firmaron con passkey.
+
 Los reportes JSON quedan en `bias-results/` (local, fuera de git).
 
 ## URLs desplegadas

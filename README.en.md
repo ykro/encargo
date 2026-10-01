@@ -302,6 +302,8 @@ The criterion is ≥ 9 of 10 per mode and every run < 120 s, from errand to conf
 - 14:53: averages of 44.9 s and 23.8 s.
 - 16:21: averages of 32.1 s and 40.3 s; the maximum was 110.6 s, the case that motivated hedged calls.
 
+Release series, 2026-10-01, with the stage guards on (stage token, server-fixed and shuffled stores, deterministic checkout check) and with Gemini slower that day: Kilómetro **9/10** with control off (average 54.9 s; the remaining run timed out at 110 s and bought nothing) and Pulso **10/10** with control on (average 51.9 s, max 85.3 s). Every run finished under 120 s and all 19 purchases were signed with a passkey.
+
 The JSON reports stay in `bias-results/` (local, not in git).
 
 ## Deployed URLs
