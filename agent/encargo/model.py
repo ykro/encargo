@@ -27,6 +27,7 @@ log = logging.getLogger("encargo.model")
 class HedgedGemini(Gemini):
     hedge_after_s: float = float(os.getenv("MODEL_HEDGE_AFTER_S", "6"))
     max_parallel: int = int(os.getenv("MODEL_MAX_PARALLEL", "5"))
+    max_attempts: int = 12
 
     async def _collect(self, request: LlmRequest) -> list[LlmResponse]:
         return [r async for r in super().generate_content_async(request, False)]
@@ -38,12 +39,16 @@ class HedgedGemini(Gemini):
             return
         pending: set[asyncio.Task] = set()
         errors: list[BaseException] = []
+        started = 0
         try:
             while True:
-                if len(pending) + len(errors) < self.max_parallel:
-                    if pending:
-                        log.warning("model call slower than %ss, sending hedge #%s", self.hedge_after_s, len(pending) + 1)
+                # A failed call (e.g. 504 DEADLINE_EXCEEDED) frees its slot for a fresh one,
+                # up to max_attempts calls in total for this turn.
+                if len(pending) < self.max_parallel and started < self.max_attempts:
+                    if started:
+                        log.warning("model call slow or failed, sending call #%s (%s errors)", started + 1, len(errors))
                     pending.add(asyncio.create_task(self._collect(copy.deepcopy(llm_request))))
+                    started += 1
                     timeout = self.hedge_after_s
                 else:
                     timeout = None

@@ -41,8 +41,8 @@ def offer(
         "price": f"{price:.2f} {currency}" if price is not None else "no publicado",
         "shipping": f"{shipping_price:.2f} {currency}" if shipping_price is not None else "no publicado",
         "sizes_in_stock": [s for s, v in sizes.items() if v.get("in_stock")],
-        "sizes_sold_out": [s for s, v in sizes.items() if not v.get("in_stock")],
-        "variant_ids": {s: v["variant_id"] for s, v in sizes.items() if v.get("variant_id")},
+        # Compact on purpose: fewer tokens per turn means faster model calls.
+        "variant_ids": {s: v["variant_id"] for s, v in sizes.items() if v.get("variant_id") and v.get("in_stock")},
         **arrival(run_date, handling_max, transit_max),
         **({"url": url} if url else {}),
     }

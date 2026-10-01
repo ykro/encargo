@@ -141,7 +141,7 @@ export function PasskeySetup() {
           <p className="notice notice-error" role="alert">Este navegador no admite passkeys.</p>
         ) : null}
         <label className="field-label" htmlFor="code" style={{ marginTop: 20 }}>Código de configuración</label>
-        <input id="code" className="text mono" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" required />
+        <input id="code" className="text mono" type="password" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" spellCheck={false} required />
         <label className="field-label" htmlFor="label" style={{ marginTop: 16 }}>Nombre del dispositivo</label>
         <input id="label" className="text" value={label} onChange={(e) => setLabel(e.target.value)} />
         {message ? (

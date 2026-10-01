@@ -110,7 +110,7 @@ async def main(a: argparse.Namespace) -> int:
             await page.goto(f"{a.app}/configurar?clave={a.setup}")
             await foreground(serial, page)
             await page.get_by_role("button", name="Registrar passkey en este dispositivo").click()
-            await page.wait_for_timeout(3500)
+            await page.wait_for_timeout(7000)  # Chrome's native sheet slides in slowly on the emulator
             screencap(serial, "passkey-sheet")
             adb(serial, "shell", "input", "keyevent", "KEYCODE_BACK")
             await page.wait_for_timeout(1500)
