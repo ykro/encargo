@@ -15,11 +15,11 @@ auth=(-H "authorization: Bearer ${ADMIN_TOKEN:-dev-admin}")
 
 # All resets run in parallel (well under 10 s); every one must succeed.
 pids=() names=()
-call() { local name="$1"; shift; curl -fs -m 8 -o /dev/null "$@" & pids+=($!); names+=("$name"); }
+call() { local name="$1"; shift; curl -fs -m "${RESET_TIMEOUT:-8}" -o /dev/null "$@" & pids+=($!); names+=("$name"); }
 call "Pulso: stock, carritos y pedidos" -XPOST "${auth[@]}" "$PULSO_URL/api/admin/reset"
 call "Kilómetro: stock, carritos y pedidos" -XPOST "${auth[@]}" "$KILOMETRO_URL/api/admin/reset"
 call "Pulso: modo de control apagado" -XPOST "${auth[@]}" -H 'content-type: application/json' -d '{"enabled":false}' "$PULSO_URL/api/admin/agent-ready"
-call "Agente: encargos, eventos, mandatos y pedidos" -XPOST "${auth[@]}" "$AGENT_URL/admin/reset"
+RESET_TIMEOUT=20 call "Agente: encargos, eventos, mandatos y pedidos" -XPOST "${auth[@]}" "$AGENT_URL/admin/reset"
 
 failed=0
 for i in "${!pids[@]}"; do

@@ -85,7 +85,7 @@ async def main(a: argparse.Namespace) -> None:
         await phone.goto(f"{a.app}/configurar?clave={a.setup}")
         await shot(phone, "setup-390")
         await phone.get_by_role("button", name="Registrar passkey en este dispositivo").click()
-        await phone.locator(".notice-ok").wait_for(timeout=20000)
+        await phone.get_by_text("ya puede firmar pagos").wait_for(timeout=30000)
         await shot(phone, "setup-done-390")
         await desk.goto(f"{a.app}/configurar")
         await shot(desk, "setup-1920")

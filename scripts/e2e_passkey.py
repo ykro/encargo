@@ -39,7 +39,7 @@ async def main(a: argparse.Namespace) -> int:
             await page.goto(f"{a.app}/configurar?clave={a.setup}")
             await page.get_by_label("Nombre del dispositivo").fill("e2e (autenticador virtual)")
             await page.get_by_role("button", name="Registrar passkey en este dispositivo").click()
-            await page.locator(".notice-ok").wait_for(timeout=20000)
+            await page.get_by_text("ya puede firmar pagos").wait_for(timeout=30000)
             print("✓ passkey registrada", flush=True)
 
             await page.goto(a.app)
