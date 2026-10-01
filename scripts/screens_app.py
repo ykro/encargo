@@ -27,10 +27,10 @@ async def shot(page: Page, name: str) -> None:
     print("saved", name, flush=True)
 
 
-async def virtual_passkey(page: Page) -> None:
+async def virtual_passkey(page: Page):
     cdp = await page.context.new_cdp_session(page)
     await cdp.send("WebAuthn.enable", {"enableUI": False})
-    await cdp.send(
+    added = await cdp.send(
         "WebAuthn.addVirtualAuthenticator",
         {
             "options": {
@@ -43,6 +43,7 @@ async def virtual_passkey(page: Page) -> None:
             }
         },
     )
+    return cdp, added["authenticatorId"]
 
 
 async def main(a: argparse.Namespace) -> None:
@@ -80,7 +81,7 @@ async def main(a: argparse.Namespace) -> None:
             await shot(page, f"audit-pulso-{size}")
 
         # Passkey registration on the phone (virtual authenticator).
-        await virtual_passkey(phone)
+        cdp, auth_id = await virtual_passkey(phone)
         await phone.goto(f"{a.app}/configurar?clave={a.setup}")
         await shot(phone, "setup-390")
         await phone.get_by_role("button", name="Registrar passkey en este teléfono").click()
@@ -130,12 +131,21 @@ async def main(a: argparse.Namespace) -> None:
         await desk.get_by_role("heading", name="Pedido confirmado").wait_for(timeout=20000)
         await shot(desk, "confirmed-1920")
         print("passkey flow OK:", phone.url, flush=True)
+        # Remove the virtual credential so only real devices stay enrolled.
+        import httpx
+
+        creds = await cdp.send("WebAuthn.getCredentials", {"authenticatorId": auth_id})
+        async with httpx.AsyncClient(timeout=10) as http:
+            for c in creds.get("credentials", []):
+                cid = c["credentialId"].replace("+", "-").replace("/", "_").rstrip("=")
+                await http.delete(f"{a.agent}/passkeys/{cid}", headers={"authorization": f"Bearer {a.setup}"})
         await browser.close()
 
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--app", default="http://localhost:3000")
+    p.add_argument("--agent", default="http://localhost:8000", help="to remove the virtual credential afterwards")
     p.add_argument("--setup", default="dev-admin", help="setup (admin) token for passkey registration")
     p.add_argument("--timeout", type=int, default=120)
     p.add_argument("--headed", action="store_true")

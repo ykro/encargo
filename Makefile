@@ -4,10 +4,10 @@ URL ?= http://localhost:3001
 RUNS ?= 10
 TARGET ?= local
 
-.PHONY: help up reset test bias-test audit images seed deploy screens
+.PHONY: help up reset test bias-test audit images seed deploy screens e2e e2e-emulator phone
 
 help:
-	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
+	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
 
 up: ## Start the app (3000), Kilómetro (3001), Pulso (3002) and the agent (8000) locally
 	@./scripts/up.sh
@@ -45,5 +45,19 @@ deploy: ## Cloud Run: APIs, secrets, stores, agent, app (infra/NN-*.sh)
 	./infra/40-deploy-agent.sh
 	./infra/50-deploy-app.sh
 
-screens: ## Drive the app in Chrome (virtual passkey) and screenshot every screen to docs/screenshots/app
-	@cd agent && uv run python ../scripts/screens_app.py --app $${APP:-http://localhost:3000} --setup $${ADMIN_TOKEN:-dev-admin}
+
+cloud_env = if [ "$(TARGET)" = cloud ]; then source infra/env.sh; source infra/urls.sh; \
+	  export ADMIN_TOKEN=$$(gcloud secrets versions access latest --secret=encargo-admin-token); \
+	else export APP_URL=http://localhost:3000 AGENT_URL=http://localhost:8000 ADMIN_TOKEN=$${ADMIN_TOKEN:-dev-admin}; fi
+
+screens: ## Drive the app in Chrome (virtual passkey) and screenshot every screen to docs/screenshots/app (TARGET=cloud)
+	@$(cloud_env); cd agent && uv run python ../scripts/screens_app.py --app $$APP_URL --agent $$AGENT_URL --setup $$ADMIN_TOKEN
+
+e2e: ## Passkey flow in Chrome with a virtual authenticator: enroll → errand → sign mandate → order (TARGET=cloud)
+	@$(cloud_env); cd agent && uv run python ../scripts/e2e_passkey.py --app $$APP_URL --agent $$AGENT_URL --setup $$ADMIN_TOKEN
+
+e2e-emulator: ## Phone side on the Android emulator (errand, progress, approval card, cancel) (TARGET=cloud)
+	@$(cloud_env); cd agent && uv run python ../scripts/e2e_emulator.py --app $$APP_URL --try-passkey
+
+phone: ## Open the signing "phone" on the laptop: Chrome window 390×844 (Touch ID passkey) (TARGET=cloud)
+	@$(cloud_env); open -na "Google Chrome" --args --app="$$APP_URL" --window-size=390,844

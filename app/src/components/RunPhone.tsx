@@ -212,7 +212,9 @@ function Approval(props: {
         </p>
         {passkeys === 0 ? (
           <p className="notice notice-info" role="status">
-            Este sistema aún no tiene una passkey registrada. <a href="/configurar">Configúrala</a> para poder firmar.
+            <span>
+              Aún no hay una passkey registrada para firmar pagos. <a href="/configurar">Configúrala</a> en el dispositivo que va a firmar.
+            </span>
           </p>
         ) : null}
         {error ? (

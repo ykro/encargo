@@ -247,9 +247,9 @@ textarea.errand:focus, input.text:focus { outline: 3px solid var(--cobalt); outl
 .audit form { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin: 24px 0 12px; }
 .audit .quick { display: flex; gap: 8px; flex-wrap: wrap; }
 .audit .quick button { background: var(--surface); border: 1px solid var(--line-strong); border-radius: 999px; padding: 8px 14px; font: 500 15px var(--font-geist), sans-serif; cursor: pointer; color: var(--ink); }
-.audit .score { display: flex; align-items: baseline; gap: 16px; margin: 40px 0 8px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+.audit .score { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 40px 0 8px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
 .audit .score b { font-size: 72px; letter-spacing: -0.03em; line-height: 1; }
-.audit .score span { color: var(--muted); font-size: 18px; }
+.audit .score span { color: var(--muted); font-size: 16px; overflow-wrap: anywhere; }
 .audit ol { list-style: none; margin: 0; padding: 0; counter-reset: item; }
 .audit li { display: grid; grid-template-columns: 48px 1fr; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--line); counter-increment: item; }
 .audit li .mark { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
