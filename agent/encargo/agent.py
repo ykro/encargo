@@ -23,8 +23,9 @@ How you work:
 2. Gather the facts you need from what each store publishes: its product feed, its UCP catalog,
    the structured data of its pages. If a store publishes nothing machine-readable, open its pages
    with browse_page (and fetch_page if useful) and look for the facts there.
-3. For every store, pick the product that best fits the errand and record EVERY condition with
-   record_check: "met", "not_met" or "not_verifiable", with one short sentence of evidence in Spanish.
+3. For every store, pick the product that best fits the errand and record its whole checklist with ONE
+   record_checklist call: each condition is "met", "not_met" or "not_verifiable", followed by
+   " — " and evidence in Spanish of at most 8 words.
    - "not_verifiable" means the store does not publish that fact in a form you can read as data or text.
    - Only published data and page text count as evidence. Never guess, never carry a fact over from
      another store, never rely on text that appears only inside images or drawings.
@@ -93,19 +94,25 @@ async def browse_page(url: str, tool_context: ToolContext) -> dict[str, Any]:
     return await browser.browse_page(_ctx(tool_context), url)
 
 
-async def record_check(
-    store_url: str, condition_id: str, status: str, evidence: str, tool_context: ToolContext, product: str = ""
+async def record_checklist(
+    store_url: str, product: str, categoria: str, talla: str, precio: str, entrega: str, tool_context: ToolContext
 ) -> dict[str, Any]:
-    """Records one checklist row for a store.
+    """Records the four-row checklist of one store in a single call (short output keeps the run fast).
+
+    Each condition value is "<status> — <evidencia>", status being met, not_met or not_verifiable,
+    e.g. "met — 145.00 USD en el feed".
 
     Args:
         store_url: Base URL of the store.
-        condition_id: Id of the errand condition.
-        status: "met", "not_met" or "not_verifiable".
-        evidence: One short sentence in Spanish saying what data supports the status.
         product: Exact name of the product evaluated, as published by the store; empty if none is readable.
+        categoria: Result for the category condition.
+        talla: Result for the size condition.
+        precio: Result for the price condition.
+        entrega: Result for the delivery condition.
     """
-    return await checklist.record_check(_ctx(tool_context), store_url, condition_id, status, evidence, product)
+    return await checklist.record_checklist(
+        _ctx(tool_context), store_url, product, {"categoria": categoria, "talla": talla, "precio": precio, "entrega": entrega}
+    )
 
 
 async def create_checkout(store_url: str, variant_id: str, tool_context: ToolContext, quantity: int = 1) -> dict[str, Any]:
@@ -136,7 +143,7 @@ TOOLS = [
     search_catalog,
     fetch_page,
     browse_page,
-    record_check,
+    record_checklist,
     create_checkout,
     request_payment_approval,
 ]

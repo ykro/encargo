@@ -357,7 +357,7 @@ Lo que pasa desde que la persona escribe el encargo hasta el pedido. Los eventos
 
 ### 5. El checklist
 
-- `tools/checklist.record_check` registra cada condición por tienda como `met`, `not_met` o `not_verifiable`, con una frase de evidencia (`checklist`).
+- `tools/checklist.record_checklist` (una llamada por tienda) registra cada condición como `met`, `not_met` o `not_verifiable`, con una frase de evidencia (`checklist`).
 - Kilómetro queda en 4 × «cumple».
 - Pulso queda en «no verificable».
 

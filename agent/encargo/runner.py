@@ -25,6 +25,7 @@ STEP_LABEL = {
     "fetch_page": "Leo la página como datos",
     "browse_page": "Abro la página en un navegador",
     "record_check": "Anoto una condición",
+    "record_checklist": "Anoto la lista de verificación",
     "create_checkout": "Armo el checkout",
     "request_payment_approval": "Pido tu aprobación para pagar",
 }

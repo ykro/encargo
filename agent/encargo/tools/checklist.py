@@ -27,3 +27,25 @@ async def record_check(ctx: RunContext, store_url: str, condition_id: str, statu
     )
     missing = [c.id for c in ctx.conditions if c.id not in ctx.checklist[store]]
     return {"recorded": True, "store": store, "condition": condition.id, "pending_for_store": missing}
+
+
+async def record_checklist(ctx: RunContext, store_url: str, product: str, results: dict[str, str]) -> dict[str, Any]:
+    """One call per store: {"talla": "met — talla 9 en stock", ...} → one checklist row each."""
+    recorded, errors = [], []
+    for condition_id, value in results.items():
+        status, _, evidence = value.partition("—")
+        status = status.strip().strip(":").strip().lower().replace(" ", "_")
+        if status not in VALID:
+            errors.append(f"{condition_id}: estado inválido «{status}»")
+            continue
+        try:
+            out = await record_check(ctx, store_url, condition_id, status, evidence.strip() or status, product)
+        except ValueError as e:
+            errors.append(str(e))
+            continue
+        if out.get("recorded"):
+            recorded.append(condition_id)
+        else:
+            errors.append(f"{condition_id}: {out.get('error')}")
+    missing = [c.id for c in ctx.conditions if c.id not in ctx.checklist.get(ctx.store_url(store_url), {})]
+    return {"recorded": recorded, "errors": errors, "pending_for_store": missing}

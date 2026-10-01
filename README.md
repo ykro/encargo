@@ -42,7 +42,7 @@ La vista del presentador muestra esta diferencia en dos columnas: «Lo que ve un
 
 El agente nunca entra por la página de inicio. `inspect_store` (`agent/encargo/tools/discovery.py`) empieza por los lugares conocidos: `/.well-known/ucp`, `/robots.txt`, `/feed.xml` y `/sitemap.xml`. Con eso pasa directo a feed → perfil → checkout → mandato. No hay banner, recomendación ni página de categoría que lo distraiga.
 
-Las herramientas del agente son exactamente ese embudo corto: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_check`, `create_checkout` y `request_payment_approval` (`agent/encargo/agent.py`). En Cloud Run, una corrida completa, del encargo al pedido confirmado, tarda unos 30 segundos de promedio (ver [resultados](#resultados-de-la-prueba-de-sesgo)).
+Las herramientas del agente son exactamente ese embudo corto: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` y `request_payment_approval` (`agent/encargo/agent.py`). En Cloud Run, una corrida completa, del encargo al pedido confirmado, tarda unos 30 segundos de promedio (ver [resultados](#resultados-de-la-prueba-de-sesgo)).
 
 ### 3. El modo de control demuestra que el agente no tiene sesgo
 
@@ -200,7 +200,7 @@ La regla «solo se compra donde todo cumple» está en el código, no solo en la
 - Hay un solo mandato pendiente por corrida.
 - Ninguna herramienta firma ni completa un pago (`test_agent_has_no_tool_that_signs_or_pays`).
 
-`record_check` solo acepta `met`, `not_met` o `not_verifiable` y una evidencia en una frase. Esa misma fila es la que ve el público en la vista del presentador.
+`record_checklist` registra las cuatro filas de una tienda en una sola llamada (una salida corta mantiene rápida la corrida); cada fila solo acepta `met`, `not_met` o `not_verifiable` y una evidencia breve. Esa misma fila es la que ve el público en la vista del presentador.
 
 **Por qué:** una instrucción se puede ignorar; una función que devuelve error no.
 

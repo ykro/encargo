@@ -42,7 +42,7 @@ The presenter view shows the difference in two columns: "Lo que ve una persona" 
 
 The agent never enters through the homepage. `inspect_store` (`agent/encargo/tools/discovery.py`) starts from the well-known places: `/.well-known/ucp`, `/robots.txt`, `/feed.xml` and `/sitemap.xml`. From there it goes straight to feed → profile → checkout → mandate. There is no banner, recommendation or category page to distract it.
 
-The agent's tools are exactly that short funnel: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_check`, `create_checkout` and `request_payment_approval` (`agent/encargo/agent.py`). On Cloud Run a full run, from errand to confirmed order, takes about 30 seconds on average (see [results](#bias-test-results)).
+The agent's tools are exactly that short funnel: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` and `request_payment_approval` (`agent/encargo/agent.py`). On Cloud Run a full run, from errand to confirmed order, takes about 30 seconds on average (see [results](#bias-test-results)).
 
 ### 3. Control mode proves the agent has no bias
 
@@ -200,7 +200,7 @@ The rule "buy only where everything is met" lives in code, not only in the instr
 - There is a single pending mandate per run.
 - No tool signs or completes a payment (`test_agent_has_no_tool_that_signs_or_pays`).
 
-`record_check` only accepts `met`, `not_met` or `not_verifiable` plus one sentence of evidence. That same row is what the audience sees in the presenter view.
+`record_checklist` records a store's four rows in one call (short output keeps the run fast); each row only accepts `met`, `not_met` or `not_verifiable` plus brief evidence. That same row is what the audience sees in the presenter view.
 
 **Why:** an instruction can be ignored; a function that returns an error cannot.
 
