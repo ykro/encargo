@@ -319,6 +319,40 @@ async def get_screenshot(shot_id: str) -> Response:
     return Response(base64.b64decode(shot["jpeg_b64"]), media_type="image/jpeg")
 
 
+@app.post("/admin/warmup")
+async def warmup(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    """Before the talk: one short model call and a headless Chromium launch, so the
+    first live errand does not pay for cold clients, cold Vertex paths or browser start."""
+    _require_admin(authorization)
+    import time as _time
+
+    s = settings()
+    out: dict[str, Any] = {}
+    t = _time.monotonic()
+    if s.mock_ai or not s.gemini_model:
+        out["model"] = "omitido (MOCK_AI)"
+    else:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(vertexai=True, project=s.project, location=s.location)
+        res = await client.aio.models.generate_content(
+            model=s.gemini_model,
+            contents="Responde solo: listo",
+            config=types.GenerateContentConfig(thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.LOW)),
+        )
+        out["model"] = (res.text or "").strip()[:40]
+    out["model_s"] = round(_time.monotonic() - t, 1)
+    t = _time.monotonic()
+    if s.browser_enabled:
+        from .tools.browser import _get_browser
+
+        await _get_browser()
+        out["browser"] = "listo"
+    out["browser_s"] = round(_time.monotonic() - t, 1)
+    return out
+
+
 @app.post("/admin/reset")
 async def reset(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     _require_admin(authorization)

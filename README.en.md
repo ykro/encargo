@@ -122,6 +122,9 @@ Variables: `TARGET=local|cloud` (default `local`), `URL` (default `http://localh
 | `make bias-test` | 10 runs with control mode off (expects Kilómetro) and 10 with it on (expects Pulso). Each run goes from errand to passkey signature to order. Writes the report to `bias-results/`. |
 | `make audit URL=…` | Agent-readiness checklist for any store. |
 | `make phone` | Opens the signing "phone": a 390×844 Chrome app window, with the Mac's passkey (Touch ID). |
+| `make stage-on` / `make stage-off` | Talk day: one minimum instance on the four services / any other day: 0 (nothing bills around the clock). |
+| `make warmup` | Wakes every service, makes one short Gemini call and launches Chromium on the agent. With `TARGET=cloud`, after `stage-on`. |
+| `make record-replay` | Records a real cloud run (events and screenshots) as the Plan B in `app/public/replays/`. |
 | `make screens` | Drives the app in Chrome with a virtual passkey and screenshots every screen to `docs/screenshots/app/`. |
 | `make seed` | Regenerates `catalog/catalog.json` (deterministic, seed 2027). |
 | `make images` | Generates product photos and Pulso ads with `IMAGE_MODEL`, verified with `GEMINI_MODEL`. |
@@ -243,9 +246,9 @@ Runs, events, mandates, orders, screenshots, passkeys and WebAuthn challenges li
 
 | Component | Where | Configuration | Why |
 | --- | --- | --- | --- |
-| Pulso, Kilómetro | Cloud Run | min and max 1 instance, 512 MiB | Stock, checkouts and the store key live in in-process SQLite. `make reset` restores them. |
-| Agent | Cloud Run | 1 instance, always-on CPU, 2 vCPU, 2 GiB, 3600 s timeout | Runs continue after `POST /runs` returns. Chromium needs memory. State is in Firestore. |
-| App | Cloud Run | 1–2 instances, 512 MiB | Its `run.app` hostname is the passkey RP ID. |
+| Pulso, Kilómetro | Cloud Run | max 1 instance, 512 MiB; min 1 only with `make stage-on` | Stock, checkouts and the store key live in in-process SQLite. `make reset` restores them. |
+| Agent | Cloud Run | max 1 instance (min 1 with `make stage-on`), always-on CPU, 2 vCPU, 2 GiB, 3600 s timeout | Runs continue after `POST /runs` returns. Chromium needs memory. State is in Firestore. |
+| App | Cloud Run | 0–2 instances (min 1 with `make stage-on`), 512 MiB | Its `run.app` hostname is the passkey RP ID. |
 | Firestore `encargo`, Vertex AI | Google Cloud | `nam5`; Gemini at `global` | Managed services. |
 | Signing window and presenter browser | Laptop | Chrome | They only display app pages. See "Who signs". |
 
@@ -281,6 +284,29 @@ In the cloud the agent runs with `SIGNER_MODE=passkey`: only a WebAuthn assertio
 - **Consequence:** the errand's model, Senda Acatenango T3 (0 + 1 business days), always arrives in time. The worst case is a Thursday run, which arrives on Friday. Senda Fuego Tormenta (7–10 days) never does.
 
 The errand is parsed with a deterministic parser (regular expressions), not by the model. So the four conditions (`categoria`, `talla`, `precio`, `entrega`) are identical in every run, which is what the bias test needs. Tests: `agent/tests/test_errand.py`.
+
+### Stage: warm instances only on talk days
+
+`make stage-on` sets `--min-instances=1` on the four services (no cold starts on stage); `make stage-off` sets them back to 0 so nothing bills around the clock (`infra/60-stage.sh`). Deploys default to 0 (`MIN_INSTANCES`). `make warmup` wakes every service and its cold paths before the talk: store pages, feed and UCP profile, the app, one short Gemini call and a Chromium launch on the agent (`POST /admin/warmup`).
+
+**Discarded:** keeping one instance always on. It costs all year for a few hours on stage.
+
+### Plan B: a recorded real run
+
+If Gemini is slow live, the presenter does not wait. `make record-replay` records a real cloud run (events and screenshots) into `app/public/replays/kilometro.json` and `pulso-control.json`, with screenshots in matching folders. The app replays it with the original timing and no agent or Gemini (`app/src/lib/useReplay.ts`):
+
+- `/presenter?demo=1` (or `?demo=pulso-control`) waits for the phone's errand and pauses at the approval card until the signature. The space bar does the same by hand.
+- `/?demo=1` on the phone replays the same journey. The signature is simulated and marked "Demostración grabada".
+- Phone and presenter run in the same Chrome on the laptop and coordinate over a `BroadcastChannel`.
+- **Key `R`** on the presenter switches to the recording mid-talk (the control-mode one if it is on) and plays it through. **`L`** goes back to live.
+
+The recording keeps the dates of the day it was made; re-record it before each talk.
+
+### CI with GitHub Actions
+
+`.github/workflows/test.yml` runs `make test` on every push and pull request, with no cloud or Gemini (`MOCK_AI=1`, fake stores, in-memory SQLite), caching uv and npm.
+
+**Discarded:** a Cloud Build trigger. Connecting Cloud Build to GitHub requires a manual OAuth step in the console, and the tests need nothing from Google Cloud.
 
 ### Other decisions
 

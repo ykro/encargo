@@ -4,7 +4,10 @@ export function storeName(stores: StoreRef[], url: string | undefined): string {
   if (!url) return "";
   try {
     const host = new URL(url).host;
-    return stores.find((s) => new URL(s.url).host === host)?.name ?? host;
+    const exact = stores.find((s) => new URL(s.url).host === host)?.name;
+    if (exact) return exact;
+    // Recorded runs (Plan B replays) may come from another environment.
+    return stores.find((s) => host.includes(s.key))?.name ?? host;
   } catch {
     return url;
   }

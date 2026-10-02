@@ -5,6 +5,7 @@ import type { StoreRef } from "@/lib/config";
 import { PhoneTop } from "./PhoneTop";
 import { Arrow } from "./Icons";
 import { stageHeaders } from "@/lib/stage";
+import { replayChannel, replayName } from "@/lib/useReplay";
 
 const DEFAULT = "Tenis para trail, talla 9, menos de 150 USD, que lleguen antes del viernes.";
 
@@ -18,6 +19,13 @@ export function ErrandForm({ stores }: { stores: StoreRef[] }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!errand.trim()) return setError("Escribe qué necesitas.");
+    const demo = replayName(new URLSearchParams(window.location.search).get("demo"));
+    if (demo) {
+      // Plan B: play the recorded run here and on the presenter (same Chrome).
+      replayChannel()?.postMessage("start");
+      router.push(`/encargo/demo-${demo}`);
+      return;
+    }
     setSending(true);
     setError(null);
     try {

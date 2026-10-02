@@ -1,0 +1,886 @@
+{
+ "name": "kilometro",
+ "control_mode": false,
+ "recorded_at": "2026-10-01T15:22:57-0600",
+ "run_id": "run_8c826f1f27a2",
+ "events": [
+  {
+   "seq": 1,
+   "type": "run_started",
+   "t": 0.0,
+   "errand": "Tenis para trail, talla 9, menos de 150 USD, que lleguen antes del viernes.",
+   "at": 1790889742.2535193,
+   "conditions": [
+    {
+     "kind": "category",
+     "value": "trail",
+     "label": "Modelo de trail",
+     "id": "categoria"
+    },
+    {
+     "kind": "size",
+     "value": "9",
+     "label": "Talla 9 disponible",
+     "id": "talla"
+    },
+    {
+     "kind": "max_price_usd",
+     "value": "150",
+     "label": "Menos de 150 USD",
+     "id": "precio"
+    },
+    {
+     "kind": "deliver_by",
+     "value": "2026-10-02",
+     "label": "Llega a más tardar el viernes 2 oct",
+     "id": "entrega"
+    }
+   ],
+   "stores": [
+    "https://encargo-kilometro-611681112050.us-central1.run.app",
+    "https://encargo-pulso-611681112050.us-central1.run.app"
+   ]
+  },
+  {
+   "seq": 2,
+   "type": "step",
+   "label": "Reviso qué publica la tienda para agentes",
+   "t": 5.29,
+   "at": 1790889747.5387204,
+   "args": {
+    "store_url": "https://encargo-kilometro-611681112050.us-central1.run.app"
+   },
+   "tool": "inspect_store"
+  },
+  {
+   "seq": 3,
+   "type": "step",
+   "label": "Reviso qué publica la tienda para agentes",
+   "t": 5.4,
+   "at": 1790889747.6559381,
+   "args": {
+    "store_url": "https://encargo-pulso-611681112050.us-central1.run.app"
+   },
+   "tool": "inspect_store"
+  },
+  {
+   "kind": "sources",
+   "type": "agent_view",
+   "at": 1790889748.0104723,
+   "sources": {
+    "ucp": false,
+    "feed": false,
+    "sitemap": false,
+    "jsonld": false
+   },
+   "title": "Pulso — sube más alto",
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "t": 5.76,
+   "seq": 4
+  },
+  {
+   "kind": "sources",
+   "type": "agent_view",
+   "at": 1790889748.2246964,
+   "sources": {
+    "ucp": true,
+    "feed": true,
+    "sitemap": true,
+    "jsonld": true
+   },
+   "title": "Kilómetro — tenis para correr",
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "t": 5.97,
+   "seq": 5
+  },
+  {
+   "seq": 6,
+   "type": "observation",
+   "t": 6.1,
+   "data": {
+    "robots_txt": "User-agent: *\nAllow: /\nSitemap: https://encargo-kilometro-611681112050.us-central1.run.app/sitemap.xml\n# Product feed: https://encargo-kilometro-611681112050.us-central1.run.app/feed.xml\n# UCP profile: https://encargo-kilometro-611681112050.us-central1.run.app/.well-known/ucp",
+    "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+    "product_feed": "https://encargo-kilometro-611681112050.us-central1.run.app/feed.xml",
+    "sitemap": "https://encargo-kilometro-611681112050.us-central1.run.app/sitemap.xml",
+    "ucp_profile": {
+     "signing_keys": 1,
+     "version": "2026-08-25",
+     "payment_handlers": [
+      "org.example.sandbox_pay"
+     ],
+     "rest_endpoint": "https://encargo-kilometro-611681112050.us-central1.run.app/ucp/v1",
+     "capabilities": [
+      "dev.ucp.common.payment.ap2_mandate",
+      "dev.ucp.shopping.cart",
+      "dev.ucp.shopping.catalog.lookup",
+      "dev.ucp.shopping.catalog.search",
+      "dev.ucp.shopping.checkout",
+      "dev.ucp.shopping.fulfillment"
+     ]
+    },
+    "structured_data": "sí: 1 producto(s) en JSON-LD en https://encargo-kilometro-611681112050.us-central1.run.app/productos/acatenango-t3",
+    "title": "Kilómetro — tenis para correr"
+   },
+   "at": 1790889748.3506577,
+   "tool": "inspect_store"
+  },
+  {
+   "seq": 7,
+   "type": "observation",
+   "t": 6.17,
+   "data": {
+    "robots_txt": "User-agent: *\nAllow: /",
+    "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+    "product_feed": "no encontrado",
+    "sitemap": "no encontrado",
+    "ucp_profile": "no encontrado (/.well-known/ucp)",
+    "structured_data": "no encontrado",
+    "title": "Pulso — sube más alto"
+   },
+   "at": 1790889748.4205556,
+   "tool": "inspect_store"
+  },
+  {
+   "seq": 8,
+   "type": "step",
+   "label": "Leo el feed de productos",
+   "t": 8.08,
+   "at": 1790889750.3312135,
+   "args": {
+    "feed_url": "https://encargo-kilometro-611681112050.us-central1.run.app/feed.xml"
+   },
+   "tool": "read_product_feed"
+  },
+  {
+   "seq": 9,
+   "type": "step",
+   "label": "Abro la página en un navegador",
+   "t": 8.13,
+   "at": 1790889750.3861907,
+   "args": {
+    "url": "https://encargo-pulso-611681112050.us-central1.run.app"
+   },
+   "tool": "browse_page"
+  },
+  {
+   "offers": [
+    {
+     "sizes_in_stock": [
+      "7",
+      "7.5",
+      "8",
+      "8.5",
+      "9",
+      "9.5",
+      "10",
+      "11",
+      "11.5",
+      "12"
+     ],
+     "price": "145.00 USD",
+     "category_text": "Calzado > Tenis > Trail / trail",
+     "product": "Senda Acatenango T3",
+     "arrives_by": "2026-10-02 (viernes 2 oct)"
+    },
+    {
+     "sizes_in_stock": [
+      "7",
+      "7.5",
+      "8",
+      "8.5",
+      "9",
+      "9.5",
+      "10",
+      "10.5",
+      "11",
+      "11.5",
+      "12"
+     ],
+     "price": "172.00 USD",
+     "category_text": "Calzado > Tenis > Trail / trail",
+     "product": "Senda Tajumulco X",
+     "arrives_by": "2026-10-05 (lunes 5 oct)"
+    },
+    {
+     "sizes_in_stock": [
+      "7",
+      "8",
+      "8.5",
+      "10.5",
+      "11",
+      "11.5",
+      "12"
+     ],
+     "price": "129.00 USD",
+     "category_text": "Calzado > Tenis > Trail / trail",
+     "product": "Senda Pacaya Lite",
+     "arrives_by": "2026-10-05 (lunes 5 oct)"
+    },
+    {
+     "sizes_in_stock": [
+      "7",
+      "7.5",
+      "8.5",
+      "9",
+      "9.5",
+      "10",
+      "11",
+      "11.5",
+      "12"
+     ],
+     "price": "148.00 USD",
+     "category_text": "Calzado > Tenis > Trail / trail",
+     "product": "Senda Fuego Tormenta",
+     "arrives_by": "2026-10-15 (jueves 15 oct)"
+    },
+    {
+     "sizes_in_stock": [
+      "7.5",
+      "8",
+      "8.5"
+     ],
+     "price": "118.00 USD",
+     "category_text": "Calzado > Tenis > Trail / trail",
+     "product": "Senda Atitlán Trail",
+     "arrives_by": "2026-10-05 (lunes 5 oct)"
+    },
+    {
+     "sizes_in_stock": [
+      "7",
+      "7.5",
+      "8",
+      "8.5",
+      "9",
+      "9.5",
+      "10",
+      "10.5",
+      "11",
+      "11.5",
+      "12"
+     ],
+     "price": "109.00 USD",
+     "category_text": "Calzado > Tenis > Ruta / road",
+     "product": "Senda Reforma Run",
+     "arrives_by": "2026-10-02 (viernes 2 oct)"
+    },
+    {
+     "sizes_in_stock": [
+      "7",
+      "7.5",
+      "8",
+      "8.5",
+      "9",
+      "9.5",
+      "10",
+      "10.5",
+      "11",
+      "11.5",
+      "12"
+     ],
+     "price": "135.00 USD",
+     "category_text": "Calzado > Tenis > Ruta / road",
+     "product": "Senda Aurora 2",
+     "arrives_by": "2026-10-06 (martes 6 oct)"
+    },
+    {
+     "sizes_in_stock": [
+      "7",
+      "7.5",
+      "8",
+      "8.5",
+      "9",
+      "9.5",
+      "10",
+      "10.5",
+      "11",
+      "11.5",
+      "12"
+     ],
+     "price": "189.00 USD",
+     "category_text": "Calzado > Tenis > Ruta / road",
+     "product": "Senda Pista Pro",
+     "arrives_by": "2026-10-06 (martes 6 oct)"
+    },
+    {
+     "sizes_in_stock": [
+      "8",
+      "8.5",
+      "9",
+      "10.5",
+      "11.5",
+      "12"
+     ],
+     "price": "89.00 USD",
+     "category_text": "Calzado > Tenis > Ruta / road",
+     "product": "Senda Ritmo",
+     "arrives_by": "2026-10-02 (viernes 2 oct)"
+    },
+    {
+     "sizes_in_stock": [
+      "7",
+      "8",
+      "8.5",
+      "9",
+      "10",
+      "10.5",
+      "11",
+      "11.5",
+      "12"
+     ],
+     "price": "159.00 USD",
+     "category_text": "Calzado > Tenis > Ruta / road",
+     "product": "Senda Maratón Elite",
+     "arrives_by": "2026-10-07 (miércoles 7 oct)"
+    }
+   ],
+   "kind": "offers",
+   "type": "agent_view",
+   "at": 1790889750.509711,
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "t": 8.26,
+   "readable_products": 10,
+   "seq": 10,
+   "source": "feed de productos",
+   "url": "https://encargo-kilometro-611681112050.us-central1.run.app/feed.xml"
+  },
+  {
+   "type": "human_view",
+   "at": 1790889753.937979,
+   "screenshot_id": "shot_e6bac59343e4",
+   "purpose": "human_view",
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "t": 11.68,
+   "seq": 11,
+   "url": "https://encargo-kilometro-611681112050.us-central1.run.app"
+  },
+  {
+   "type": "human_view",
+   "at": 1790889754.573851,
+   "screenshot_id": "shot_5f90ed68fad0",
+   "purpose": "agent",
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "t": 12.32,
+   "seq": 12,
+   "url": "https://encargo-pulso-611681112050.us-central1.run.app"
+  },
+  {
+   "kind": "page",
+   "visible_text_chars": 579,
+   "type": "agent_view",
+   "at": 1790889754.6346836,
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "t": 12.38,
+   "jsonld_products": 0,
+   "seq": 13,
+   "url": "https://encargo-pulso-611681112050.us-central1.run.app"
+  },
+  {
+   "type": "human_view",
+   "at": 1790889754.6390088,
+   "screenshot_id": "shot_2ca3865357fb",
+   "purpose": "human_view",
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "t": 12.39,
+   "seq": 14,
+   "url": "https://encargo-pulso-611681112050.us-central1.run.app"
+  },
+  {
+   "seq": 15,
+   "type": "observation",
+   "t": 12.44,
+   "data": {
+    "truncated": "{\"feed_url\": \"https://encargo-kilometro-611681112050.us-central1.run.app/feed.xml\", \"found\": true, \"products\": [{\"source\": \"feed de productos\", \"product\": \"Senda Acatenango T3\", \"product_id\": \"SND-001\", \"category_text\": \"Calzado > Tenis > Trail / trail\", \"price\": \"145.00 USD\", \"shipping\": \"0.00 USD\", \"sizes_in_stock\": [\"7\", \"7.5\", \"8\", \"8.5\", \"9\", \"9.5\", \"10\", \"11\", \"11.5\", \"12\"], \"variant_ids\": {\"7\": \"SND-001-7\", \"7.5\": \"SND-001-7.5\", \"8\": \"SND-001-8\", \"8.5\": \"SND-001-8.5\", \"9\": \"SND-001-9\", \"9.5\": \"SND-001-9.5\", \"10\": \"SND-001-10\", \"11\": \"SND-001-11\", \"11.5\": \"SND-001-11.5\", \"12\": \"SND-001-12\"}, \"delivery_business_days_max\": 1, \"arrives_by\": \"2026-10-02 (viernes 2 oct)\", \"url\": \"https://encargo-kilometro-611681112050.us-central1.run.app/productos/acatenango-t3\"}, {\"source\": \"feed de productos\", \"product\": \"Senda Tajumulco X\", \"product_id\": \"SND-002\", \"category_text\": \"Calzado > Tenis > Trail / trail\", \"price\": \"172.00 USD\", \"shipping\": \"0.00 USD\", \"sizes_in_stock\": [\"7\", \"7.5\", \"8\", \"8.5\", \"9\", \"9.5\", \"10\", \"10.5\", \"11\", \"11.5\", \"12\"], \"variant_ids\": {\"7\": \"SND-002-7\", \"7.5\": \"SND-002-7.5\", \"8\": \"SND-002-8\", \"8.5\": \"SND-002-8.5\", \"9\": \"SND-002-9\", \"9.5\": \"SND-002-9.5\", \"10\": \"SND-002-10\", \"10.5\": \"SND-002-10.5\", \"11\": \"SND-002-11\", \"11.5\": \"SND-002-11.5\", \"12\": \"SND-002-12\"}, \"delivery_business_days_max\": 2, \"arrives_by\": \"2026-10-05 (lunes 5 oct)\", \"url\": \"https://encargo-kilometro-611681112050.us-central1.run.app/productos/tajumulco-x\"}, {\"source\": \"feed de productos\", \"product\": \"Senda Pacaya Lite\", \"product_id\": \"SND-003\", \"category_text\": \"Calzado > Tenis > Trail / trail\", \"price\": \"129.00 USD\", \"shipping\": \"0.00 USD\", \"sizes_in_stock\": [\"7\", \"8\", \"8.5\", \"10.5\", \"11\", \"11.5\", \"12\"], \"variant_ids\": {\"7\": \"SND-003-7\", \"8\": \"SND-003-8\", \"8.5\": \"SND-003-8.5\", \"10.5\": \"SND-003-10.5\", \"11\": \"SND-003-11\", \"11.5\": \"SND-003-11.5\", \"12\": \"SND-003-12\"}, \"delivery_business_days_max\": 2, \"arrives_by\": \"2026-10-05 (lunes 5 oct)\", \"url\": \"https://encargo-kilometro-611681112050.us-central1.run.app/productos/pacaya-lite\"}, {\"source\": \"feed de productos\", \"product\": \"Senda Fuego Tormenta\", \"product_id\": \"SND-004\", \"category_text\": \"Calzado > Tenis > Trail / trail\", \"price\": \"148.00 USD\", \"shipping\": \"0.00 USD\", \"sizes_in_stock\": [\"7\", \"7.5\", \"8.5\", \"9\", \"9.5\", \"10\", \"11\", \"11.5\", \"12\"], \"variant_ids\": {\"7\": \"SND-004-7\", \"7.5\": \"SND-004-7.5\", \"8.5\": \"SND-004-8.5\", \"9\": \"SND-004-9\", \"9.5\": \"SND-004-9.5\", \"10\": \"SND-004-10\", \"11\": \"SND-004-11\", \"11.5\": \"SND-004-11.5\", \"12\": \"SND-004-12\"}, \"delivery_business_days_max\": 10, \"arrives_by\": \"2026-10-15 (jueves 15 oct)\", \"url\": \"https://encargo-kilometro-611681112050.us-central1.run.app/productos/fuego-tormenta\"}, {\"source\": \"feed de productos\", \"product\": \"Senda Atitlán Trail\", \"product_id\": \"SND-005\", \"category_text\": \"Calzado > Tenis > Trail / trail\", \"price\": \"118.00 USD\", \"shipping\": \"0.00 USD\", \"sizes_in_stock\": [\"7.5\", \"8\", \"8.5\"], \"variant_ids\": {\"7.5\": \"SND-005-7.5\", \"8\": \"SND-005-8\", \"8.5\": \"SND-005-8.5\"}, \"delivery_business_days_max\": 2, \"arrives_by\": \"2026-10-05 (lunes 5 oct)\", \"url\": \"https://encargo-kilometro-611681112050.us-central1.run.app/productos/atitlan-trail\"}, {\"source\": \"feed de productos\", \"product\": \"Senda Reforma Run\", \"product_id\": \"SND-006\", \"category_text\": \"Calzado > Tenis > Ruta / road\", \"price\": \"109.00 USD\", \"shipping\": \"0.00 USD\", \"sizes_in_stock\": [\"7\", \"7.5\", \"8\", \"8.5\", \"9\", \"9.5\", \"10\", \"10.5\", \"11\", \"11.5\", \"12\"], \"variant_ids\": {\"7\": \"SND-006-7\", \"7.5\": \"SND-006-7.5\", \"8\": \"SND-006-8\", \"8.5\": \"SND-006-8.5\", \"9\": \"SND-006-9\", \"9.5\": \"SND-006-9.5\", \"10\": \"SND-006-10\", \"10.5\": \"SND-006-10.5\", \"11\": \"SND-006-11\", \"11.5\": \"SND-006-11.5\", \"12\": \"SND-006-12\"}, \"delivery_business_days_max\": 1, \"arrives_by\": \"2026-10-02 (viernes 2 oct)\", \"url\": \"https://encargo-kilometro-611681112050.us-central1.run.app/productos/reforma-run\"}, {\"source\": \"feed de productos\", \"product\": \"Senda Aurora 2\", \"product_id\": \"SND-007\", \"category_text\": \"Calzado > Tenis > Ruta / road\", \"pri"
+   },
+   "at": 1790889754.6909268,
+   "tool": "read_product_feed"
+  },
+  {
+   "seq": 16,
+   "type": "observation",
+   "t": 12.5,
+   "data": {
+    "links": [
+     "https://encargo-pulso-611681112050.us-central1.run.app/",
+     "https://encargo-pulso-611681112050.us-central1.run.app/#coleccion",
+     "https://encargo-pulso-611681112050.us-central1.run.app/#contenido",
+     "https://encargo-pulso-611681112050.us-central1.run.app/#historias",
+     "https://encargo-pulso-611681112050.us-central1.run.app/bolsa",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/1jwn39e",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/1kn7swd",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/1lqdgt6",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/1lubhnb",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/1vlssfx",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/5u2lhk",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/7r47mc",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/c2sq2s",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/ir95t1",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/xe4u94"
+    ],
+    "visible_text": "Saltar al contenido PULSO Colección Historias Bolsa Descúbrelo → COLECCIÓN OTOÑO Hecho para la bruma Diez pares para madrugar, subir y volver con la ropa empapada de nube. HISTORIAS La montaña no se apura Salimos antes del amanecer, cuando la neblina todavía cubre los barrancos y el único sonido es la respiración. Diseñamos cada par pensando en ese momento: el primer paso sobre piedra húmeda. Pulso nace en Guatemala, entre volcanes. Corre despacio, mira lejos, sube más alto. Pulso · Ciudad de Guatemala Tienda ficticia para una demostración. Los pagos son simulados.",
+    "note": "La captura de pantalla es para la persona. El texto dentro de imágenes no es un dato verificable.",
+    "title": "Pulso — sube más alto",
+    "structured_data": "ninguno (no hay JSON-LD de producto)",
+    "custom_widgets": "1 canvas (contenido dibujado, sin datos en el DOM)",
+    "url": "https://encargo-pulso-611681112050.us-central1.run.app",
+    "images": {
+     "with_descriptive_alt": 0,
+     "count": 11
+    }
+   },
+   "at": 1790889754.7502885,
+   "tool": "browse_page"
+  },
+  {
+   "seq": 17,
+   "type": "step",
+   "label": "Abro la página en un navegador",
+   "t": 14.71,
+   "at": 1790889756.967281,
+   "args": {
+    "url": "https://encargo-pulso-611681112050.us-central1.run.app/p/1jwn39e"
+   },
+   "tool": "browse_page"
+  },
+  {
+   "seq": 18,
+   "type": "step",
+   "label": "Anoto la lista de verificación",
+   "t": 14.78,
+   "at": 1790889757.0316498,
+   "args": {
+    "store_url": "https://encargo-kilometro-611681112050.us-central1.run.app",
+    "entrega": "met — Llega viernes 2 oct en feed",
+    "categoria": "met — Modelo trail en el feed",
+    "talla": "met — Talla 9 disponible en feed",
+    "product": "Senda Acatenango T3",
+    "precio": "met — 145.00 USD en el feed"
+   },
+   "tool": "record_checklist"
+  },
+  {
+   "type": "checklist",
+   "product": "Senda Acatenango T3",
+   "label": "Modelo de trail",
+   "status_label": "cumple",
+   "evidence": "Modelo trail en el feed",
+   "status": "met",
+   "at": 1790889757.1016097,
+   "seq": 19,
+   "t": 14.85,
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "condition_id": "categoria"
+  },
+  {
+   "type": "checklist",
+   "product": "Senda Acatenango T3",
+   "label": "Talla 9 disponible",
+   "status_label": "cumple",
+   "evidence": "Talla 9 disponible en feed",
+   "status": "met",
+   "at": 1790889757.1570215,
+   "seq": 20,
+   "t": 14.9,
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "condition_id": "talla"
+  },
+  {
+   "type": "checklist",
+   "product": "Senda Acatenango T3",
+   "label": "Menos de 150 USD",
+   "status_label": "cumple",
+   "evidence": "145.00 USD en el feed",
+   "status": "met",
+   "at": 1790889757.2099109,
+   "seq": 21,
+   "t": 14.96,
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "condition_id": "precio"
+  },
+  {
+   "type": "checklist",
+   "product": "Senda Acatenango T3",
+   "label": "Llega a más tardar el viernes 2 oct",
+   "status_label": "cumple",
+   "evidence": "Llega viernes 2 oct en feed",
+   "status": "met",
+   "at": 1790889757.2768362,
+   "seq": 22,
+   "t": 15.02,
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "condition_id": "entrega"
+  },
+  {
+   "type": "human_view",
+   "at": 1790889758.7540448,
+   "screenshot_id": "shot_0d01a5dcd83c",
+   "purpose": "agent",
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "t": 16.5,
+   "seq": 23,
+   "url": "https://encargo-pulso-611681112050.us-central1.run.app/p/1jwn39e"
+  },
+  {
+   "kind": "page",
+   "visible_text_chars": 405,
+   "type": "agent_view",
+   "at": 1790889758.81403,
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "t": 16.56,
+   "jsonld_products": 0,
+   "seq": 24,
+   "url": "https://encargo-pulso-611681112050.us-central1.run.app/p/1jwn39e"
+  },
+  {
+   "seq": 25,
+   "type": "observation",
+   "t": 16.69,
+   "data": {
+    "links": [
+     "https://encargo-pulso-611681112050.us-central1.run.app/",
+     "https://encargo-pulso-611681112050.us-central1.run.app/#coleccion",
+     "https://encargo-pulso-611681112050.us-central1.run.app/#historias",
+     "https://encargo-pulso-611681112050.us-central1.run.app/bolsa",
+     "https://encargo-pulso-611681112050.us-central1.run.app/p/1jwn39e#contenido"
+    ],
+    "visible_text": "Saltar al contenido PULSO Colección Historias Bolsa ← Colección Siente cada paso ELIGE TU TALLA (US) Usa las flechas para recorrer la curva y Enter para elegir. Añadir a la bolsa Elige una talla sobre la curva para continuar. Envío a todo Guatemala Cambios de talla sin costo Pago seguro al final de la compra Pulso · Ciudad de Guatemala Tienda ficticia para una demostración. Los pagos son simulados.",
+    "note": "La captura de pantalla es para la persona. El texto dentro de imágenes no es un dato verificable.",
+    "title": "Pulso — sube más alto",
+    "structured_data": "ninguno (no hay JSON-LD de producto)",
+    "custom_widgets": "1 canvas (contenido dibujado, sin datos en el DOM)",
+    "url": "https://encargo-pulso-611681112050.us-central1.run.app/p/1jwn39e",
+    "images": {
+     "with_descriptive_alt": 0,
+     "count": 1
+    }
+   },
+   "at": 1790889758.9440618,
+   "tool": "browse_page"
+  },
+  {
+   "seq": 26,
+   "type": "observation",
+   "t": 16.75,
+   "data": {
+    "recorded": [
+     "categoria",
+     "talla",
+     "precio",
+     "entrega"
+    ],
+    "errors": [],
+    "pending_for_store": []
+   },
+   "at": 1790889759.0007539,
+   "tool": "record_checklist"
+  },
+  {
+   "seq": 27,
+   "type": "step",
+   "label": "Leo la página como datos",
+   "t": 18.05,
+   "at": 1790889760.3041224,
+   "args": {
+    "url": "https://encargo-pulso-611681112050.us-central1.run.app/p/1jwn39e"
+   },
+   "tool": "fetch_page"
+  },
+  {
+   "kind": "page",
+   "visible_text_chars": 0,
+   "type": "agent_view",
+   "at": 1790889760.428384,
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "t": 18.17,
+   "jsonld_products": 0,
+   "seq": 28,
+   "url": "https://encargo-pulso-611681112050.us-central1.run.app/p/1jwn39e"
+  },
+  {
+   "seq": 29,
+   "type": "observation",
+   "t": 18.24,
+   "data": {
+    "structured_data": "ninguno (no hay JSON-LD de producto)",
+    "visible_text": "(la página no tiene texto visible sin JavaScript)",
+    "links": [],
+    "status": 200,
+    "url": "https://encargo-pulso-611681112050.us-central1.run.app/p/1jwn39e",
+    "title": "Pulso — sube más alto"
+   },
+   "at": 1790889760.492923,
+   "tool": "fetch_page"
+  },
+  {
+   "seq": 30,
+   "type": "step",
+   "label": "Anoto la lista de verificación",
+   "t": 20.02,
+   "at": 1790889762.2760727,
+   "args": {
+    "store_url": "https://encargo-pulso-611681112050.us-central1.run.app",
+    "entrega": "not_verifiable — No publica fecha de entrega legible",
+    "categoria": "not_verifiable — No publica datos de categoría legibles",
+    "talla": "not_verifiable — No publica tallas legibles en texto",
+    "product": "",
+    "precio": "not_verifiable — No publica precio legible en texto"
+   },
+   "tool": "record_checklist"
+  },
+  {
+   "type": "checklist",
+   "product": "",
+   "label": "Modelo de trail",
+   "status_label": "no verificable",
+   "evidence": "No publica datos de categoría legibles",
+   "status": "not_verifiable",
+   "at": 1790889762.335476,
+   "seq": 31,
+   "t": 20.08,
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "condition_id": "categoria"
+  },
+  {
+   "type": "checklist",
+   "product": "",
+   "label": "Talla 9 disponible",
+   "status_label": "no verificable",
+   "evidence": "No publica tallas legibles en texto",
+   "status": "not_verifiable",
+   "at": 1790889762.383943,
+   "seq": 32,
+   "t": 20.13,
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "condition_id": "talla"
+  },
+  {
+   "type": "checklist",
+   "product": "",
+   "label": "Menos de 150 USD",
+   "status_label": "no verificable",
+   "evidence": "No publica precio legible en texto",
+   "status": "not_verifiable",
+   "at": 1790889762.428671,
+   "seq": 33,
+   "t": 20.18,
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "condition_id": "precio"
+  },
+  {
+   "type": "checklist",
+   "product": "",
+   "label": "Llega a más tardar el viernes 2 oct",
+   "status_label": "no verificable",
+   "evidence": "No publica fecha de entrega legible",
+   "status": "not_verifiable",
+   "at": 1790889762.48836,
+   "seq": 34,
+   "t": 20.23,
+   "store": "https://encargo-pulso-611681112050.us-central1.run.app",
+   "condition_id": "entrega"
+  },
+  {
+   "seq": 35,
+   "type": "observation",
+   "t": 20.3,
+   "data": {
+    "recorded": [
+     "categoria",
+     "talla",
+     "precio",
+     "entrega"
+    ],
+    "errors": [],
+    "pending_for_store": []
+   },
+   "at": 1790889762.548532,
+   "tool": "record_checklist"
+  },
+  {
+   "seq": 36,
+   "type": "step",
+   "label": "Armo el checkout",
+   "t": 22.12,
+   "at": 1790889764.372991,
+   "args": {
+    "store_url": "https://encargo-kilometro-611681112050.us-central1.run.app",
+    "quantity": 1,
+    "variant_id": "SND-001-9"
+   },
+   "tool": "create_checkout"
+  },
+  {
+   "shipping": "0.00 USD",
+   "latest_delivery": "2026-10-02 (viernes 2 oct)",
+   "type": "checkout_created",
+   "total": "145.00 USD",
+   "merchant_signature": "verificada",
+   "total_amount": 145.0,
+   "at": 1790889764.5310988,
+   "status": "ready_for_complete",
+   "checkout_id": "chk_8bd0a949bf5c4580",
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "t": 22.28,
+   "seq": 37,
+   "items": [
+    "Senda Acatenango T3 — talla 9 x1"
+   ]
+  },
+  {
+   "seq": 38,
+   "type": "observation",
+   "t": 22.31,
+   "data": {
+    "shipping": "0.00 USD",
+    "latest_delivery": "2026-10-02 (viernes 2 oct)",
+    "merchant_signature": "Firma de la tienda verificada.",
+    "total": "145.00 USD",
+    "total_amount": 145.0,
+    "status": "ready_for_complete",
+    "checkout_id": "chk_8bd0a949bf5c4580",
+    "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+    "created": true,
+    "items": [
+     "Senda Acatenango T3 — talla 9 x1"
+    ]
+   },
+   "at": 1790889764.5682335,
+   "tool": "create_checkout"
+  },
+  {
+   "seq": 39,
+   "type": "step",
+   "label": "Pido tu aprobación para pagar",
+   "t": 23.97,
+   "at": 1790889766.2275155,
+   "args": {
+    "checkout_id": "chk_8bd0a949bf5c4580",
+    "reason": "Kilómetro cumple con modelo de trail, talla 9 disponible, precio menor a 150 USD y entrega para el 2 de octubre.",
+    "store_url": "https://encargo-kilometro-611681112050.us-central1.run.app"
+   },
+   "tool": "request_payment_approval"
+  },
+  {
+   "shipping": "0.00 USD",
+   "latest_delivery": "2026-10-02 (viernes 2 oct)",
+   "type": "approval_requested",
+   "total": "145.00 USD",
+   "total_amount": 145.0,
+   "at": 1790889766.3997788,
+   "reason": "Kilómetro cumple con modelo de trail, talla 9 disponible, precio menor a 150 USD y entrega para el 2 de octubre.",
+   "status": "ready_for_complete",
+   "checkout_id": "chk_8bd0a949bf5c4580",
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "t": 24.15,
+   "seq": 40,
+   "items": [
+    "Senda Acatenango T3 — talla 9 x1"
+   ],
+   "mandate_id": "mnd_e6c7ec0ae5aaf6bd"
+  },
+  {
+   "seq": 41,
+   "type": "observation",
+   "t": 24.2,
+   "data": {
+    "mandate_id": "mnd_e6c7ec0ae5aaf6bd",
+    "next": "Detente aquí. La persona revisa y firma el mandato AP2 con su passkey.",
+    "requested": true,
+    "status": "pendiente de firma"
+   },
+   "at": 1790889766.4578552,
+   "tool": "request_payment_approval"
+  },
+  {
+   "seq": 42,
+   "type": "thought",
+   "t": 25.63,
+   "at": 1790889767.8867896,
+   "text": "He solicitado tu aprobación para autorizar la compra de los tenis Senda Acatenango T3 en Kilómetro."
+  },
+  {
+   "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+   "type": "decision",
+   "t": 25.74,
+   "seq": 43,
+   "summary": "He solicitado tu aprobación para autorizar la compra de los tenis Senda Acatenango T3 en Kilómetro.",
+   "at": 1790889767.9971468,
+   "checklist": {
+    "https://encargo-kilometro-611681112050.us-central1.run.app": {
+     "entrega": {
+      "evidence": "Llega viernes 2 oct en feed",
+      "status": "met"
+     },
+     "categoria": {
+      "evidence": "Modelo trail en el feed",
+      "status": "met"
+     },
+     "talla": {
+      "evidence": "Talla 9 disponible en feed",
+      "status": "met"
+     },
+     "precio": {
+      "evidence": "145.00 USD en el feed",
+      "status": "met"
+     }
+    },
+    "https://encargo-pulso-611681112050.us-central1.run.app": {
+     "entrega": {
+      "evidence": "No publica fecha de entrega legible",
+      "status": "not_verifiable"
+     },
+     "categoria": {
+      "evidence": "No publica datos de categoría legibles",
+      "status": "not_verifiable"
+     },
+     "talla": {
+      "evidence": "No publica tallas legibles en texto",
+      "status": "not_verifiable"
+     },
+     "precio": {
+      "evidence": "No publica precio legible en texto",
+      "status": "not_verifiable"
+     }
+    }
+   }
+  },
+  {
+   "vct": "mandate.checkout.1",
+   "seq": 44,
+   "type": "mandate_signed",
+   "method": "passkey",
+   "at": 1790889774.20235,
+   "approved_by": "persona (passkey grabación)",
+   "mandate_id": "mnd_e6c7ec0ae5aaf6bd"
+  },
+  {
+   "seq": 45,
+   "type": "order_confirmed",
+   "at": 1790889774.6957037,
+   "order": {
+    "shipping": "0.00 USD",
+    "latest_delivery": "2026-10-02 (viernes 2 oct)",
+    "permalink_url": "https://encargo-kilometro-611681112050.us-central1.run.app/pedidos/ord_bd61dc68860640bb",
+    "created_at": 1790889774.497607,
+    "label": "Pedido 0640BB",
+    "run_id": "run_8c826f1f27a2",
+    "total": "145.00 USD",
+    "status": "completed",
+    "checkout_id": "chk_8bd0a949bf5c4580",
+    "store": "https://encargo-kilometro-611681112050.us-central1.run.app",
+    "total_amount": 145.0,
+    "id": "ord_bd61dc68860640bb",
+    "items": [
+     "Senda Acatenango T3 — talla 9 x1"
+    ],
+    "mandate_id": "mnd_e6c7ec0ae5aaf6bd"
+   },
+   "elapsed_s": 32.9
+  },
+  {
+   "seq": 46,
+   "type": "run_finished",
+   "at": 1790889774.7551024,
+   "status": "completed"
+  }
+ ]
+}

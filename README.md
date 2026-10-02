@@ -122,6 +122,9 @@ Variables: `TARGET=local|cloud` (por omisión `local`), `URL` (por omisión `htt
 | `make bias-test` | 10 corridas con el modo de control apagado (espera Kilómetro) y 10 con el modo encendido (espera Pulso). Cada corrida va del encargo a la firma con passkey y al pedido. Escribe el reporte en `bias-results/`. |
 | `make audit URL=…` | Checklist de preparación para agentes de cualquier tienda. |
 | `make phone` | Abre el «teléfono» que firma: una ventana de Chrome de 390×844 en modo app, con la passkey del Mac (Touch ID). |
+| `make stage-on` / `make stage-off` | Día de la charla: una instancia mínima en los cuatro servicios / el resto del tiempo: 0 (nada se cobra las 24 horas). |
+| `make warmup` | Despierta cada servicio, hace una llamada corta a Gemini y arranca Chromium en el agente. Con `TARGET=cloud`, después de `stage-on`. |
+| `make record-replay` | Graba una corrida real en la nube (eventos y capturas) como plan B en `app/public/replays/`. |
 | `make screens` | Recorre la app en Chrome con una passkey virtual y captura cada pantalla en `docs/screenshots/app/`. |
 | `make seed` | Regenera `catalog/catalog.json` (determinista, semilla 2027). |
 | `make images` | Genera las fotos de producto y los anuncios de Pulso con `IMAGE_MODEL`, verificados con `GEMINI_MODEL`. |
@@ -243,9 +246,9 @@ Las corridas, los eventos, los mandatos, los pedidos, las capturas, las passkeys
 
 | Componente | Dónde | Configuración | Por qué |
 | --- | --- | --- | --- |
-| Pulso, Kilómetro | Cloud Run | 1 instancia mínima y máxima, 512 MiB | El stock, los checkouts y la llave de la tienda viven en SQLite dentro del proceso. `make reset` los restaura. |
-| Agente | Cloud Run | 1 instancia, CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s | La corrida sigue después de responder `POST /runs`. Chromium necesita memoria. El estado está en Firestore. |
-| App | Cloud Run | 1 a 2 instancias, 512 MiB | Su dominio `run.app` es el RP ID de las passkeys. |
+| Pulso, Kilómetro | Cloud Run | máximo 1 instancia, 512 MiB; mínimo 1 solo con `make stage-on` | El stock, los checkouts y la llave de la tienda viven en SQLite dentro del proceso. `make reset` los restaura. |
+| Agente | Cloud Run | máximo 1 instancia (mínimo 1 con `make stage-on`), CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s | La corrida sigue después de responder `POST /runs`. Chromium necesita memoria. El estado está en Firestore. |
+| App | Cloud Run | 0 a 2 instancias (mínimo 1 con `make stage-on`), 512 MiB | Su dominio `run.app` es el RP ID de las passkeys. |
 | Firestore `encargo`, Vertex AI | Google Cloud | `nam5`; Gemini en `global` | Servicios gestionados. |
 | Ventana de firma y navegador del presentador | Portátil | Chrome | Solo muestran páginas de la app. Ver «Quién firma». |
 
@@ -281,6 +284,29 @@ En la nube, el agente corre con `SIGNER_MODE=passkey`: solo una aserción WebAut
 - **Consecuencia:** el modelo del encargo, Senda Acatenango T3 (0 + 1 días hábiles), siempre llega a tiempo. El peor caso es una corrida en jueves, que llega el viernes. Senda Fuego Tormenta (7 a 10 días) nunca llega.
 
 El encargo se interpreta con un parser determinista (expresiones regulares) y no con el modelo. Así, las cuatro condiciones (`categoria`, `talla`, `precio`, `entrega`) son idénticas en todas las corridas, que es lo que necesita la prueba de sesgo. Pruebas: `agent/tests/test_errand.py`.
+
+### Escenario: instancias tibias solo el día de la charla
+
+`make stage-on` fija `--min-instances=1` en los cuatro servicios (sin arranques en frío en el escenario); `make stage-off` los vuelve a 0 para que nada se cobre las 24 horas (`infra/60-stage.sh`). Los despliegues usan 0 por omisión (`MIN_INSTANCES`). `make warmup` despierta cada servicio y sus caminos fríos antes de la charla: páginas, feed y perfil UCP de las tiendas, la app, una llamada corta a Gemini y el arranque de Chromium en el agente (`POST /admin/warmup`).
+
+**Descartado:** dejar una instancia mínima siempre encendida. Cuesta todo el año por unas horas de escenario.
+
+### Plan B: una corrida real grabada
+
+Si Gemini va lento en vivo, el presentador no espera. `make record-replay` graba una corrida real en la nube (eventos y capturas) en `app/public/replays/kilometro.json` y `pulso-control.json`, con sus capturas en carpetas del mismo nombre. La app la reproduce con los tiempos originales y sin agente ni Gemini (`app/src/lib/useReplay.ts`):
+
+- `/presenter?demo=1` (o `?demo=pulso-control`) espera el encargo del teléfono y se detiene en la tarjeta de aprobación hasta la firma. La barra espaciadora hace lo mismo a mano.
+- `/?demo=1` en el teléfono reproduce el mismo recorrido. La firma se simula y se marca «Demostración grabada».
+- El teléfono y el presentador corren en el mismo Chrome del portátil y se coordinan con un `BroadcastChannel`.
+- **Tecla `R`** en el presentador: cambia a la grabación en plena charla, la del modo de control si está encendido, y la reproduce completa. **`L`** vuelve a lo en vivo.
+
+Las fechas de la grabación son las del día en que se grabó; vuelve a grabarla antes de cada charla.
+
+### CI con GitHub Actions
+
+`.github/workflows/test.yml` corre `make test` en cada push y pull request, sin nube ni Gemini (`MOCK_AI=1`, tiendas falsas, SQLite en memoria), con caché de uv y npm.
+
+**Descartado:** un disparador de Cloud Build. Conectar Cloud Build con GitHub exige un paso manual de OAuth en la consola, y las pruebas no necesitan nada de Google Cloud.
 
 ### Otras decisiones
 

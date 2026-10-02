@@ -4,7 +4,7 @@ URL ?= http://localhost:3001
 RUNS ?= 10
 TARGET ?= local
 
-.PHONY: help up reset test bias-test audit images seed deploy screens e2e e2e-emulator phone
+.PHONY: help up reset test bias-test audit images seed deploy screens e2e e2e-emulator phone stage-on stage-off warmup record-replay
 
 help:
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -69,3 +69,16 @@ e2e-emulator: ## Phone side on the Android emulator (errand, progress, approval,
 
 phone: ## Open the signing "phone" on the laptop: Chrome window 390×844 (Touch ID passkey) (TARGET=cloud)
 	@$(cloud_env); open -na "Google Chrome" --args --app="$$APP_URL" --window-size=390,844
+
+stage-on: ## Talk day: min-instances=1 on the 4 Cloud Run services (no cold starts)
+	./infra/60-stage.sh on
+
+stage-off: ## Any other day: min-instances=0 on the 4 services (nothing bills 24/7)
+	./infra/60-stage.sh off
+
+record-replay: ## Record a real cloud run (events + screenshots) as the Plan B replay in app/public/replays
+	@source infra/env.sh; source infra/urls.sh; export ADMIN_TOKEN=$$(gcloud secrets versions access latest --secret=encargo-admin-token); \
+	cd agent && uv run python ../scripts/record_replay.py --agent $$AGENT_URL --pulso $$PULSO_URL --kilometro $$KILOMETRO_URL --origin $$APP_URL
+
+warmup: ## Wake every service + one model call + Chromium before the talk (TARGET=cloud after stage-on)
+	@TARGET=$(TARGET) ./scripts/warmup.sh

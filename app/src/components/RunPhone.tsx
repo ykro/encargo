@@ -2,32 +2,57 @@
 // Phone, steps 2–4: follow the errand live, then authorize the purchase with a
 // passkey. The signature is over a challenge derived from the store-signed
 // checkout, so it approves exactly this cart and nothing else.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import type { StoreRef } from "@/lib/config";
 import { useRun } from "@/lib/useRun";
 import { humanDate, SHORT_LABEL, STATUS_TEXT, type RunView } from "@/lib/runState";
 import { parseItem, storeName } from "@/lib/names";
 import { PhoneTop } from "./PhoneTop";
+import { replayChannel, replayName, useReplay } from "@/lib/useReplay";
 import { stageHeaders } from "@/lib/stage";
 import { Check, Cross, Dash, Key } from "./Icons";
 
 type SignState = "idle" | "waiting" | "sending" | "error";
 
 export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] }) {
-  const { run, connection } = useRun(runId);
+  // /encargo/demo-<name>: the recorded run (Plan B), no agent and no Gemini.
+  const demo = runId.startsWith("demo-") ? replayName(runId.slice(5)) : null;
+  const live = useRun(demo ? undefined : runId);
+  const recorded = useReplay(demo, { waitForSignature: true });
+  const [cancelled, setCancelled] = useState(false);
+  const base = demo ? recorded.run : live.run;
+  const run = cancelled ? { ...base, phase: "rejected" as const } : base;
+  const connection = demo ? "live" : live.connection;
   const [sign, setSign] = useState<SignState>("idle");
   const [signError, setSignError] = useState<string | null>(null);
   const [passkeys, setPasskeys] = useState<number | null>(null);
 
   useEffect(() => {
+    if (demo) {
+      setPasskeys(1);
+      return;
+    }
     fetch("/api/agent/passkeys/status")
       .then((r) => r.json())
       .then((b) => setPasskeys(b.registered ?? 0))
       .catch(() => setPasskeys(null));
-  }, []);
+  }, [demo]);
+
+  const player = useRef(recorded);
+  player.current = recorded;
+  useEffect(() => {
+    if (demo && recorded.state === "ready") player.current.start();
+  }, [demo, recorded.state]);
 
   async function approve() {
+    if (demo) {
+      // Recorded run: the signature is simulated; the presenter continues with it.
+      setSign("sending");
+      replayChannel()?.postMessage("signed");
+      recorded.sign();
+      return;
+    }
     const mid = run.approval?.mandate_id;
     if (!mid) return;
     setSign("waiting");
@@ -53,6 +78,10 @@ export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] 
   }
 
   async function cancel() {
+    if (demo) {
+      setCancelled(true);
+      return;
+    }
     const mid = run.approval?.mandate_id;
     if (!mid) return;
     const res = await fetch(`/api/agent/mandates/${mid}/reject`, { method: "POST", headers: stageHeaders() });
@@ -62,9 +91,12 @@ export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] 
     }
   }
 
-  if (run.phase === "completed" && run.order) return <Confirmed run={run} stores={stores} />;
+  const badge = demo ? <p className="demo-badge" role="status">Demostración grabada · sin conexión al agente</p> : null;
+  if (run.phase === "completed" && run.order) return <>{badge}<Confirmed run={run} stores={stores} /></>;
   if (run.phase === "awaiting_approval" || run.phase === "signing") {
     return (
+      <>
+      {badge}
       <Approval
         run={run}
         stores={stores}
@@ -74,9 +106,10 @@ export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] 
         onApprove={approve}
         onCancel={cancel}
       />
+      </>
     );
   }
-  return <Progress run={run} stores={stores} connection={connection} />;
+  return <>{badge}<Progress run={run} stores={stores} connection={connection} /></>;
 }
 
 function Progress({ run, stores, connection }: { run: RunView; stores: StoreRef[]; connection: string }) {

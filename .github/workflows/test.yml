@@ -1,0 +1,49 @@
+# make test on every push and pull request. No cloud and no Gemini: the agent
+# tests run with MOCK_AI=1 and fake stores; the stores test with an in-memory DB.
+name: test
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MOCK_AI: "1"
+      RUN_STORE: memory
+      BROWSER_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            stores/shared/package-lock.json
+            stores/kilometro/package-lock.json
+            stores/pulso/package-lock.json
+            app/package-lock.json
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: agent/uv.lock
+
+      - name: Install Node dependencies
+        run: |
+          for dir in stores/shared stores/kilometro stores/pulso app; do
+            (cd "$dir" && npm ci --no-audit --no-fund)
+          done
+
+      - name: Install Python dependencies
+        run: cd agent && uv sync --frozen
+
+      - name: make test
+        run: make test

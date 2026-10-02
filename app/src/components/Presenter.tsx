@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { StoreRef } from "@/lib/config";
 import { useElapsed, useRun, mmss } from "@/lib/useRun";
+import { replayChannel, replayName, replayShot, useReplay, type ReplayName } from "@/lib/useReplay";
 import { focusOffer, humanDate, readableFields, SHORT_LABEL, STATUS_TEXT, type RunView } from "@/lib/runState";
 import { parseItem, storeName } from "@/lib/names";
 import { Wordmark } from "./Logo";
@@ -46,10 +47,71 @@ function useControlMode(): boolean | null {
   return on;
 }
 
+type Mode = { kind: "live" } | { kind: "replay"; name: ReplayName; waitForSignature: boolean; autostart: boolean };
+
+/** ?demo=1 (or =pulso-control) starts in replay mode; R switches to it mid-talk, L goes back to live. */
+function useMode(control: boolean | null): [Mode, (m: Mode) => void] {
+  const [mode, setMode] = useState<Mode>({ kind: "live" });
+  useEffect(() => {
+    const name = replayName(new URLSearchParams(window.location.search).get("demo"));
+    if (name) setMode({ kind: "replay", name, waitForSignature: true, autostart: false });
+  }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "r" || e.key === "R") {
+        setMode({ kind: "replay", name: control ? "pulso-control" : "kilometro", waitForSignature: false, autostart: true });
+      } else if (e.key === "l" || e.key === "L") {
+        setMode({ kind: "live" });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [control]);
+  return [mode, setMode];
+}
+
 export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: string }) {
-  const { id, checked } = useLatestRunId();
-  const { run, connection } = useRun(id);
   const control = useControlMode();
+  const [mode] = useMode(control);
+  const replay = mode.kind === "replay" ? mode : null;
+  const latest = useLatestRunId();
+  const live = useRun(replay ? undefined : latest.id);
+  const recorded = useReplay(replay?.name ?? null, { waitForSignature: replay?.waitForSignature ?? false });
+  const run = replay ? recorded.run : live.run;
+  const connection = replay ? "live" : live.connection;
+  const id = replay ? (recorded.state === "ready" ? undefined : run.id) : latest.id;
+  const checked = replay ? recorded.state !== "loading" : latest.checked;
+  const shotSrc = (shot: string) => (replay ? replayShot(replay.name, shot) : `/api/agent/screenshots/${shot}.jpg`);
+
+  // Replay controls: the phone (same Chrome) broadcasts start/signed; Space does the same by hand.
+  const player = useRef(recorded);
+  player.current = recorded;
+  useEffect(() => {
+    if (replay?.autostart && recorded.state === "ready") player.current.start();
+  }, [replay, recorded.state]);
+  useEffect(() => {
+    if (!replay) return;
+    const channel = replayChannel();
+    if (channel) {
+      channel.onmessage = (m) => {
+        if (m.data === "start") player.current.start();
+        if (m.data === "signed") player.current.sign();
+      };
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== " ") return;
+      e.preventDefault();
+      const p = player.current;
+      if (p.state === "ready" || p.state === "done") p.start();
+      else if (p.state === "waiting_signature") p.sign();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      channel?.close();
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [replay]);
   const elapsed = useElapsed(run.startedAt, run.finishedAt ?? (run.phase === "no_purchase" || run.phase === "failed" || run.phase === "rejected" ? Date.now() : undefined));
   const urlOf = (s: StoreRef) => run.stores.find((u) => storeName(stores, u) === s.name) ?? s.url;
   const idle = !id;
@@ -72,7 +134,7 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
                 <figure className="shot" key={s.key} style={{ margin: 0 }}>
                   <div className="shot-frame">
                     {hv ? (
-                      <img src={`/api/agent/screenshots/${hv.screenshotId}.jpg`} alt={`Captura de ${s.name} tal como la ve una persona`} />
+                      <img src={shotSrc(hv.screenshotId)} alt={`Captura de ${s.name} tal como la ve una persona`} />
                     ) : (
                       <div className="shot-empty">{idle ? "La captura aparece cuando empieza el encargo" : <span className="skeleton" style={{ width: "80%", height: "70%", display: "block" }} />}</div>
                     )}
@@ -111,7 +173,13 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
       </div>
 
       <div className="p-status" aria-live="polite">
-        {control !== null ? <span className={`tag ${control ? "on" : ""}`}>{control ? "Control: Pulso legible para agentes" : "Control apagado"}</span> : null}
+        {replay ? (
+          <span className="tag on">
+            Repetición grabada{recorded.state === "waiting_signature" ? " · esperando la firma (espacio)" : recorded.state === "ready" ? " · lista (espacio)" : ""}
+          </span>
+        ) : control !== null ? (
+          <span className={`tag ${control ? "on" : ""}`}>{control ? "Control: Pulso legible para agentes" : "Control apagado"}</span>
+        ) : null}
         {id && connection === "lost" ? <span className="tag">Reconectando…</span> : null}
       </div>
     </main>

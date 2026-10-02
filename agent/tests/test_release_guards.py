@@ -192,3 +192,10 @@ async def test_reset_cancels_runs_in_flight(monkeypatch):
     assert await runner.cancel_all() == 1
     await store.reset()
     assert store.runs == {}
+
+
+def test_warmup_needs_admin_and_skips_the_model_in_mock_mode():
+    client = TestClient(api.app)
+    assert client.post("/admin/warmup").status_code == 401
+    body = client.post("/admin/warmup", headers={"authorization": "Bearer dev-admin"}).json()
+    assert body["model"].startswith("omitido")

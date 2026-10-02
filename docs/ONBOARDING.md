@@ -141,9 +141,11 @@ Cada script es idempotente.
 | --- | --- | --- |
 | 1 | `infra/10-enable-apis.sh` | Habilita Run, Cloud Build, Artifact Registry, Firestore, Vertex AI y Secret Manager. Crea el repositorio de Artifact Registry `charlas2027` y la base de Firestore `encargo` (`nam5`) si no existen, y da a la cuenta de servicio de cómputo los roles `roles/datastore.user` y `roles/aiplatform.user`. Se puede volver a ejecutar sin riesgo. |
 | 2 | `infra/20-secrets.sh` | Genera la llave de la plataforma con el propio código del agente (`encargo.ap2.signer.platform_key`). Crea los tres secretos y da acceso a la cuenta de ejecución. |
-| 3 | `infra/30-deploy-stores.sh` | Para Pulso y Kilómetro: `npm run sync`, Cloud Build → Artifact Registry → Cloud Run. Usa 1 instancia mínima y máxima, 512 MiB, `PULSO_AGENT_READY` (por omisión `false`), `TRUSTED_PLATFORM_PROFILES=<agente>/.well-known/ucp` y `ADMIN_TOKEN` desde Secret Manager. |
-| 4 | `infra/40-deploy-agent.sh` | Agente con CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s y 1 instancia. Toma `GEMINI_MODEL` de `.env`. Fija `RUN_STORE=firestore`, `SIGNER_MODE=passkey` y `PASSKEY_RP_ID`/`PASSKEY_ORIGIN` = el host y el origen de la app. Monta los tres secretos. |
-| 5 | `infra/50-deploy-app.sh` | App con 1 a 2 instancias y 512 MiB. Le pasa las URL del agente y las tiendas y `APP_PUBLIC_HOST`. Al final imprime la URL de configuración de la passkey. |
+| 3 | `infra/30-deploy-stores.sh` | Para Pulso y Kilómetro: `npm run sync`, Cloud Build → Artifact Registry → Cloud Run. Usa como máximo 1 instancia (mínimo `MIN_INSTANCES`, 0 por omisión), 512 MiB, `PULSO_AGENT_READY` (por omisión `false`), `TRUSTED_PLATFORM_PROFILES=<agente>/.well-known/ucp` y `ADMIN_TOKEN` desde Secret Manager. |
+| 4 | `infra/40-deploy-agent.sh` | Agente con CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s y como máximo 1 instancia (mínimo 0 por omisión). Toma `GEMINI_MODEL` de `.env`. Fija `RUN_STORE=firestore`, `SIGNER_MODE=passkey` y `PASSKEY_RP_ID`/`PASSKEY_ORIGIN` = el host y el origen de la app. Monta los tres secretos. |
+| 5 | `infra/50-deploy-app.sh` | App con 0 a 2 instancias y 512 MiB. Le pasa las URL del agente y las tiendas y `APP_PUBLIC_HOST`. Al final imprime la URL de configuración de la passkey. |
+
+`infra/60-stage.sh on|off` (`make stage-on` / `make stage-off`) cambia el mínimo de instancias de los cuatro servicios: 1 el día de la charla, 0 el resto del tiempo.
 
 `make deploy` ejecuta los cinco en orden. Para volver a desplegar un solo servicio, ejecuta su script:
 
@@ -183,11 +185,13 @@ make audit URL=$KILOMETRO_URL                        # Puntaje: 8/8
 make test
 ```
 
+El mismo `make test` corre en GitHub Actions en cada push y pull request (`.github/workflows/test.yml`), sin nube ni Gemini.
+
 Corre cuatro grupos de pruebas:
 
 1. **Kit de comercio** (`stores/shared/tests/`, vitest, 19 pruebas): lo que publican schema.org, el feed y UCP; las fechas de entrega; y que no hay pago sin mandato. Esto último cubre un mandato ausente, una llave desconocida, una plataforma sin confianza, términos distintos, otro checkout, un mandato vencido y un mandato para otra tienda. También: dos `/complete` simultáneos dejan un solo pedido, un mandato rechazado devuelve el checkout, solo la llave del checkout (o la del administrador) lo cancela, y la llave de administración falla cerrada en producción.
 2. **Typecheck** de Kilómetro, Pulso y la app.
-3. **Agente** (`agent/tests/`, pytest, 52 pruebas). `conftest.py` fija `MOCK_AI=1`, `RUN_STORE=memory`, `BROWSER_ENABLED=0` y `SIGNER_MODE=test`. Las tiendas falsas (`tests/fake_stores.py`) sirven fixtures reales de Kilómetro y Pulso. Las pruebas que más enseñan:
+3. **Agente** (`agent/tests/`, pytest, 53 pruebas). `conftest.py` fija `MOCK_AI=1`, `RUN_STORE=memory`, `BROWSER_ENABLED=0` y `SIGNER_MODE=test`. Las tiendas falsas (`tests/fake_stores.py`) sirven fixtures reales de Kilómetro y Pulso. Las pruebas que más enseñan:
    - `test_pulso_page_has_no_facts_for_a_machine`.
    - `test_control_mode_buys_where_it_is_cheaper`.
    - `test_guardrail_refuses_approval_when_a_condition_is_not_verified`.
@@ -441,10 +445,13 @@ Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_r
 - [ ] `make bias-test TARGET=cloud` pasa (o `RUNS=3` si hay poco tiempo).
 - [ ] Passkey del portátil del escenario registrada en la nube (sección 7). `curl $AGENT_URL/passkeys/status` muestra al menos 1.
 - [ ] Emulador `emulator-5556` arranca y `make e2e-emulator TARGET=cloud` llega a la tarjeta de aprobación.
+- [ ] `make record-replay` graba el plan B con las fechas de la semana de la charla; vuelve a desplegar la app (`./infra/50-deploy-app.sh`) para publicarlo.
 
 ### Una hora antes, en el lugar
 
+- [ ] `make stage-on` (una instancia tibia de cada servicio).
 - [ ] Internet en el portátil (Wi-Fi del lugar o datos móviles). `curl -s $AGENT_URL/health` responde `"mode":"gemini"`.
+- [ ] `make warmup TARGET=cloud` → `warmup ok` (servicios, una llamada a Gemini y Chromium).
 - [ ] `make reset TARGET=cloud` → `reset ok`.
 - [ ] Proyector a 1920×1080. Abre `$APP_URL/presenter` en pantalla completa: muestra «Control apagado».
 - [ ] `make phone TARGET=cloud` y coloca la ventana del «teléfono» junto al presentador. Touch ID listo (sin guantes, con el portátil abierto).
@@ -459,6 +466,9 @@ Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_r
 4. Modo de control: enciéndelo (sección 8) y envía el mismo encargo. Ahora compra en Pulso.
 5. Cierra con `/auditoria`: «Probar con Pulso» y «Probar con Kilómetro».
 
+**Plan B:** si una corrida en vivo se alarga, pulsa `R` en el presentador: reproduce la corrida grabada (la del modo de control si está encendido). `L` vuelve a lo en vivo. Para ensayar todo sin red de modelos: `/presenter?demo=1` y `/?demo=1` en la ventana del «teléfono», en el mismo Chrome.
+
 ### Después
 
 - [ ] `make reset TARGET=cloud`: deja el modo de control apagado y el stock completo.
+- [ ] `make stage-off`: los cuatro servicios vuelven a 0 instancias mínimas (nada se cobra las 24 horas).

@@ -268,3 +268,6 @@ textarea.errand:focus, input.text:focus { outline: 3px solid var(--cobalt); outl
 .devices .btn { min-height: 40px; padding: 0 12px; font-size: 15px; color: var(--unmet); }
 .approval.failed { border-color: var(--unmet); }
 .approval.failed .a-title { color: var(--unmet); }
+
+/* Plan B replay marker on the phone */
+.demo-badge { position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%); margin: 0; z-index: 10; background: var(--ink); color: var(--surface); font-size: 12px; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
