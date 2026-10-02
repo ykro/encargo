@@ -58,7 +58,7 @@ MODELS = [
         "name": "Senda Acatenango T3",
         "category": "trail",
         "role": "fits the errand at both stores",
-        "tagline_es": "Agarre total para bajar volcanes con confianza.",
+        "tagline_es": "Tracción total para bajar volcanes con confianza.",
         "description_es": "Tenis de trail con suela de tacos de 5 mm, placa anti-rocas y "
         "amortiguación media. Pensado para senderos técnicos y lodo.",
         "color_es": "Verde musgo con naranja",
@@ -99,7 +99,7 @@ MODELS = [
         "name": "Senda Fuego Tormenta",
         "category": "trail",
         "role": "trail, size 9 in stock, under budget — arrives too late",
-        "tagline_es": "Hecho para el terreno más duro.",
+        "tagline_es": "Hecho para el terreno más exigente.",
         "description_es": "Tenis de trail de alta durabilidad con suela de compuesto "
         "volcánico. Se fabrica bajo pedido.",
         "color_es": "Rojo lava con negro",

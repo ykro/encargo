@@ -161,7 +161,7 @@ async def execute_run(store: RunStore, run_id: str, errand: str, stores: list[st
                 await ctx.emit("run_finished", status="no_purchase")
             await store.update_run(run_id, {"checklist": ctx.checklist, "agent_seconds": round(time.monotonic() - ctx.started, 1)})
         except Exception as e:  # noqa: BLE001 — a failed run must be visible on stage, not silent
-            reason = "Se acabó el tiempo del encargo." if isinstance(e, asyncio.TimeoutError) else f"{e.__class__.__name__}: {e}"
+            reason = "Se agotó el tiempo del encargo." if isinstance(e, asyncio.TimeoutError) else f"{e.__class__.__name__}: {e}"
             await store.update_run(run_id, {"status": "failed", "error": reason})
             await ctx.emit("run_finished", status="failed", error=reason)
         finally:
