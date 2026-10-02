@@ -131,6 +131,14 @@ async def main(a: argparse.Namespace) -> None:
         await desk.get_by_role("heading", name="Pedido confirmado").wait_for(timeout=20000)
         await shot(desk, "confirmed-1920")
         print("passkey flow OK:", phone.url, flush=True)
+
+        # Plan B on stage: R switches to the recording, which waits for a real signature.
+        await presenter.keyboard.press("r")
+        await presenter.get_by_text("esperando una firma real").wait_for(timeout=90000)
+        await shot(presenter, "presenter-replay-waiting-1920")
+        await presenter.keyboard.press(" ")
+        await presenter.locator(".approval.done").wait_for(timeout=30000)
+        await shot(presenter, "presenter-replay-space-1920")
         # Remove the virtual credential so only real devices stay enrolled.
         import httpx
 

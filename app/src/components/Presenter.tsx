@@ -240,7 +240,7 @@ function Matrix({ run, stores, urlOf }: { run: RunView; stores: StoreRef[]; urlO
 
 function Ticker({ run, stores }: { run: RunView; stores: StoreRef[] }) {
   const lines = run.steps.filter((s) => s.kind !== "thought" || s.text.length < 160).slice(run.approval ? -1 : -3);
-  if (run.approval && run.phase !== "awaiting_approval") return null; // the outcome cards take the space
+  if (run.approval) return null; // from the approval on, the decision and approval cards take the space
   return (
     <ol className="ticker" aria-live="polite">
       {lines.map((s) => (
