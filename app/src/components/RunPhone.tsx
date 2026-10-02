@@ -261,7 +261,7 @@ function Approval(props: {
 
   return (
     <main className="phone">
-      <PhoneTop step={4} label="Paso 4 de 4 · Tu firma" />
+      <PhoneTop step={4} label="Tu firma" />
       <div className="phone-main">
         <h1>Autoriza la compra</h1>
         <dl className="rows">
@@ -314,7 +314,7 @@ function Confirmed({ run, stores }: { run: RunView; stores: StoreRef[] }) {
   const item = parseItem(o.items?.[0]);
   return (
     <main className="phone">
-      <PhoneTop step={4} label="Listo · pedido confirmado" />
+      <PhoneTop step={4} label="Listo" />
       <div className="phone-main">
         <div className="big-check" aria-hidden>
           <Check size={40} />

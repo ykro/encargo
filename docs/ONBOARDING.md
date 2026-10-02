@@ -313,14 +313,14 @@ Con el modo de control encendido, Pulso publica la misma capa para máquinas que
 
 **Ver el estado:**
 
-- La vista del presentador muestra una etiqueta abajo a la derecha: «Control apagado» o «Control: Pulso legible para agentes» (`app/src/app/api/control/route.ts`).
+- La vista del presentador lo muestra en grande en el encabezado: «Modo de control · APAGADO / ENCENDIDO» (`app/src/app/api/control/route.ts`).
 - O consulta el endpoint:
 
   ```bash
   curl -s $PULSO_URL/api/admin/agent-ready   # {"store":"pulso","agent_ready":false}
   ```
 
-**Encender o apagar en caliente** (sin volver a desplegar):
+**Encender o apagar en caliente** (sin volver a desplegar): `make control-on TARGET=cloud` / `make control-off TARGET=cloud` (sin `TARGET`, en local). Equivale a:
 
 ```bash
 # nube: source infra/env.sh && source infra/urls.sh && ADMIN_TOKEN=$(gcloud secrets versions access latest --secret=encargo-admin-token)
@@ -442,6 +442,8 @@ Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_r
 | Puertos 3000–3002 u 8000 ocupados | Quedó un `make up` anterior | `lsof -i :3000` y detén el proceso |
 
 ## 11. Checklist del día de la charla
+
+El guion paso a paso, con capturas y qué decir en cada pantalla, está en [DEMO.md](DEMO.md).
 
 ### El día anterior
 

@@ -15,6 +15,9 @@ Encargo buys from Kilómetro because it is the only store where it can verify ev
 
 ![Encargo architecture](docs/diagrams/architecture.png)
 
+
+**Demo script (Spanish):** [docs/DEMO.md](docs/DEMO.md), step by step with screenshots, talk points, timings and what to do if something fails.
+
 ## What you'll learn
 
 ### 1. Agents read data, not marketing
@@ -129,6 +132,8 @@ Variables: `TARGET=local|cloud` (default `local`), `URL` (default `http://localh
 | `make record-replay` | Records a real cloud run (events and screenshots) as the Plan B in `app/public/replays/`. |
 | `make preflight` | Talk-day gate: fails if a service is unhealthy, no passkey is registered, control mode is on, `min-instances=1` is missing, recordings are older than 7 days or size-9 stock is low. |
 | `make up-offline` / `make e2e-offline` | Plan B without internet: app and recordings from the laptop / the test with the network cut (`VIDEO=1` re-renders the MP4). |
+| `make control-on` / `make control-off` | Turns control mode on or off live (`TARGET=cloud` for the cloud). |
+| `make demo-screens` | Captures `docs/demo/` from two real cloud runs (the demo script). |
 | `make screens` | Drives the app in Chrome with a virtual passkey and screenshots every screen to `docs/screenshots/app/`. |
 | `make seed` | Regenerates `catalog/catalog.json` (deterministic, seed 2027). |
 | `make images` | Generates product photos and Pulso ads with `IMAGE_MODEL`, verified with `GEMINI_MODEL`. |

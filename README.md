@@ -15,6 +15,9 @@ Encargo compra en Kilómetro porque es la única tienda donde puede verificar ca
 
 ![Arquitectura de Encargo](docs/diagrams/architecture.png)
 
+
+**Guion de la demo:** [docs/DEMO.md](docs/DEMO.md), paso a paso con capturas, qué decir, tiempos y qué hacer si algo falla.
+
 ## Qué vas a aprender
 
 ### 1. Los agentes leen datos, no marketing
@@ -129,6 +132,8 @@ Variables: `TARGET=local|cloud` (por omisión `local`), `URL` (por omisión `htt
 | `make record-replay` | Graba una corrida real en la nube (eventos y capturas) como plan B en `app/public/replays/`. |
 | `make preflight` | Portero del día de la charla: falla si algún servicio no está sano, no hay passkey, el modo de control está encendido, falta `min-instances=1`, las grabaciones tienen más de 7 días o queda poco stock de la talla 9. |
 | `make up-offline` / `make e2e-offline` | Plan B sin internet: la app y las grabaciones desde el portátil / la prueba con la red cortada (`VIDEO=1` regenera el MP4). |
+| `make control-on` / `make control-off` | Enciende o apaga el modo de control en caliente (`TARGET=cloud` en la nube). |
+| `make demo-screens` | Captura `docs/demo/` desde dos corridas reales en la nube (guion de la demo). |
 | `make screens` | Recorre la app en Chrome con una passkey virtual y captura cada pantalla en `docs/screenshots/app/`. |
 | `make seed` | Regenera `catalog/catalog.json` (determinista, semilla 2027). |
 | `make images` | Genera las fotos de producto y los anuncios de Pulso con `IMAGE_MODEL`, verificados con `GEMINI_MODEL`. |

@@ -305,7 +305,10 @@ function AgentView({ run, store, url, idle }: { run: RunView; store: StoreRef; u
   return (
     <div className="av-store">
       <h3>
-        {store.name}
+        <span>
+          {store.name}
+          {offer && fields > 0 ? <span className="model"> · {offer.product?.replace(/^Senda /, "")}</span> : null}
+        </span>
         {checked ? <span className="fields num">{fields} {fields === 1 ? "campo legible" : "campos legibles"}</span> : null}
       </h3>
       {src ? (
@@ -319,7 +322,6 @@ function AgentView({ run, store, url, idle }: { run: RunView; store: StoreRef; u
       )}
       {offer && fields > 0 ? (
         <dl className="av-table">
-          <div><dt>modelo</dt><dd>{offer.product?.replace(/^Senda /, "")}</dd></div>
           <div><dt>precio</dt><dd className="num">{offer.price ?? "—"}</dd></div>
           <div><dt>talla {sizeCond?.value}</dt><dd>{offer.sizes_in_stock ? (offer.sizes_in_stock.includes(sizeCond?.value ?? "") ? "en stock" : "agotada") : "—"}</dd></div>
           <div><dt>entrega</dt><dd>{humanDate(offer.arrives_by) ?? "—"}</dd></div>

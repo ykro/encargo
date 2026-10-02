@@ -4,7 +4,7 @@ URL ?= http://localhost:3001
 RUNS ?= 10
 TARGET ?= local
 
-.PHONY: help up reset test bias-test audit images seed deploy screens e2e e2e-emulator phone stage-on stage-off warmup record-replay preflight up-offline e2e-offline
+.PHONY: help up reset test bias-test audit images seed deploy screens e2e e2e-emulator phone stage-on stage-off warmup record-replay preflight up-offline e2e-offline control-on control-off demo-screens
 
 help:
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -92,3 +92,17 @@ up-offline: ## Plan B with no internet: the app + recorded replays from the lapt
 
 e2e-offline: ## Plan B test with the network cut: replay end to end, real passkey (virtual authenticator); VIDEO=1 renders docs/plan-b-replay.mp4
 	@cd agent && uv run python ../scripts/e2e_offline.py $${VIDEO:+--video}
+
+control-on: ## Control mode ON: Pulso publishes the same machine layer as Kilómetro (TARGET=cloud for Cloud Run)
+	@$(cloud_env); curl -fsS -XPOST -H "authorization: Bearer $$ADMIN_TOKEN" -H 'content-type: application/json' \
+	  -d '{"enabled":true}' "$${PULSO_URL:-http://localhost:3002}/api/admin/agent-ready"; echo
+
+control-off: ## Control mode OFF: Pulso opaque again (also done by make reset)
+	@$(cloud_env); curl -fsS -XPOST -H "authorization: Bearer $$ADMIN_TOKEN" -H 'content-type: application/json' \
+	  -d '{"enabled":false}' "$${PULSO_URL:-http://localhost:3002}/api/admin/agent-ready"; echo
+
+demo-screens: ## Capture docs/demo/NN-*.png from a real Cloud Run run (virtual authenticator signs; resets after)
+	@source infra/env.sh; source infra/urls.sh; export ADMIN_TOKEN=$$(gcloud secrets versions access latest --secret=encargo-admin-token); \
+	TARGET=cloud ./scripts/reset.sh >/dev/null; \
+	cd agent && uv run python ../scripts/demo_screens.py --app $$APP_URL --agent $$AGENT_URL --pulso $$PULSO_URL --admin-token $$ADMIN_TOKEN; \
+	cd .. && TARGET=cloud ./scripts/reset.sh
