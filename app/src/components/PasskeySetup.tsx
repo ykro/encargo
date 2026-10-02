@@ -102,6 +102,11 @@ export function PasskeySetup() {
       refresh(code.trim());
     } catch (err) {
       const e = err as Error;
+      void fetch("/api/client-log", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ where: "passkey-register", name: e.name, message: e.message }),
+      }).catch(() => {});
       setState("error");
       setMessage(e.name === "NotAllowedError" ? "Cancelaste el registro o se agotó el tiempo." : e.name === "InvalidStateError" ? "Este dispositivo ya tiene una passkey registrada aquí." : e.message);
     }
