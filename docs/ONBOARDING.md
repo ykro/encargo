@@ -1,6 +1,6 @@
 # Onboarding — Encargo
 
-Guía para instalar, desplegar, probar y presentar Encargo. Para entender qué enseña la demo y por qué está hecha así, lee primero el [README](../README.md).
+Guía para instalar, desplegar, probar y presentar Encargo. Para entender qué enseña la demo y por qué está hecha así, lee primero el [README](../README.md) y luego [DECISIONES.md](DECISIONES.md).
 
 ## Contenido
 
@@ -12,7 +12,7 @@ Guía para instalar, desplegar, probar y presentar Encargo. Para entender qué e
 6. [Pruebas y ensayos](#6-pruebas-y-ensayos)
 7. [Registrar la passkey (`/configurar`)](#7-registrar-la-passkey-configurar)
 8. [Encender y apagar el modo de control](#8-encender-y-apagar-el-modo-de-control)
-9. [Recorrido del código: una corrida](#9-recorrido-del-código-una-corrida)
+9. [Recorrido del código: una ejecución](#9-recorrido-del-código-una-ejecución)
 10. [Solución de problemas](#10-solución-de-problemas)
 11. [Checklist del día de la charla](#11-checklist-del-día-de-la-charla)
 
@@ -83,7 +83,7 @@ Las tiendas copian el kit compartido y el catálogo en `src/shared/` antes de `d
 | `STORE_URLS` | `http://localhost:3002,http://localhost:3001` | Tiendas por omisión de `POST /runs` |
 | `RUN_STORE` | `memory` | `firestore` en la nube |
 | `FIRESTORE_DATABASE` | `encargo` | Base de Firestore |
-| `RUN_TIMEOUT_S` | `110` | Tope de una corrida (hasta pedir la aprobación) |
+| `RUN_TIMEOUT_S` | `110` | Tope de una ejecución (hasta pedir la aprobación) |
 | `BROWSER_ENABLED` | `1` | `0` desactiva las capturas «lo que ve una persona» |
 | `SIGNER_MODE` | `test` | `passkey` en la nube: solo una aserción WebAuthn aprueba |
 | `PASSKEY_RP_ID`, `PASSKEY_ORIGIN` | `localhost`, `http://localhost:3000` | A qué host y origen se ligan las passkeys |
@@ -172,7 +172,7 @@ make audit URL=$KILOMETRO_URL                        # Puntaje: 8/8
 
 | Aspecto | Local (`make up`) | Nube (`make deploy`) |
 | --- | --- | --- |
-| Estado de las corridas | `RUN_STORE=memory`: se pierde al detener el agente, **incluidas las passkeys** | Firestore `encargo`: sobrevive a reinicios; `make reset` conserva las passkeys |
+| Estado de las ejecuciones | `RUN_STORE=memory`: se pierde al detener el agente, **incluidas las passkeys** | Firestore `encargo`: sobrevive a reinicios; `make reset` conserva las passkeys |
 | Quién aprueba un pago | `SIGNER_MODE=test`: passkey o el token de prueba | `SIGNER_MODE=passkey`: solo una passkey |
 | RP ID de la passkey | `localhost` (WebAuthn permite `http://localhost`) | El host `encargo-app-611681112050.us-central1.run.app` |
 | Modelo | Gemini con ADC, o `MOCK_AI=1` | Gemini (`MOCK_AI=0`) |
@@ -234,7 +234,7 @@ make e2e-emulator TARGET=local          # contra make up: adb reverse tcp:3000 t
 
 `scripts/e2e_emulator.py` abre Chrome en el emulador por `adb` y lo controla por DevTools (`adb forward tcp:9333`). Luego:
 
-1. Envía el encargo y sigue la corrida.
+1. Envía el encargo y sigue la ejecución.
 2. Espera la tarjeta de aprobación e informa si el botón «Firmar mandato con passkey» está habilitado.
 3. **Cancela**: no se cobra nada.
 
@@ -245,18 +245,18 @@ Por defecto va contra Cloud Run: desde el emulador, `localhost` es el propio emu
 ### `make bias-test` — sin sesgo y en menos de 2 minutos
 
 ```bash
-make bias-test TARGET=cloud              # 10 + 10 corridas, ~10–15 min
+make bias-test TARGET=cloud              # 10 + 10 ejecuciones, ~10–15 min
 make bias-test TARGET=cloud RUNS=2       # ensayo corto
 ```
 
 `agent/encargo/bias_test.py` hace lo siguiente:
 
 1. Registra una passkey de software con el código de configuración.
-2. Para cada modo (apagado y encendido), cambia el modo de control de Pulso. En cada corrida reinicia las dos tiendas, alterna el orden de las tiendas, envía el encargo, firma con la passkey y espera el pedido.
-3. Imprime una línea por corrida y un resumen por modo.
+2. Para cada modo (apagado y encendido), cambia el modo de control de Pulso. En cada ejecución reinicia las dos tiendas, alterna el orden de las tiendas, envía el encargo, firma con la passkey y espera el pedido.
+3. Imprime una línea por ejecución y un resumen por modo.
 4. Deja el modo de control apagado y borra la passkey.
 
-Pasa si cada modo acierta en al menos el 90 % de las corridas y ninguna llega a 120 s. El JSON queda en `bias-results/<target>-<fecha>.json`.
+Pasa si cada modo acierta en al menos el 90 % de las ejecuciones y ninguna llega a 120 s. El JSON queda en `bias-results/<target>-<fecha>.json`.
 
 Para un solo modo, ejecútalo a mano:
 
@@ -320,7 +320,7 @@ Con el modo de control encendido, Pulso publica la misma capa para máquinas que
   curl -s $PULSO_URL/api/admin/agent-ready   # {"store":"pulso","agent_ready":false}
   ```
 
-**Encender o apagar en caliente** (sin volver a desplegar): `make control-on TARGET=cloud` / `make control-off TARGET=cloud` (sin `TARGET`, en local). Equivale a:
+**Encender o apagar al vuelo** (sin volver a desplegar): `make control-on TARGET=cloud` / `make control-off TARGET=cloud` (sin `TARGET`, en local). Equivale a:
 
 ```bash
 # nube: source infra/env.sh && source infra/urls.sh && ADMIN_TOKEN=$(gcloud secrets versions access latest --secret=encargo-admin-token)
@@ -332,11 +332,11 @@ curl -s -XPOST -H "authorization: Bearer $ADMIN_TOKEN" -H 'content-type: applica
 ```
 
 - `make reset` (y `make reset TARGET=cloud`) también lo apaga.
-- El cambio en caliente vive en la memoria del proceso de Pulso, que corre como una sola instancia. Si la instancia se reinicia, vuelve al valor de `PULSO_AGENT_READY`.
+- El cambio al vuelo vive en la memoria del proceso de Pulso, que corre como una sola instancia. Si la instancia se reinicia, vuelve al valor de `PULSO_AGENT_READY`.
 - Para que arranque encendido: `PULSO_AGENT_READY=true` en `.env` (local) o `PULSO_AGENT_READY=true ./infra/30-deploy-stores.sh` (nube).
 - La auditoría de `/auditoria` y `make audit` reflejan el cambio al instante.
 
-## 9. Recorrido del código: una corrida
+## 9. Recorrido del código: una ejecución
 
 Lo que pasa desde que la persona escribe el encargo hasta el pedido. Los eventos entre paréntesis son los que dibujan el teléfono y el presentador.
 
@@ -346,11 +346,11 @@ Lo que pasa desde que la persona escribe el encargo hasta el pedido. Los eventos
 - El proxy `app/src/app/api/agent/[...path]/route.ts` lo reenvía al agente.
 - La app navega a `/encargo/<id>`, que se suscribe a `GET /runs/<id>/events` (SSE) con `app/src/lib/useRun.ts`.
 
-### 2. La corrida empieza
+### 2. La ejecución empieza
 
 - `agent/encargo/api.py` `create_run` → `runner.start_run`.
 - `errand.parse_errand` convierte el texto en cuatro condiciones con id estable: `categoria`, `talla`, `precio` y `entrega` (el viernes calculado desde hoy).
-- Guarda la corrida en el `RunStore` y lanza `execute_run` en segundo plano. `POST /runs` responde de inmediato.
+- Guarda la ejecución en el `RunStore` y lanza `execute_run` en segundo plano. `POST /runs` responde de inmediato.
 
 ### 3. El agente trabaja
 
@@ -382,7 +382,7 @@ Lo que pasa desde que la persona escribe el encargo hasta el pedido. Los eventos
 ### 7. El guardarraíl y la solicitud de aprobación
 
 - `tools/approval.request_payment_approval` comprueba `ctx.all_met(store)`.
-- Guarda un mandato `pending_signature`, pone la corrida en `awaiting_approval` y emite `approval_requested`, con artículos, total, entrega y la razón.
+- Guarda un mandato `pending_signature`, pone la ejecución en `awaiting_approval` y emite `approval_requested`, con artículos, total, entrega y la razón.
 - El modelo recibe la orden de detenerse. Al terminar ADK, `execute_run` emite `decision`.
 
 ### 8. La persona firma
@@ -415,7 +415,7 @@ Lo que pasa desde que la persona escribe el encargo hasta el pedido. Los eventos
 ### 11. Confirmación
 
 - El agente guarda el pedido y emite `order_confirmed` y `run_finished` con el tiempo total.
-- El teléfono muestra «Pedido confirmado» y el presentador cierra la corrida.
+- El teléfono muestra «Pedido confirmado» y el presentador cierra la ejecución.
 
 Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_rejected`: rechazar nunca mueve dinero, así que no requiere passkey.
 
@@ -423,10 +423,10 @@ Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_r
 
 | Síntoma | Causa probable | Qué hacer |
 | --- | --- | --- |
-| La corrida falla con `GEMINI_MODEL no está definido` | Falta `.env` o la variable | `cp .env.example .env`, o `MOCK_AI=1` |
+| La ejecución falla con `GEMINI_MODEL no está definido` | Falta `.env` o la variable | `cp .env.example .env`, o `MOCK_AI=1` |
 | Errores de permisos con Vertex AI o Firestore en local | No hay ADC o falta el proyecto de cuota | `gcloud auth application-default login` y `set-quota-project ai-experiments-487722` |
 | `Executable doesn't exist` (Playwright) | Falta Chromium | `cd agent && uv run playwright install chromium` |
-| «Se acabó el tiempo del encargo» | El modelo tardó más que `RUN_TIMEOUT_S` | Revisa los logs (`gcloud run services logs read encargo-agent --region us-central1`); busca `sending hedge`. Vuelve a intentar |
+| «Se agotó el tiempo del encargo» | El modelo tardó más que `RUN_TIMEOUT_S` | Revisa los logs (`gcloud run services logs read encargo-agent --region us-central1`); busca `sending hedge`. Vuelve a intentar |
 | El botón «Firmar mandato con passkey» está deshabilitado | No hay passkey para ese RP ID | Regístrala en `/configurar` (sección 7) |
 | «Esta passkey no está registrada» o falla la firma | La passkey es de otro entorno (local o nube), el agente local se reinició (memoria) o se abrió la app con el alias `…-uc.a.run.app` | Usa la URL determinista y vuelve a registrar |
 | «El código de configuración no es válido» | `clave` distinta de `ADMIN_TOKEN` | Copia el valor de `encargo-admin-token` (nube) o `dev-admin` (local) |
@@ -434,7 +434,7 @@ Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_r
 | La tienda responde «La plataforma que firma este mandato no es de confianza» | `TRUSTED_PLATFORM_PROFILES` ≠ `AGENT_PUBLIC_URL/.well-known/ucp` | Ajusta `.env`, o vuelve a desplegar las tiendas con `infra/30` |
 | «El mandato está firmado con una llave desconocida» | El agente local generó una llave nueva al reiniciar y la tienda tiene la anterior en caché (60 s) | `make reset` (vacía la caché) o espera un minuto; en la nube la llave es fija |
 | `out_of_stock` o el stock se acabó tras muchos ensayos | El estado de SQLite persiste | `make reset` / `make reset TARGET=cloud` |
-| El presentador muestra una corrida vieja | Sigue `/runs/latest` | `make reset TARGET=cloud` |
+| El presentador muestra una ejecución vieja | Sigue `/runs/latest` | `make reset TARGET=cloud` |
 | Pulso aparece legible sin querer | El modo de control quedó encendido | `make reset` o apágalo (sección 8) |
 | `make reset` termina con `reset FALLÓ: …` | Ese servicio no respondió (apagado, URL o `ADMIN_TOKEN` incorrectos) | Revisa el servicio nombrado con `/health` o los `curl` de la sección 8 y repite |
 | `make e2e-emulator` no conecta | Emulador apagado, otro serial o Chrome sin abrir | `adb devices`; `ANDROID_SERIAL=…`; abre Chrome una vez en el emulador |
@@ -466,7 +466,7 @@ El guion paso a paso, con capturas y qué decir en cada pantalla, está en [DEMO
 - [ ] Proyector a 1920×1080. Abre `$APP_URL/presenter` en pantalla completa: muestra «Control apagado».
 - [ ] `make phone TARGET=cloud` y coloca la ventana del «teléfono» junto al presentador. Touch ID listo (sin guantes, con el portátil abierto).
 - [ ] El emulador, abierto en la app, para mostrar el lado del teléfono.
-- [ ] Haz una corrida completa de prueba y después `make reset TARGET=cloud`.
+- [ ] Haz una ejecución completa de prueba y después `make reset TARGET=cloud`.
 
 ### Durante la charla
 
@@ -476,9 +476,9 @@ El guion paso a paso, con capturas y qué decir en cada pantalla, está en [DEMO
 4. Modo de control: enciéndelo (sección 8) y envía el mismo encargo. Ahora compra en Pulso.
 5. Cierra con `/auditoria`: «Probar con Pulso» y «Probar con Kilómetro».
 
-**Plan B:** a los 60 s el reloj del presentador se pone ámbar y muestra «R = repetición». Si la corrida en vivo se alarga, pulsa `R`: reproduce la corrida grabada (la del modo de control si está encendido) bajo la franja «REPETICIÓN GRABADA · no es en vivo», y se detiene en la tarjeta de aprobación hasta una firma real: la passkey del portátil (Touch ID) en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. La pantalla dice cuál de las dos firmó. `L` vuelve a lo en vivo.
+**Plan B:** a los 60 s el reloj del presentador se pone ámbar y muestra «R = repetición». Si la ejecución en vivo se alarga, pulsa `R`: reproduce la ejecución grabada (la del modo de control si está encendido) bajo la franja «REPETICIÓN GRABADA · no es en vivo», y se detiene en la tarjeta de aprobación hasta una firma real: la passkey del portátil (Touch ID) en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. La pantalla dice cuál de las dos firmó. `L` vuelve a lo en vivo.
 
-**Sin internet:** `make up-offline` sirve la app y las grabaciones desde el portátil (`http://localhost:3000/presenter?demo=1` y `/?demo=1`; las capturas van dentro de cada grabación). Compila una vez con internet (las fuentes se incrustan) y después funciona sin red; `make e2e-offline` lo prueba bloqueando todo lo que no sea `localhost`. Último recurso: el video `docs/plan-b-replay.mp4` (una corrida completa, 1920×1080).
+**Sin internet:** `make up-offline` sirve la app y las grabaciones desde el portátil (`http://localhost:3000/presenter?demo=1` y `/?demo=1`; las capturas van dentro de cada grabación). Compila una vez con internet (las fuentes se incrustan) y después funciona sin red; `make e2e-offline` lo prueba bloqueando todo lo que no sea `localhost`. Último recurso: el video `docs/plan-b-replay.mp4` (una ejecución completa, 1920×1080).
 
 ### Después
 

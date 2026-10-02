@@ -6,7 +6,7 @@ Checks what the emulator can do without a Google account: open the app, send
 the errand, follow the run and show the approval card. It also records what
 happens when a passkey is requested: with no credential provider on the device
 Chrome only offers "another device" (hybrid QR), so the signature happens on the
-laptop (see README, "Quién firma"). Screenshots go to docs/screenshots/emulator/.
+laptop (see docs/DECISIONES.md, "Quién firma"). Screenshots go to docs/screenshots/emulator/.
 """
 
 from __future__ import annotations

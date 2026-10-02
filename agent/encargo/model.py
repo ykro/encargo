@@ -4,8 +4,9 @@ On stage the whole errand must finish in under two minutes. A model call
 usually answers in about two seconds, but on a busy shared endpoint some calls
 take 15–90 s (measured: no 429s, just tail latency). Waiting is the worst
 option, so calls are *hedged*: if the first call has not answered after
-HEDGE_AFTER_S, an identical second call is sent, then a third; the first answer
-wins and the others are cancelled. 429s are retried with backoff by the SDK.
+HEDGE_AFTER_S, an identical second call is sent, then more (up to MAX_PARALLEL at
+once); the first answer wins and the others are left to finish, not cancelled.
+A failed call frees its slot for a fresh one. 429s are retried with backoff by the SDK.
 """
 
 from __future__ import annotations

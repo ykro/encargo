@@ -2,7 +2,11 @@
 
 Plan paso a paso para la demo en vivo de **«Tu próximo cliente es un agente de IA»**. Cada paso es una pantalla, con lo que haces, lo que dices y lo que tarda.
 
-Las capturas de `docs/demo/` salen de una corrida real en Cloud Run (`make demo-screens`). Esa corrida firma con el **autenticador virtual de Chrome**, que recorre las mismas pantallas y la misma ruta WebAuthn que Touch ID. Lo único que no aparece es el diálogo del sistema de macOS: la automatización no puede mostrarlo. En el escenario firmas con la passkey `adrian-macbook` (Touch ID).
+Las capturas de `docs/demo/` salen de una ejecución real en Cloud Run (`make demo-screens`). Esa ejecución firma con el **autenticador virtual de Chrome**, que recorre las mismas pantallas y la misma ruta WebAuthn que Touch ID. Lo único que no aparece es el diálogo del sistema de macOS: la automatización no puede mostrarlo. En el escenario firmas con la passkey `adrian-macbook` (Touch ID).
+
+![Qué se prueba en la demo](diagrams/que-se-prueba.png)
+
+Cada bloque del diagrama dice qué pasos de este guion lo ejercitan («PASOS N») y qué se verifica ahí.
 
 ## Antes de la demo
 
@@ -162,13 +166,13 @@ make control-off TARGET=cloud
 
 | Síntoma | Qué hacer |
 | --- | --- |
-| El reloj se pone **ámbar a los 60 s** y aparece «R = repetición» | Pulsa **R** en el presentador. Se reproduce la corrida grabada bajo la franja «REPETICIÓN GRABADA · no es en vivo» y se detiene en la tarjeta de aprobación hasta una firma real: Touch ID en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. **L** vuelve a lo en vivo. |
+| El reloj se pone **ámbar a los 60 s** y aparece «R = repetición» | Pulsa **R** en el presentador. Se reproduce la ejecución grabada bajo la franja «REPETICIÓN GRABADA · no es en vivo» y se detiene en la tarjeta de aprobación hasta una firma real: Touch ID en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. **L** vuelve a lo en vivo. |
 | No hay internet en el lugar | `make up-offline` y abre `http://localhost:3000/presenter?demo=1` (proyector) y `http://localhost:3000/?demo=1` (ventana del «teléfono»). Funciona sin red. |
-| Nada funciona en el portátil | Proyecta el video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) (1920×1080, una corrida completa). |
+| Nada funciona en el portátil | Proyecta el video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) (1920×1080, una ejecución completa). |
 | El botón «Firmar mandato con passkey» está deshabilitado («Aún no hay una passkey registrada…») | Abre `…/configurar?clave=<ADMIN_TOKEN>` en la ventana del «teléfono» y registra Touch ID. Toma 20 s. |
 | «Este dispositivo todavía no puede enviar encargos» | Mismo enlace de configuración: habilita la ventana con el token de escenario. |
 | Touch ID se cancela o se agota el tiempo | Vuelve a pulsar «Firmar mandato con passkey». |
-| El presentador muestra una corrida vieja, o el control quedó encendido | `make reset TARGET=cloud` (menos de 10 s) y vuelve a enviar el encargo. |
+| El presentador muestra una ejecución vieja, o el control quedó encendido | `make reset TARGET=cloud` (menos de 10 s) y vuelve a enviar el encargo. |
 | «La tienda no completó el pago» o «El encargo se detuvo» | `make reset TARGET=cloud` y repite; si vuelve a pasar, R (plan B). |
 
 ![Plan B: repetición grabada](demo/14-plan-b-repeticion.png)
@@ -176,7 +180,7 @@ make control-off TARGET=cloud
 ## Después de la demo
 
 ```bash
-make reset TARGET=cloud   # stock completo, sin pedidos ni corridas, control apagado
+make reset TARGET=cloud   # stock completo, sin pedidos ni ejecuciones, control apagado
 make stage-off            # los cuatro servicios vuelven a 0 instancias: nada se cobra las 24 horas
 ```
 
@@ -186,4 +190,4 @@ make stage-off            # los cuatro servicios vuelven a 0 instancias: nada se
 make stage-on && make demo-screens && make stage-off
 ```
 
-`make demo-screens` hace dos corridas reales, la segunda con el modo de control encendido. Firma con el autenticador virtual (que borra al terminar), captura la auditoría y el plan B, y deja la nube reiniciada.
+`make demo-screens` hace dos ejecuciones reales, la segunda con el modo de control encendido. Firma con el autenticador virtual (que borra al terminar), captura la auditoría y el plan B, y deja la nube reiniciada.
