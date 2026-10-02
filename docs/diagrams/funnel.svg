@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1152 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="funnel-title funnel-desc">
+  <title id="funnel-title">El embudo colapsa</title>
+  <desc id="funnel-desc">Una persona recorre siete pantallas para comprar en una tienda: portada, catálogo, producto, talla, carrito, login y checkout. El agente da tres pasos sobre datos: lee el perfil UCP y el feed, arma el carrito por API y pide el mandato que firma la persona.</desc>
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap');</style>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8a94a6"/></marker>
+    <marker id="b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2346D6"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <text x="48" y="64" font-family="'Geist', sans-serif" font-size="30" font-weight="600" fill="#0E1726">El embudo colapsa</text>
+  <text x="48" y="96" font-family="'Geist', sans-serif" font-size="16" fill="#5B6472">El mismo par de tenis: siete pantallas para una persona, tres pasos sobre datos para el agente.</text>
+  <text x="48" y="168" font-family="'Geist Mono', monospace" font-size="13" letter-spacing="1.5" fill="#5B6472">PERSONA · 7 PANTALLAS (PULSO Y KILÓMETRO)</text>
+  <rect x="48" y="188" width="128" height="64" rx="4" fill="#FCFCFD" stroke="#b9c0cb" stroke-dasharray="5 4"/>
+  <text x="112.0" y="227" text-anchor="middle" font-family="'Geist', sans-serif" font-size="17" fill="#0E1726">Portada</text>
+  <line x1="178" y1="220" x2="199" y2="220" stroke="#8a94a6" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="202" y="188" width="128" height="64" rx="4" fill="#FCFCFD" stroke="#b9c0cb" stroke-dasharray="5 4"/>
+  <text x="266.0" y="227" text-anchor="middle" font-family="'Geist', sans-serif" font-size="17" fill="#0E1726">Catálogo</text>
+  <line x1="332" y1="220" x2="353" y2="220" stroke="#8a94a6" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="356" y="188" width="128" height="64" rx="4" fill="#FCFCFD" stroke="#b9c0cb" stroke-dasharray="5 4"/>
+  <text x="420.0" y="227" text-anchor="middle" font-family="'Geist', sans-serif" font-size="17" fill="#0E1726">Producto</text>
+  <line x1="486" y1="220" x2="507" y2="220" stroke="#8a94a6" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="510" y="188" width="128" height="64" rx="4" fill="#FCFCFD" stroke="#b9c0cb" stroke-dasharray="5 4"/>
+  <text x="574.0" y="227" text-anchor="middle" font-family="'Geist', sans-serif" font-size="17" fill="#0E1726">Talla</text>
+  <line x1="640" y1="220" x2="661" y2="220" stroke="#8a94a6" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="664" y="188" width="128" height="64" rx="4" fill="#FCFCFD" stroke="#b9c0cb" stroke-dasharray="5 4"/>
+  <text x="728.0" y="227" text-anchor="middle" font-family="'Geist', sans-serif" font-size="17" fill="#0E1726">Carrito</text>
+  <line x1="794" y1="220" x2="815" y2="220" stroke="#8a94a6" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="818" y="188" width="128" height="64" rx="4" fill="#FCFCFD" stroke="#b9c0cb" stroke-dasharray="5 4"/>
+  <text x="882.0" y="227" text-anchor="middle" font-family="'Geist', sans-serif" font-size="17" fill="#0E1726">Login</text>
+  <line x1="948" y1="220" x2="969" y2="220" stroke="#8a94a6" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="972" y="188" width="128" height="64" rx="4" fill="#FCFCFD" stroke="#b9c0cb" stroke-dasharray="5 4"/>
+  <text x="1036.0" y="227" text-anchor="middle" font-family="'Geist', sans-serif" font-size="17" fill="#0E1726">Checkout</text>
+  <text x="48" y="318" font-family="'Geist Mono', monospace" font-size="13" letter-spacing="1.5" fill="#2346D6">AGENTE · 3 PASOS SOBRE DATOS (SOLO DONDE HAY CAPA PARA MÁQUINAS)</text>
+  <rect x="48" y="338" width="300" height="84" rx="4" fill="#2346D6"/>
+  <text x="68" y="374" font-family="'Geist', sans-serif" font-size="20" font-weight="600" fill="#FCFCFD">1. Perfil UCP / feed</text>
+  <text x="68" y="400" font-family="'Geist Mono', monospace" font-size="13" fill="#dfe5fb">/.well-known/ucp · /feed.xml</text>
+  <line x1="352" y1="380" x2="402" y2="380" stroke="#2346D6" stroke-width="2" marker-end="url(#b)"/>
+  <rect x="408" y="338" width="300" height="84" rx="4" fill="#2346D6"/>
+  <text x="428" y="374" font-family="'Geist', sans-serif" font-size="20" font-weight="600" fill="#FCFCFD">2. Carrito</text>
+  <text x="428" y="400" font-family="'Geist Mono', monospace" font-size="13" fill="#dfe5fb">POST /checkout-sessions</text>
+  <line x1="712" y1="380" x2="762" y2="380" stroke="#2346D6" stroke-width="2" marker-end="url(#b)"/>
+  <rect x="768" y="338" width="300" height="84" rx="4" fill="#2346D6"/>
+  <text x="788" y="374" font-family="'Geist', sans-serif" font-size="20" font-weight="600" fill="#FCFCFD">3. Mandato</text>
+  <text x="788" y="400" font-family="'Geist Mono', monospace" font-size="13" fill="#dfe5fb">AP2 firmado con passkey</text>
+  <text x="48" y="470" font-family="'Geist', sans-serif" font-size="15" fill="#5B6472">La portada solo sirve para descubrir la capa para máquinas (perfil, feed, sitemap). Sin esa capa, el agente no tiene camino corto: Pulso queda en «no verificable».</text>
+</svg>

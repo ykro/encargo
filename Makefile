@@ -4,7 +4,7 @@ URL ?= http://localhost:3001
 RUNS ?= 10
 TARGET ?= local
 
-.PHONY: help up reset test bias-test audit images seed deploy screens e2e e2e-emulator phone stage-on stage-off warmup record-replay
+.PHONY: help up reset test bias-test audit images seed deploy screens e2e e2e-emulator phone stage-on stage-off warmup record-replay preflight up-offline e2e-offline
 
 help:
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -82,3 +82,13 @@ record-replay: ## Record a real cloud run (events + screenshots) as the Plan B r
 
 warmup: ## Wake every service + one model call + Chromium before the talk (TARGET=cloud after stage-on)
 	@TARGET=$(TARGET) ./scripts/warmup.sh
+
+preflight: ## Talk-day gate (Cloud Run): health, passkey, control off, warm instances, fresh replays, size-9 stock
+	@source infra/env.sh; source infra/urls.sh; export ADMIN_TOKEN=$$(gcloud secrets versions access latest --secret=encargo-admin-token); \
+	cd agent && uv run python -m encargo.preflight --agent $$AGENT_URL --pulso $$PULSO_URL --kilometro $$KILOMETRO_URL --app $$APP_URL
+
+up-offline: ## Plan B with no internet: the app + recorded replays from the laptop (presenter ?demo=1, phone ?demo=1)
+	@./scripts/up-offline.sh
+
+e2e-offline: ## Plan B test with the network cut: replay end to end, real passkey (virtual authenticator); VIDEO=1 renders docs/plan-b-replay.mp4
+	@cd agent && uv run python ../scripts/e2e_offline.py $${VIDEO:+--video}

@@ -21,8 +21,8 @@ export function PasskeySetup() {
   const [removing, setRemoving] = useState<string | null>(null);
   const [supported, setSupported] = useState(true);
 
-  const refresh = () =>
-    fetch("/api/agent/passkeys/status")
+  const refresh = (setup?: string) =>
+    fetch("/api/agent/passkeys/status", setup ? { headers: { authorization: `Bearer ${setup}` } } : {})
       .then((r) => r.json())
       .then(setStatus)
       .catch(() => setStatus(null));
@@ -46,6 +46,7 @@ export function PasskeySetup() {
     setCode(clave);
     setEnabled(Boolean(stageToken()));
     if (clave) {
+      refresh(clave);
       // Never leave the setup code in the address bar or the history.
       window.history.replaceState(null, "", window.location.pathname);
       enableDevice(clave);
@@ -68,7 +69,7 @@ export function PasskeySetup() {
       if (!res.ok) throw new Error((await res.json()).detail ?? "No se pudo eliminar.");
       setState("done");
       setMessage(`Eliminaste «${device.label ?? "dispositivo"}»: ya no puede firmar pagos.`);
-      refresh();
+      refresh(code.trim());
     } catch (err) {
       setState("error");
       setMessage((err as Error).message);
@@ -98,7 +99,7 @@ export function PasskeySetup() {
       await enableDevice(code.trim());
       setState("done");
       setMessage(`Listo: «${body.label}» ya puede firmar pagos.`);
-      refresh();
+      refresh(code.trim());
     } catch (err) {
       const e = err as Error;
       setState("error");

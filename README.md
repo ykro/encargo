@@ -40,9 +40,11 @@ La vista del presentador muestra esta diferencia en dos columnas: «Lo que ve un
 
 ### 2. El embudo colapsa
 
-El agente nunca entra por la página de inicio. `inspect_store` (`agent/encargo/tools/discovery.py`) empieza por los lugares conocidos: `/.well-known/ucp`, `/robots.txt`, `/feed.xml` y `/sitemap.xml`. Con eso pasa directo a feed → perfil → checkout → mandato. No hay banner, recomendación ni página de categoría que lo distraiga.
+El agente lee la portada solo para descubrir la capa para máquinas. `inspect_store` (`agent/encargo/tools/discovery.py`) busca en los lugares conocidos: `/.well-known/ucp`, `/robots.txt`, `/feed.xml` y `/sitemap.xml` (y toma de la portada el título y los enlaces). Con eso pasa directo a feed → perfil → checkout → mandato. No hay banner, recomendación ni página de categoría que lo distraiga. El presentador lo muestra en vivo en la franja «camino»: siete pantallas para una persona (portada → catálogo → producto → talla → carrito → login → checkout) frente a tres pasos del agente (perfil/feed → carrito → mandato), que se llenan conforme avanza la corrida.
 
-Las herramientas del agente son exactamente ese embudo corto: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` y `request_payment_approval` (`agent/encargo/agent.py`). En Cloud Run, una corrida completa, del encargo al pedido confirmado, tarda unos 30 segundos de promedio (ver [resultados](#resultados-de-la-prueba-de-sesgo)).
+![El embudo colapsa](docs/diagrams/funnel.png)
+
+Las herramientas del agente son exactamente ese embudo corto: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` y `request_payment_approval` (`agent/encargo/agent.py`). En Cloud Run, una corrida completa, del encargo al pedido confirmado, tardó en la última prueba de sesgo (2026-10-01) **54.9 s de promedio con el modo apagado y 51.9 s con el modo encendido; el máximo fue 110.6 s** (ver [resultados](#resultados-de-la-prueba-de-sesgo)). La latencia depende de Gemini ese día. Regla del presentador: a los 60 s el reloj se pone ámbar y muestra «R = repetición»; con `R` se cambia a la corrida grabada (ver «Plan B»).
 
 ### 3. El modo de control demuestra que el agente no tiene sesgo
 
@@ -77,7 +79,7 @@ Pruebas: `agent/tests/test_no_payment_without_mandate.py`, `agent/tests/test_pas
 7. Autorización de pago AP2.
 8. Contenido visible sin JavaScript.
 
-Cada punto que falla dice qué hacer. La misma auditoría está en la app, en `/auditoria`. Resultado en Cloud Run: Kilómetro 8/8, Pulso 0/8.
+Cada punto que falla dice qué hacer. La misma auditoría está en la app, en `/auditoria`, pensada para el público: cada punto en lenguaje de negocio (qué es, por qué lo necesita un agente y cómo arreglarlo, también para los que ya cumple), con el detalle técnico plegable; los ocho caben en una pantalla de 1080p, hay un QR para abrirla desde el teléfono y el checklist se imprime, se guarda como PDF o se descarga en Markdown. `/audit` es público pero limitado: 6 auditorías por minuto por persona, solo hosts públicos http(s) y un máximo de 2 a la vez, aparte de las corridas del agente. Resultado en Cloud Run: Kilómetro 8/8, Pulso 0/8.
 
 ## Arquitectura
 
@@ -125,6 +127,8 @@ Variables: `TARGET=local|cloud` (por omisión `local`), `URL` (por omisión `htt
 | `make stage-on` / `make stage-off` | Día de la charla: una instancia mínima en los cuatro servicios / el resto del tiempo: 0 (nada se cobra las 24 horas). |
 | `make warmup` | Despierta cada servicio, hace una llamada corta a Gemini y arranca Chromium en el agente. Con `TARGET=cloud`, después de `stage-on`. |
 | `make record-replay` | Graba una corrida real en la nube (eventos y capturas) como plan B en `app/public/replays/`. |
+| `make preflight` | Portero del día de la charla: falla si algún servicio no está sano, no hay passkey, el modo de control está encendido, falta `min-instances=1`, las grabaciones tienen más de 7 días o queda poco stock de la talla 9. |
+| `make up-offline` / `make e2e-offline` | Plan B sin internet: la app y las grabaciones desde el portátil / la prueba con la red cortada (`VIDEO=1` regenera el MP4). |
 | `make screens` | Recorre la app en Chrome con una passkey virtual y captura cada pantalla en `docs/screenshots/app/`. |
 | `make seed` | Regenera `catalog/catalog.json` (determinista, semilla 2027). |
 | `make images` | Genera las fotos de producto y los anuncios de Pulso con `IMAGE_MODEL`, verificados con `GEMINI_MODEL`. |
@@ -298,9 +302,11 @@ Si Gemini va lento en vivo, el presentador no espera. `make record-replay` graba
 - `/presenter?demo=1` (o `?demo=pulso-control`) espera el encargo del teléfono y se detiene en la tarjeta de aprobación hasta la firma. La barra espaciadora hace lo mismo a mano.
 - `/?demo=1` en el teléfono reproduce el mismo recorrido. La firma se simula y se marca «Demostración grabada».
 - El teléfono y el presentador corren en el mismo Chrome del portátil y se coordinan con un `BroadcastChannel`.
-- **Tecla `R`** en el presentador: cambia a la grabación en plena charla, la del modo de control si está encendido, y la reproduce completa. **`L`** vuelve a lo en vivo.
+- **Tecla `R`** en el presentador: cambia a la grabación en plena charla (la del modo de control si está encendido). **`L`** vuelve a lo en vivo.
+- **Honestidad:** una franja grande y fija dice «REPETICIÓN GRABADA · no es en vivo», el modo de control mostrado es el de la grabación, y la repetición se detiene en la tarjeta de aprobación hasta una firma real: la passkey del portátil (Touch ID, en `/?demo=1`) o la barra espaciadora. La confirmación dice cuál firmó; nunca «firmado con passkey» si no firmó una passkey.
+- **Sin internet:** las capturas van dentro de cada grabación (data URL). `make up-offline` sirve la app compilada y las grabaciones desde el portátil, con el agente y las tiendas apuntando a una dirección inalcanzable; `make e2e-offline` lo prueba bloqueando toda petición que no sea `localhost` y firmando con un autenticador virtual. Último recurso: el video [`docs/plan-b-replay.mp4`](docs/plan-b-replay.mp4) de una corrida completa.
 
-Las fechas de la grabación son las del día en que se grabó; vuelve a grabarla antes de cada charla.
+Las fechas de la grabación son las del día en que se grabó; vuelve a grabarla antes de cada charla (`make preflight` avisa si tiene más de 7 días).
 
 ### CI con GitHub Actions
 

@@ -94,6 +94,9 @@ def summarize_checkout(checkout: dict[str, Any]) -> dict[str, Any]:
         "total_amount": totals.get("total"),
         "shipping": f"{totals.get('fulfillment', 0):.2f} {checkout.get('currency')}",
         "latest_delivery": f"{latest[:10]} ({spanish_date(date.fromisoformat(latest[:10]))})" if latest else "no publicado",
+        # The approval card shows that the store signed these terms and until when they hold.
+        "merchant_signed": bool((checkout.get("ap2") or {}).get("merchant_authorization")),
+        "expires_at": checkout.get("expires_at"),
     }
 
 

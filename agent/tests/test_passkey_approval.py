@@ -115,7 +115,8 @@ def test_status_lists_ids_and_delete_needs_the_setup_token(world):
     client = TestClient(api.app)
     phone = SoftwareAuthenticator("http://localhost:3000", "localhost")
     enroll(client, phone)
-    status = client.get("/passkeys/status").json()
+    assert "passkeys" not in client.get("/passkeys/status").json()  # anonymous: count only
+    status = client.get("/passkeys/status", headers=ADMIN).json()
     assert status["passkeys"][0]["id"] == phone.id
     assert client.delete(f"/passkeys/{phone.id}").status_code == 401
     assert client.delete("/passkeys/unknown", headers=ADMIN).status_code == 404

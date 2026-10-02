@@ -246,12 +246,15 @@ class RegisterVerify(BaseModel):
 
 
 @app.get("/passkeys/status")
-async def passkeys_status() -> dict[str, Any]:
+async def passkeys_status(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     s = settings()
     keys = [p for p in await default_store().list_passkeys() if p.get("rp_id") == s.passkey_rp_id]
+    base = {"registered": len(keys), "rp_id": s.passkey_rp_id}
+    # Device names and ids only for the setup code holder; anonymous callers get the count.
+    if not _bearer_ok(authorization, s.admin_token):
+        return base
     return {
-        "registered": len(keys),
-        "rp_id": s.passkey_rp_id,
+        **base,
         "labels": [p.get("label") for p in keys],
         # Ids are public (WebAuthn allowCredentials exposes them anyway); deleting needs the setup token.
         "passkeys": [
@@ -301,14 +304,43 @@ async def platform_profile() -> dict[str, Any]:
     }
 
 
+# The audit is public (the audience uses it from their phones), so it is rate
+# limited per client and runs in its own small pool: it can never starve a live run.
+AUDIT_PER_MINUTE = 6
+_audit_slots = asyncio.Semaphore(2)
+_audit_hits: dict[str, list[float]] = {}
+
+
+def _audit_allowed(client: str) -> bool:
+    now = time.monotonic()
+    hits = [t for t in _audit_hits.get(client, []) if now - t < 60]
+    if len(hits) >= AUDIT_PER_MINUTE:
+        _audit_hits[client] = hits
+        return False
+    hits.append(now)
+    _audit_hits[client] = hits
+    if len(_audit_hits) > 5000:  # bound memory: forget the oldest clients
+        for key in list(_audit_hits)[:1000]:
+            _audit_hits.pop(key, None)
+    return True
+
+
 @app.get("/audit")
-async def audit(url: str) -> dict[str, Any]:
+async def audit(url: str, request: Request) -> dict[str, Any]:
+    client = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "?")).split(",")[0].strip()
+    if not _audit_allowed(client):
+        raise HTTPException(429, "Demasiadas auditorías seguidas. Espera un minuto.")
     # SSRF guard: public http(s) hosts only (plus the demo's own stores).
     allowed = {urlparse(s).netloc for s in settings().default_stores}
-    try:
-        return await audit_store(url, guard=True, allowed_hosts=allowed)
-    except UnsafeURL as e:
-        raise HTTPException(400, str(e)) from e
+    if _audit_slots.locked():
+        raise HTTPException(503, "Hay otras auditorías en curso. Intenta en unos segundos.")
+    async with _audit_slots:
+        try:
+            return await asyncio.wait_for(audit_store(url, guard=True, allowed_hosts=allowed), 30)
+        except UnsafeURL as e:
+            raise HTTPException(400, str(e)) from e
+        except asyncio.TimeoutError as e:
+            raise HTTPException(504, "La tienda tardó demasiado en responder.") from e
 
 
 @app.get("/screenshots/{shot_id}.jpg")

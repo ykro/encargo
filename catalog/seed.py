@@ -64,7 +64,7 @@ MODELS = [
         "color_es": "Verde musgo con naranja",
         "prices": {"pulso": 139, "kilometro": 145},
         "delivery": {"handling": [0, 0], "transit": [1, 1]},
-        "size9_stock": 3,
+        "size9_stock": 50,  # plenty for rehearsals + bias tests between resets
     },
     {
         "slug": "tajumulco-x",

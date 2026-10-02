@@ -11,6 +11,9 @@ async function forward(req: Request, ctx: { params: Promise<{ path: string[] }> 
   if (!ALLOWED.test(path)) return Response.json({ detail: "No encontrado." }, { status: 404 });
   const url = new URL(req.url);
   const headers: Record<string, string> = { accept: req.headers.get("accept") ?? "*/*" };
+  // The client's address lets the agent rate-limit the public audit per person.
+  const client = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  if (client) headers["x-forwarded-for"] = client;
   for (const h of ["content-type", "authorization", "last-event-id"]) {
     const v = req.headers.get(h);
     if (v) headers[h] = v;

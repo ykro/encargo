@@ -51,10 +51,11 @@ cp .env.example .env
 for d in stores/shared stores/kilometro stores/pulso app; do (cd "$d" && npm ci); done
 (cd agent && uv sync && uv run playwright install chromium)
 gcloud auth application-default login
+gcloud auth application-default set-quota-project ai-experiments-487722   # antes de make up: Vertex y Firestore
 make up
 ```
 
-- `make up` (`scripts/up.sh`) carga `.env`, instala dependencias de Node si faltan (en `stores/shared`, las tiendas y la app) y arranca cuatro procesos.
+- `make up` (`scripts/up.sh`) carga `.env`, instala dependencias de Node si faltan (en `stores/shared`, las tiendas y la app) y arranca cuatro procesos. Si alguno de los puertos 3000, 3001, 3002 u 8000 está ocupado, falla de inmediato y dice qué proceso lo usa.
 - Los logs quedan en `.data/logs/{kilometro,pulso,agent,app}.log`.
 - Ctrl-C detiene todo.
 
@@ -93,7 +94,10 @@ Las tiendas copian el kit compartido y el catálogo en `src/shared/` antes de `d
 | `PULSO_AGENT_READY` | `false` | Modo de control al arrancar |
 | `TRUSTED_PLATFORM_PROFILES` | `http://localhost:8000/.well-known/ucp` | Plataformas cuyos mandatos aceptan las tiendas |
 | `MERCHANT_SIGNING_JWK` | vacío | Llave estable de la tienda. Vacía = una llave nueva por proceso |
-| `MODEL_HEDGE_AFTER_S` | no está en `.env.example`; por omisión `6` | Segundos antes de enviar una llamada de cobertura al modelo |
+| `MODEL_HEDGE_AFTER_S` | `6` | Segundos antes de enviar una llamada de cobertura al modelo |
+| `MODEL_MAX_PARALLEL` | `5` | Llamadas idénticas al modelo en vuelo como máximo por turno (gana la primera) |
+| `STAGE_TOKEN` | vacío (no se usa con `SIGNER_MODE=test`) | Token de escenario: habilita un navegador para enviar encargos y cancelar pagos. Lo entrega `/configurar?clave=…` |
+| `APP_PUBLIC_HOST` | `localhost:3000` | Host que muestra el presentador y que codifica el QR de `/auditoria` |
 
 ## 3. Credenciales: ADC y Secret Manager
 
@@ -140,9 +144,9 @@ Cada script es idempotente.
 | Paso | Script | Qué hace |
 | --- | --- | --- |
 | 1 | `infra/10-enable-apis.sh` | Habilita Run, Cloud Build, Artifact Registry, Firestore, Vertex AI y Secret Manager. Crea el repositorio de Artifact Registry `charlas2027` y la base de Firestore `encargo` (`nam5`) si no existen, y da a la cuenta de servicio de cómputo los roles `roles/datastore.user` y `roles/aiplatform.user`. Se puede volver a ejecutar sin riesgo. |
-| 2 | `infra/20-secrets.sh` | Genera la llave de la plataforma con el propio código del agente (`encargo.ap2.signer.platform_key`). Crea los tres secretos y da acceso a la cuenta de ejecución. |
+| 2 | `infra/20-secrets.sh` | Genera la llave de la plataforma con el propio código del agente (`encargo.ap2.signer.platform_key`). Crea los cuatro secretos y da acceso a la cuenta de ejecución. |
 | 3 | `infra/30-deploy-stores.sh` | Para Pulso y Kilómetro: `npm run sync`, Cloud Build → Artifact Registry → Cloud Run. Usa como máximo 1 instancia (mínimo `MIN_INSTANCES`, 0 por omisión), 512 MiB, `PULSO_AGENT_READY` (por omisión `false`), `TRUSTED_PLATFORM_PROFILES=<agente>/.well-known/ucp` y `ADMIN_TOKEN` desde Secret Manager. |
-| 4 | `infra/40-deploy-agent.sh` | Agente con CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s y como máximo 1 instancia (mínimo 0 por omisión). Toma `GEMINI_MODEL` de `.env`. Fija `RUN_STORE=firestore`, `SIGNER_MODE=passkey` y `PASSKEY_RP_ID`/`PASSKEY_ORIGIN` = el host y el origen de la app. Monta los tres secretos. |
+| 4 | `infra/40-deploy-agent.sh` | Agente con CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s y como máximo 1 instancia (mínimo 0 por omisión). Toma `GEMINI_MODEL` de `.env`. Fija `RUN_STORE=firestore`, `SIGNER_MODE=passkey` y `PASSKEY_RP_ID`/`PASSKEY_ORIGIN` = el host y el origen de la app. Monta los cuatro secretos. |
 | 5 | `infra/50-deploy-app.sh` | App con 0 a 2 instancias y 512 MiB. Le pasa las URL del agente y las tiendas y `APP_PUBLIC_HOST`. Al final imprime la URL de configuración de la passkey. |
 
 `infra/60-stage.sh on|off` (`make stage-on` / `make stage-off`) cambia el mínimo de instancias de los cuatro servicios: 1 el día de la charla, 0 el resto del tiempo.
@@ -295,7 +299,10 @@ Abre siempre la app con la URL determinista (`…-611681112050.us-central1.run.a
 **Comprobar:**
 
 ```bash
-curl -s $AGENT_URL/passkeys/status   # {"registered":N,"rp_id":"…","passkeys":[{"id","label","created_at","last_used_at"}]}
+source infra/env.sh && source infra/urls.sh             # define $AGENT_URL, $APP_URL, $PULSO_URL, $KILOMETRO_URL
+ADMIN_TOKEN=$(gcloud secrets versions access latest --secret=encargo-admin-token)
+curl -s $AGENT_URL/passkeys/status                       # anónimo: {"registered":N,"rp_id":"…"}
+curl -s -H "authorization: Bearer $ADMIN_TOKEN" $AGENT_URL/passkeys/status   # {"registered":N,"rp_id":"…","passkeys":[{"id","label","created_at","last_used_at"}]}
 ```
 
 **Borrar una passkey:** en `/configurar` (con el código de configuración escrito) cada dispositivo registrado tiene un botón «Eliminar». Por API: `DELETE /passkeys/{id}` con `authorization: Bearer <ADMIN_TOKEN>`; los id salen en `/passkeys/status`. `make e2e`, `make screens` y `make bias-test` borran solas las credenciales que crean.
@@ -443,14 +450,15 @@ Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_r
 - [ ] `make audit URL=$KILOMETRO_URL` → 8/8 y `make audit URL=$PULSO_URL` → 0/8.
 - [ ] `make e2e TARGET=cloud` termina con el pedido confirmado.
 - [ ] `make bias-test TARGET=cloud` pasa (o `RUNS=3` si hay poco tiempo).
-- [ ] Passkey del portátil del escenario registrada en la nube (sección 7). `curl $AGENT_URL/passkeys/status` muestra al menos 1.
+- [ ] Passkey del portátil del escenario registrada en la nube (sección 7). `make preflight` lo comprueba.
 - [ ] Emulador `emulator-5556` arranca y `make e2e-emulator TARGET=cloud` llega a la tarjeta de aprobación.
-- [ ] `make record-replay` graba el plan B con las fechas de la semana de la charla; vuelve a desplegar la app (`./infra/50-deploy-app.sh`) para publicarlo.
+- [ ] `make record-replay` graba el plan B con las fechas de la semana de la charla; vuelve a desplegar la app (`./infra/50-deploy-app.sh`) para publicarlo, y regenera el video con `REBUILD=1 make e2e-offline VIDEO=1`.
+- [ ] `make up-offline` arranca y `make e2e-offline` pasa (plan B sin internet).
 
 ### Una hora antes, en el lugar
 
-- [ ] `make stage-on` (una instancia tibia de cada servicio).
-- [ ] Internet en el portátil (Wi-Fi del lugar o datos móviles). `curl -s $AGENT_URL/health` responde `"mode":"gemini"`.
+- [ ] **Primero:** `make stage-on && make preflight` → `preflight ok`. El portero del día de la charla falla, con una línea en español por problema, si: algún servicio no está sano, no hay passkey registrada, el modo de control está encendido, algún servicio no tiene `min-instances=1`, las grabaciones del plan B tienen más de 7 días o queda poco stock de la talla 9.
+- [ ] Internet en el portátil (Wi-Fi del lugar o datos móviles).
 - [ ] `make warmup TARGET=cloud` → `warmup ok` (servicios, una llamada a Gemini y Chromium).
 - [ ] `make reset TARGET=cloud` → `reset ok`.
 - [ ] Proyector a 1920×1080. Abre `$APP_URL/presenter` en pantalla completa: muestra «Control apagado».
@@ -466,7 +474,9 @@ Si la persona pulsa «Cancelar», `POST /mandates/<id>/reject` emite `approval_r
 4. Modo de control: enciéndelo (sección 8) y envía el mismo encargo. Ahora compra en Pulso.
 5. Cierra con `/auditoria`: «Probar con Pulso» y «Probar con Kilómetro».
 
-**Plan B:** si una corrida en vivo se alarga, pulsa `R` en el presentador: reproduce la corrida grabada (la del modo de control si está encendido). `L` vuelve a lo en vivo. Para ensayar todo sin red de modelos: `/presenter?demo=1` y `/?demo=1` en la ventana del «teléfono», en el mismo Chrome.
+**Plan B:** a los 60 s el reloj del presentador se pone ámbar y muestra «R = repetición». Si la corrida en vivo se alarga, pulsa `R`: reproduce la corrida grabada (la del modo de control si está encendido) bajo la franja «REPETICIÓN GRABADA · no es en vivo», y se detiene en la tarjeta de aprobación hasta una firma real: la passkey del portátil (Touch ID) en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. La pantalla dice cuál de las dos firmó. `L` vuelve a lo en vivo.
+
+**Sin internet:** `make up-offline` sirve la app y las grabaciones desde el portátil (`http://localhost:3000/presenter?demo=1` y `/?demo=1`; las capturas van dentro de cada grabación). Compila una vez con internet (las fuentes se incrustan) y después funciona sin red; `make e2e-offline` lo prueba bloqueando todo lo que no sea `localhost`. Último recurso: el video `docs/plan-b-replay.mp4` (una corrida completa, 1920×1080).
 
 ### Después
 

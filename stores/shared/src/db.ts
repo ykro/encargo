@@ -136,3 +136,8 @@ export function setCheckoutToken(id: string, token: string): void {
 export function checkoutToken(id: string): string | undefined {
   return (db().prepare("SELECT token FROM checkout_tokens WHERE id = ?").get(id) as { token: string } | undefined)?.token;
 }
+
+export function orderById(id: string): Record<string, any> | undefined {
+  const row = db().prepare("SELECT body FROM orders WHERE id = ?").get(id) as { body: string } | undefined;
+  return row ? (JSON.parse(row.body) as Record<string, any>) : undefined;
+}

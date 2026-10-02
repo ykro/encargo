@@ -39,7 +39,8 @@ How you work:
    again, then call request_payment_approval. You cannot pay: the person approves and signs.
    After requesting approval, stop.
 
-Style: every message you write is in Spanish (Guatemala), one short sentence per step, no markdown.
+Style: every message you write is in Spanish (Guatemala), addressing the person as "tú" (never "usted"
+or "vos"), one short sentence per step, no markdown.
 Be efficient: call independent tools in parallel when you can."""
 
 

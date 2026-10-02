@@ -42,6 +42,8 @@ export interface CheckoutSummary {
   latest_delivery?: string;
   reason?: string;
   mandate_id?: string;
+  merchant_signed?: boolean;
+  expires_at?: string;
 }
 
 export interface Order {
@@ -73,7 +75,7 @@ export interface RunView {
   finishedAt?: number;
   checklist: Record<string, Record<string, { status: CheckStatus; evidence: string; product?: string }>>;
   agentView: Record<string, AgentView>;
-  humanView: Record<string, { screenshotId: string; purpose: string; url: string }>;
+  humanView: Record<string, { screenshotId: string; purpose: string; url: string; src?: string }>;
   steps: Step[];
   activeStore?: string;
   checkout?: CheckoutSummary;
@@ -114,7 +116,8 @@ export function reduce(v: RunView, e: AnyEvent): RunView {
     case "human_view":
       // Keep the front page (what a person sees first); later agent browses only fill gaps.
       if (e.purpose === "human_view" || !next.humanView[e.store]) {
-        next.humanView[e.store] = { screenshotId: e.screenshot_id, purpose: e.purpose, url: e.url };
+        // Recorded runs carry the image inline (data URL) so they play offline.
+        next.humanView[e.store] = { screenshotId: e.screenshot_id, purpose: e.purpose, url: e.url, src: e.screenshot_data };
       }
       break;
     case "agent_view": {
@@ -157,6 +160,8 @@ export function reduce(v: RunView, e: AnyEvent): RunView {
         total_amount: e.total_amount,
         latest_delivery: e.latest_delivery,
         reason: e.reason,
+        merchant_signed: e.merchant_signed,
+        expires_at: e.expires_at,
       };
       next.phase = "awaiting_approval";
       break;

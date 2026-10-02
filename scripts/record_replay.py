@@ -4,8 +4,8 @@
 
 For each recording: reset the stores, set control mode, start the errand with
 the stage token, sign the AP2 mandate with a software passkey (the same WebAuthn
-path as the phone), wait for the order, then save every event and screenshot to
-app/public/replays/<name>.json and app/public/replays/<name>/<shot>.jpg.
+path as the phone), wait for the order, then save every event, with its screenshots embedded,
+to app/public/replays/<name>.json (one self-contained file per recording).
 The app replays them with the original timing and no Gemini at all
 (/presenter?demo=1, key R on the presenter, /?demo=1 on the phone).
 """
@@ -62,14 +62,13 @@ async def record(http: httpx.AsyncClient, a: argparse.Namespace, name: str, cont
     )
     signed.raise_for_status()
     events = await events_of(http, a.agent, run_id)
-    folder = OUT / name
-    folder.mkdir(parents=True, exist_ok=True)
-    for old in folder.glob("*.jpg"):
-        old.unlink()
+    # Screenshots go inside the file (data URLs): the replay works with no network at all.
+    import base64
+
     for e in events:
         if e.get("type") == "human_view":
             jpg = await http.get(f"{a.agent}/screenshots/{e['screenshot_id']}.jpg")
-            (folder / f"{e['screenshot_id']}.jpg").write_bytes(jpg.content)
+            e["screenshot_data"] = "data:image/jpeg;base64," + base64.b64encode(jpg.content).decode()
     (OUT / f"{name}.json").write_text(
         json.dumps(
             {"name": name, "control_mode": control, "recorded_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "run_id": run_id, "events": events},

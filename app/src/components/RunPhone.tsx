@@ -21,6 +21,12 @@ export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] 
   const live = useRun(demo ? undefined : runId);
   const recorded = useReplay(demo, { waitForSignature: true });
   const [cancelled, setCancelled] = useState(false);
+  const [simulateOffer, setSimulateOffer] = useState(false);
+  const simulate = () => {
+    setSign("sending");
+    replayChannel()?.postMessage({ type: "signed", method: "simulated" });
+    recorded.sign("simulated");
+  };
   const base = demo ? recorded.run : live.run;
   const run = cancelled ? { ...base, phase: "rejected" as const } : base;
   const connection = demo ? "live" : live.connection;
@@ -47,10 +53,27 @@ export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] 
 
   async function approve() {
     if (demo) {
-      // Recorded run: the signature is simulated; the presenter continues with it.
-      setSign("sending");
-      replayChannel()?.postMessage("signed");
-      recorded.sign();
+      // Recorded run: still ask for a real passkey on this device (Touch ID). If there is
+      // none, the person can continue with an explicitly simulated signature.
+      setSign("waiting");
+      setSignError(null);
+      try {
+        await navigator.credentials.get({
+          publicKey: {
+            challenge: crypto.getRandomValues(new Uint8Array(32)),
+            rpId: window.location.hostname,
+            userVerification: "required",
+            timeout: 60_000,
+          },
+        });
+        setSign("sending");
+        replayChannel()?.postMessage({ type: "signed", method: "passkey" });
+        recorded.sign("passkey");
+      } catch {
+        setSign("error");
+        setSignError("No hubo firma con passkey en este dispositivo. Puedes continuar con una firma simulada (se indica en pantalla).");
+        setSimulateOffer(true);
+      }
       return;
     }
     const mid = run.approval?.mandate_id;
@@ -105,6 +128,7 @@ export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] 
         passkeys={passkeys}
         onApprove={approve}
         onCancel={cancel}
+        onSimulate={demo && simulateOffer ? simulate : undefined}
       />
       </>
     );
@@ -225,6 +249,7 @@ function Approval(props: {
   passkeys: number | null;
   onApprove: () => void;
   onCancel: () => void;
+  onSimulate?: () => void;
 }) {
   const { run, stores, sign, error, passkeys } = props;
   const a = run.approval!;
@@ -236,7 +261,7 @@ function Approval(props: {
 
   return (
     <main className="phone">
-      <PhoneTop step={4} />
+      <PhoneTop step={4} label="Paso 4 de 4 · Tu firma" />
       <div className="phone-main">
         <h1>Autoriza la compra</h1>
         <dl className="rows">
@@ -245,6 +270,10 @@ function Approval(props: {
           <div className="row"><dt>Tienda</dt><dd>{store}</dd></div>
           <div className="row"><dt>Entrega</dt><dd>{humanDate(a.latest_delivery) ?? "—"}</dd></div>
           <div className="row total"><dt>Total</dt><dd className="num">{a.total}</dd></div>
+          <div className="row"><dt>Firmado por la tienda</dt><dd>{a.merchant_signed === false ? "No" : "Sí, verificado"}</dd></div>
+          {a.expires_at ? (
+            <div className="row"><dt>Oferta válida hasta</dt><dd className="num">{new Date(a.expires_at).toLocaleTimeString("es-GT", { hour: "2-digit", minute: "2-digit" })}</dd></div>
+          ) : null}
         </dl>
         <p className="verified">
           <Check size={18} /> {met} de {run.conditions.length} condiciones verificadas
@@ -266,6 +295,11 @@ function Approval(props: {
             <Key />
             {sign === "waiting" ? "Esperando tu passkey…" : sign === "sending" ? "Pagando con tu mandato…" : "Firmar mandato con passkey"}
           </button>
+          {props.onSimulate ? (
+            <button className="btn btn-quiet btn-block" onClick={props.onSimulate} disabled={busy}>
+              Continuar con firma simulada
+            </button>
+          ) : null}
           <button className="btn btn-quiet btn-block" onClick={props.onCancel} disabled={busy}>
             Cancelar
           </button>
@@ -280,13 +314,19 @@ function Confirmed({ run, stores }: { run: RunView; stores: StoreRef[] }) {
   const item = parseItem(o.items?.[0]);
   return (
     <main className="phone">
-      <PhoneTop step={4} />
+      <PhoneTop step={4} label="Listo · pedido confirmado" />
       <div className="phone-main">
         <div className="big-check" aria-hidden>
           <Check size={40} />
         </div>
         <h1>Pedido confirmado</h1>
-        <p className="lede">Firmaste el mandato con tu passkey y {storeName(stores, o.store)} aceptó el pago.</p>
+        <p className="lede">
+          {run.signedWith === "passkey"
+            ? `Firmaste el mandato con tu passkey y ${storeName(stores, o.store)} aceptó el pago.`
+            : run.signedWith === "test"
+              ? `Firmado con el firmador de prueba; ${storeName(stores, o.store)} aceptó el pago.`
+              : `Firma simulada en una repetición grabada: no se firmó ni se cobró nada ahora.`}
+        </p>
         <dl className="rows">
           <div className="row"><dt>Pedido</dt><dd className="mono">{(o.label ?? o.id).replace(/^Pedido /, "")}</dd></div>
           <div className="row"><dt>Producto</dt><dd>{item.product.replace(/^Senda /, "")} · talla {item.size}</dd></div>

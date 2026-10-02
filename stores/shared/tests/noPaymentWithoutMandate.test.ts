@@ -63,7 +63,7 @@ describe("checkout completion requires a signed AP2 mandate", async () => {
     const res = await complete(checkout, undefined, fetcher);
     expect(res.status).toBe(403);
     expect(res.body.messages[0].code).toBe("mandate_missing");
-    expect(stockOf(VARIANT)).toBe(3);
+    expect(stockOf(VARIANT)).toBe(50);
     expect(listOrders()).toHaveLength(0);
   });
 
@@ -116,7 +116,7 @@ describe("checkout completion requires a signed AP2 mandate", async () => {
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("completed");
     expect(res.body.order.id).toMatch(/^ord_/);
-    expect(stockOf(VARIANT)).toBe(2);
+    expect(stockOf(VARIANT)).toBe(49);
     expect(listOrders()).toHaveLength(1);
     const replay = await complete(checkout, mandate, fetcher);
     expect(replay.status).toBe(409);
@@ -129,7 +129,7 @@ describe("checkout completion requires a signed AP2 mandate", async () => {
     const [a, b] = await Promise.all([complete(checkout, mandate, fetcher), complete(checkout, mandate, fetcher)]);
     expect([a.status, b.status].sort()).toEqual([200, 409]);
     expect(listOrders()).toHaveLength(1);
-    expect(stockOf(VARIANT)).toBe(2);
+    expect(stockOf(VARIANT)).toBe(49);
   });
 
   it("a refused mandate gives the checkout back for a valid one", async () => {

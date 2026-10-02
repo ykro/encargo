@@ -40,9 +40,11 @@ The presenter view shows the difference in two columns: "Lo que ve una persona" 
 
 ### 2. The funnel collapses
 
-The agent never enters through the homepage. `inspect_store` (`agent/encargo/tools/discovery.py`) starts from the well-known places: `/.well-known/ucp`, `/robots.txt`, `/feed.xml` and `/sitemap.xml`. From there it goes straight to feed → profile → checkout → mandate. There is no banner, recommendation or category page to distract it.
+The agent reads the homepage only to discover the machine-readable layer. `inspect_store` (`agent/encargo/tools/discovery.py`) looks in the well-known places: `/.well-known/ucp`, `/robots.txt`, `/feed.xml` and `/sitemap.xml` (taking only the title and links from the homepage). From there it goes straight to feed → profile → checkout → mandate. No banner, recommendation or category page distracts it. The presenter shows this live in the "path" strip: seven screens for a person (home → catalog → product → size → cart → login → checkout) against three agent steps (profile/feed → cart → mandate) that fill in as the run progresses.
 
-The agent's tools are exactly that short funnel: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` and `request_payment_approval` (`agent/encargo/agent.py`). On Cloud Run a full run, from errand to confirmed order, takes about 30 seconds on average (see [results](#bias-test-results)).
+![The funnel collapses](docs/diagrams/funnel.png)
+
+The agent's tools are exactly that short funnel: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` and `request_payment_approval` (`agent/encargo/agent.py`). In the last bias test (2026-10-01) a full Cloud Run run, from errand to confirmed order, averaged **54.9 s with control off and 51.9 s with it on; the maximum was 110.6 s** (see [results](#bias-test-results)). Latency depends on Gemini that day. Presenter rule: at 60 s the clock turns amber and shows "R = repetición"; pressing `R` switches to the recorded run (see "Plan B").
 
 ### 3. Control mode proves the agent has no bias
 
@@ -77,7 +79,7 @@ Tests: `agent/tests/test_no_payment_without_mandate.py`, `agent/tests/test_passk
 7. AP2 payment authorization.
 8. Content visible without JavaScript.
 
-Each failing item says what to do. The same audit is in the app at `/auditoria`. Result on Cloud Run: Kilómetro 8/8, Pulso 0/8.
+Each failing item says what to do. The same audit is in the app at `/auditoria`. It is built for the audience: every item in business language (what it is, why an agent needs it and how to fix it, also for passing items), with the technical detail collapsible; all eight fit on a 1080p screen, a QR code opens it on a phone and the checklist prints, saves as PDF or downloads as Markdown. `/audit` is public but limited: 6 audits per minute per person, public http(s) hosts only and at most 2 at a time, apart from agent runs. Result on Cloud Run: Kilómetro 8/8, Pulso 0/8.
 
 ## Architecture
 
@@ -125,6 +127,8 @@ Variables: `TARGET=local|cloud` (default `local`), `URL` (default `http://localh
 | `make stage-on` / `make stage-off` | Talk day: one minimum instance on the four services / any other day: 0 (nothing bills around the clock). |
 | `make warmup` | Wakes every service, makes one short Gemini call and launches Chromium on the agent. With `TARGET=cloud`, after `stage-on`. |
 | `make record-replay` | Records a real cloud run (events and screenshots) as the Plan B in `app/public/replays/`. |
+| `make preflight` | Talk-day gate: fails if a service is unhealthy, no passkey is registered, control mode is on, `min-instances=1` is missing, recordings are older than 7 days or size-9 stock is low. |
+| `make up-offline` / `make e2e-offline` | Plan B without internet: app and recordings from the laptop / the test with the network cut (`VIDEO=1` re-renders the MP4). |
 | `make screens` | Drives the app in Chrome with a virtual passkey and screenshots every screen to `docs/screenshots/app/`. |
 | `make seed` | Regenerates `catalog/catalog.json` (deterministic, seed 2027). |
 | `make images` | Generates product photos and Pulso ads with `IMAGE_MODEL`, verified with `GEMINI_MODEL`. |
@@ -298,9 +302,11 @@ If Gemini is slow live, the presenter does not wait. `make record-replay` record
 - `/presenter?demo=1` (or `?demo=pulso-control`) waits for the phone's errand and pauses at the approval card until the signature. The space bar does the same by hand.
 - `/?demo=1` on the phone replays the same journey. The signature is simulated and marked "Demostración grabada".
 - Phone and presenter run in the same Chrome on the laptop and coordinate over a `BroadcastChannel`.
-- **Key `R`** on the presenter switches to the recording mid-talk (the control-mode one if it is on) and plays it through. **`L`** goes back to live.
+- **Key `R`** on the presenter switches to the recording mid-talk (the control-mode one if it is on). **`L`** goes back to live.
+- **Honesty:** a large, persistent banner says "REPETICIÓN GRABADA · no es en vivo", the control mode shown is the recording's, and the replay stops at the approval card until a real signature: the laptop's passkey (Touch ID, on `/?demo=1`) or the space bar. The confirmation says which one signed; it never says "signed with passkey" unless a passkey did.
+- **No internet:** screenshots live inside each recording (data URLs). `make up-offline` serves the built app and the recordings from the laptop, with the agent and stores pointed at an unreachable address; `make e2e-offline` tests it by blocking every non-`localhost` request and signing with a virtual authenticator. Last resort: the video [`docs/plan-b-replay.mp4`](docs/plan-b-replay.mp4) of a full run.
 
-The recording keeps the dates of the day it was made; re-record it before each talk.
+The recording keeps the dates of the day it was made; re-record it before each talk (`make preflight` warns past 7 days).
 
 ### CI with GitHub Actions
 

@@ -18,7 +18,7 @@ Encargo is a shopping agent that buys on a person's behalf. On stage it gets one
 
 | Component | Stack | Cloud Run service |
 | --- | --- | --- |
-| Pulso (`stores/pulso/`) | Next.js, client-side rendering only, local JSON catalog | `encargo-pulso` |
+| Pulso (`stores/pulso/`) | Next.js, client-side rendering only (pages render from a small bundled catalog); SQLite for stock, carts and checkouts, like Kilómetro | `encargo-pulso` |
 | Kilómetro (`stores/kilometro/`) | Next.js with server rendering, catalog + checkout API routes, SQLite (seeded at startup; state reset by `make reset`) | `encargo-kilometro` |
 | Encargo agent (`agent/`) | ADK (Python), Gemini (`GEMINI_MODEL`), Playwright (headless Chromium), UCP client, AP2 client | `encargo-agent` |
 | Encargo app (`app/`) | Next.js, WebAuthn passkeys; errand input, approval on the phone, presenter view | `encargo-app` |

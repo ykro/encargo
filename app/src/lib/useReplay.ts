@@ -15,7 +15,8 @@ type AnyEvent = Record<string, any> & { type: string; seq: number; at: number };
 export type ReplayState = "loading" | "ready" | "playing" | "waiting_signature" | "done" | "error";
 
 export const replayChannel = () => (typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel("encargo-demo"));
-export const replayShot = (name: string, id: string) => `/replays/${name}/${id}.jpg`;
+/** How the person approved during a replay: a real passkey on this laptop, or the presenter's Space key. */
+export type ReplaySignature = "passkey" | "space" | "simulated";
 
 export function replayName(param: string | null): ReplayName | null {
   if (!param) return null;
@@ -26,12 +27,14 @@ export function replayName(param: string | null): ReplayName | null {
 export function useReplay(name: ReplayName | null, opts: { waitForSignature: boolean }) {
   const [run, setRun] = useState<RunView>(emptyRun);
   const [state, setState] = useState<ReplayState>("loading");
+  const [controlMode, setControlMode] = useState<boolean | null>(null);
   const events = useRef<AnyEvent[]>([]);
   const index = useRef(0);
   const offset = useRef(0); // seconds added to recorded timestamps so timers read "now"
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const waiting = useRef(false);
   const signed = useRef(false);
+  const method = useRef<ReplaySignature>("space");
 
   const stop = () => {
     if (timer.current) clearTimeout(timer.current);
@@ -49,6 +52,7 @@ export function useReplay(name: ReplayName | null, opts: { waitForSignature: boo
       .then((body) => {
         if (!alive) return;
         events.current = body.events as AnyEvent[];
+        setControlMode(Boolean(body.control_mode));
         index.current = 0;
         setState("ready");
       })
@@ -73,7 +77,10 @@ export function useReplay(name: ReplayName | null, opts: { waitForSignature: boo
       setState("waiting_signature");
       return;
     }
-    setRun((v) => reduce(v, { ...e, at: e.at + offset.current }));
+    // Never replay "signed with passkey" unless a passkey signed now: the recorded
+    // method is replaced by how this replay was actually approved.
+    const replayed = e.type === "mandate_signed" ? { ...e, method: method.current } : e;
+    setRun((v) => reduce(v, { ...replayed, at: e.at + offset.current }));
     index.current = i + 1;
     const next = list[i + 1];
     if (!next) {
@@ -96,7 +103,8 @@ export function useReplay(name: ReplayName | null, opts: { waitForSignature: boo
     step();
   }, [name, step]);
 
-  const sign = useCallback(() => {
+  const sign = useCallback((how: ReplaySignature = "space") => {
+    method.current = how;
     signed.current = true;
     if (!waiting.current) return;
     waiting.current = false;
@@ -107,5 +115,5 @@ export function useReplay(name: ReplayName | null, opts: { waitForSignature: boo
     step();
   }, [step]);
 
-  return { run, state, start, sign };
+  return { run, state, start, sign, controlMode };
 }

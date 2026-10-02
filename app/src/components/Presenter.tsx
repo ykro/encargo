@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { StoreRef } from "@/lib/config";
 import { useElapsed, useRun, mmss } from "@/lib/useRun";
-import { replayChannel, replayName, replayShot, useReplay, type ReplayName } from "@/lib/useReplay";
+import { replayChannel, replayName, useReplay, type ReplayName, type ReplaySignature } from "@/lib/useReplay";
 import { focusOffer, humanDate, readableFields, SHORT_LABEL, STATUS_TEXT, type RunView } from "@/lib/runState";
 import { parseItem, storeName } from "@/lib/names";
 import { Wordmark } from "./Logo";
@@ -60,7 +60,8 @@ function useMode(control: boolean | null): [Mode, (m: Mode) => void] {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "r" || e.key === "R") {
-        setMode({ kind: "replay", name: control ? "pulso-control" : "kilometro", waitForSignature: false, autostart: true });
+        // Even mid-talk, the replay stops at the approval card until someone signs for real.
+        setMode({ kind: "replay", name: control ? "pulso-control" : "kilometro", waitForSignature: true, autostart: true });
       } else if (e.key === "l" || e.key === "L") {
         setMode({ kind: "live" });
       }
@@ -82,7 +83,7 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
   const connection = replay ? "live" : live.connection;
   const id = replay ? (recorded.state === "ready" ? undefined : run.id) : latest.id;
   const checked = replay ? recorded.state !== "loading" : latest.checked;
-  const shotSrc = (shot: string) => (replay ? replayShot(replay.name, shot) : `/api/agent/screenshots/${shot}.jpg`);
+  const shotSrc = (shot: string) => `/api/agent/screenshots/${shot}.jpg`;
 
   // Replay controls: the phone (same Chrome) broadcasts start/signed; Space does the same by hand.
   const player = useRef(recorded);
@@ -95,8 +96,9 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
     const channel = replayChannel();
     if (channel) {
       channel.onmessage = (m) => {
-        if (m.data === "start") player.current.start();
-        if (m.data === "signed") player.current.sign();
+        const msg = typeof m.data === "string" ? { type: m.data } : m.data;
+        if (msg.type === "start") player.current.start();
+        if (msg.type === "signed") player.current.sign((msg.method as ReplaySignature) ?? "space");
       };
     }
     const onKey = (e: KeyboardEvent) => {
@@ -104,7 +106,7 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
       e.preventDefault();
       const p = player.current;
       if (p.state === "ready" || p.state === "done") p.start();
-      else if (p.state === "waiting_signature") p.sign();
+      else if (p.state === "waiting_signature") p.sign("space");
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -115,13 +117,32 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
   const elapsed = useElapsed(run.startedAt, run.finishedAt ?? (run.phase === "no_purchase" || run.phase === "failed" || run.phase === "rejected" ? Date.now() : undefined));
   const urlOf = (s: StoreRef) => run.stores.find((u) => storeName(stores, u) === s.name) ?? s.url;
   const idle = !id;
+  // In a replay, the control mode shown is the recording's, not today's.
+  const shownControl = replay ? recorded.controlMode : control;
+  const running = !replay && (run.phase === "running" || run.phase === "awaiting_approval" || run.phase === "signing");
+  // Honest timing: past 60 s live, the clock turns amber and reminds the presenter of Plan B.
+  const slow = running && elapsed >= 60;
 
   return (
-    <main className="presenter">
+    <main className={`presenter ${replay ? "is-replay" : ""}`}>
+      {replay ? (
+        <div className="p-replay-banner" role="status">
+          REPETICIÓN GRABADA · no es en vivo
+          <small>{recorded.state === "waiting_signature" ? "esperando una firma real: passkey o barra espaciadora" : recorded.state === "ready" ? "barra espaciadora para empezar · L vuelve a lo en vivo" : "L vuelve a lo en vivo"}</small>
+        </div>
+      ) : null}
       <header className="p-head">
         <div><Wordmark /></div>
         <div className={`errand ${run.errand ? "" : "empty"}`}>{run.errand ? run.errand.replace(/\.$/, "") : idle && checked ? "Esperando un encargo…" : "Conectando…"}</div>
-        <div className={`clock num ${run.phase === "completed" ? "done" : ""}`} aria-label="Tiempo transcurrido">{mmss(elapsed)}</div>
+        <div className={`p-control ${shownControl ? "on" : ""}`} aria-live="polite">
+          <span>Modo de control</span>
+          <strong>{shownControl === null ? "—" : shownControl ? "ENCENDIDO" : "APAGADO"}</strong>
+          <span>{shownControl === null ? "sin datos" : shownControl ? "Pulso legible para agentes" : "Pulso opaco"}</span>
+        </div>
+        <div className={`clock num ${run.phase === "completed" ? "done" : ""} ${slow ? "slow" : ""}`} aria-label="Tiempo transcurrido">
+          <span>{mmss(elapsed)}</span>
+          {slow ? <small>R = repetición</small> : null}
+        </div>
       </header>
 
       <div className="p-cols">
@@ -134,7 +155,7 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
                 <figure className="shot" key={s.key} style={{ margin: 0 }}>
                   <div className="shot-frame">
                     {hv ? (
-                      <img src={shotSrc(hv.screenshotId)} alt={`Captura de ${s.name} tal como la ve una persona`} />
+                      <img src={hv.src ?? shotSrc(hv.screenshotId)} alt={`Captura de ${s.name} tal como la ve una persona`} />
                     ) : (
                       <div className="shot-empty">{idle ? "La captura aparece cuando empieza el encargo" : <span className="skeleton" style={{ width: "80%", height: "70%", display: "block" }} />}</div>
                     )}
@@ -172,14 +193,9 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
         </section>
       </div>
 
+      <FunnelStrip run={run} />
+
       <div className="p-status" aria-live="polite">
-        {replay ? (
-          <span className="tag on">
-            Repetición grabada{recorded.state === "waiting_signature" ? " · esperando la firma (espacio)" : recorded.state === "ready" ? " · lista (espacio)" : ""}
-          </span>
-        ) : control !== null ? (
-          <span className={`tag ${control ? "on" : ""}`}>{control ? "Control: Pulso legible para agentes" : "Control apagado"}</span>
-        ) : null}
         {id && connection === "lost" ? <span className="tag">Reconectando…</span> : null}
       </div>
     </main>
@@ -224,6 +240,7 @@ function Matrix({ run, stores, urlOf }: { run: RunView; stores: StoreRef[]; urlO
 
 function Ticker({ run, stores }: { run: RunView; stores: StoreRef[] }) {
   const lines = run.steps.filter((s) => s.kind !== "thought" || s.text.length < 160).slice(run.approval ? -1 : -3);
+  if (run.approval && run.phase !== "awaiting_approval") return null; // the outcome cards take the space
   return (
     <ol className="ticker" aria-live="polite">
       {lines.map((s) => (
@@ -264,7 +281,7 @@ function Outcome({ run, stores }: { run: RunView; stores: StoreRef[] }) {
       {run.phase === "completed" && run.order ? (
         <div className="approval done">
           <span className="a-title"><Check size={36} />Pedido confirmado</span>
-          <span className="a-sub">Mandato AP2 firmado con passkey · {(run.order.label ?? "").replace(/^Pedido /, "")} · {Math.round(run.elapsed ?? 0)}{"\u00a0"}s</span>
+          <span className="a-sub">{signatureText(run.signedWith)} · {(run.order.label ?? "").replace(/^Pedido /, "")} · {Math.round(run.elapsed ?? 0)}{"\u00a0"}s</span>
         </div>
       ) : (
         <div className="approval waiting">
@@ -315,5 +332,57 @@ function AgentView({ run, store, url, idle }: { run: RunView; store: StoreRef; u
         <p className="av-empty"><strong className="num">{av.offers.length}</strong> productos legibles en {av.offerSources.join(" y ")}.</p>
       ) : null}
     </div>
+  );
+}
+
+/** Never claims a passkey unless one signed: live passkey, test signer, or a replay's real/simulated approval. */
+function signatureText(method?: string): string {
+  if (method === "passkey") return "Mandato AP2 firmado con passkey";
+  if (method === "space") return "Firma simulada con la barra espaciadora (grabación)";
+  if (method === "simulated") return "Firma simulada en el teléfono (grabación)";
+  if (method === "test") return "Mandato AP2 firmado con el firmador de prueba";
+  return "Mandato AP2 firmado";
+}
+
+const HUMAN_PATH = ["portada", "catálogo", "producto", "talla", "carrito", "login", "checkout"];
+const AGENT_PATH = ["perfil / feed", "carrito", "mandato"];
+
+/** The funnel collapses: seven screens for a person, three machine steps for the agent, filling in live. */
+function FunnelStrip({ run }: { run: RunView }) {
+  const readData = Object.values(run.agentView).some((v) => v.sources?.ucp || v.sources?.feed || v.offerSources.length > 0);
+  const done = [readData, Boolean(run.checkout), run.phase === "signing" || run.phase === "completed"];
+  const current = done.findIndex((d) => !d);
+  const active = run.phase !== "idle" && run.phase !== "no_purchase" && run.phase !== "failed" && run.phase !== "rejected";
+  return (
+    <section className="p-funnel" aria-label="El embudo: el camino de una persona frente al del agente">
+      <div className="lane human">
+        <span className="who">Persona</span>
+        <ol>{HUMAN_PATH.map((s, i) => <Step key={s} first={i === 0}><li>{s}</li></Step>)}</ol>
+        <span className="count num">7 pasos</span>
+      </div>
+      <div className="lane agent">
+        <span className="who">Agente</span>
+        <ol>
+          {AGENT_PATH.map((s, i) => (
+            <Step key={s} first={i === 0}>
+              <li className={done[i] ? "done" : active && i === current ? "now" : ""}>
+                {done[i] ? <Check size={20} /> : null}
+                {s}
+              </li>
+            </Step>
+          ))}
+        </ol>
+        <span className="count num">3 pasos</span>
+      </div>
+    </section>
+  );
+}
+
+function Step({ first, children }: { first: boolean; children: React.ReactNode }) {
+  return (
+    <>
+      {first ? null : <li className="arrow" aria-hidden>→</li>}
+      {children}
+    </>
   );
 }

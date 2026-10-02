@@ -199,3 +199,19 @@ def test_warmup_needs_admin_and_skips_the_model_in_mock_mode():
     assert client.post("/admin/warmup").status_code == 401
     body = client.post("/admin/warmup", headers={"authorization": "Bearer dev-admin"}).json()
     assert body["model"].startswith("omitido")
+
+
+def test_audit_is_rate_limited_per_client(monkeypatch):
+    from encargo import api as api_module
+
+    async def fake_audit(url, guard, allowed_hosts):
+        return {"url": url, "score": 0, "total": 8, "items": []}
+
+    monkeypatch.setattr(api_module, "audit_store", fake_audit)
+    monkeypatch.setattr(api_module, "assert_public_ok", None, raising=False)
+    api_module._audit_hits.clear()
+    client = TestClient(api.app)
+    codes = [client.get("/audit", params={"url": "https://example.com"}, headers={"x-forwarded-for": "203.0.113.7"}).status_code for _ in range(8)]
+    assert codes[:6] == [200] * 6 and codes[6:] == [429, 429]
+    other = client.get("/audit", params={"url": "https://example.com"}, headers={"x-forwarded-for": "203.0.113.8"})
+    assert other.status_code == 200
