@@ -56,7 +56,7 @@ encargo/
 │   ├── components/         ErrandForm, RunPhone, Presenter, PasskeySetup, AuditView, PhoneTop, Logo, Icons
 │   └── lib/                useRun (SSE), runState (eventos → pantalla), useReplay (plan B), stage, auditCopy
 ├── infra/                  10-enable-apis, 20-secrets, 30-deploy-stores, 40-deploy-agent, 50-deploy-app, 60-stage
-├── scripts/                up.sh, up-offline.sh, reset.sh, warmup.sh, record_replay.py, e2e_passkey.py, e2e_emulator.py, e2e_offline.py, screens_app.py, demo_screens.py, generate_product_images.py
+├── scripts/                up.sh, up-offline.sh, reset.sh, warmup.sh, record_replay.py, e2e_passkey.py, e2e_emulator.py, e2e_offline.py, demo_screens.py, generate_product_images.py
 ├── data/                   SOURCES.md, DATASHEET.md
 └── docs/                   DEMO, ONBOARDING, DECISIONES, COMANDOS, ESTRUCTURA, CREDITOS (.md y .en.md), diagrams/, demo/, screenshots/
 ```

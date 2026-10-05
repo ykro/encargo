@@ -4,7 +4,7 @@ URL ?= http://localhost:3001
 RUNS ?= 10
 TARGET ?= local
 
-.PHONY: help up reset test bias-test audit images seed deploy screens e2e e2e-emulator phone stage-on stage-off warmup record-replay preflight up-offline e2e-offline control-on control-off demo-screens
+.PHONY: help up reset test bias-test audit images seed deploy e2e e2e-emulator phone stage-on stage-off warmup record-replay preflight up-offline e2e-offline control-on control-off demo-screens
 
 help:
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -53,9 +53,6 @@ cloud_env = app_override="$(APP_URL)"; agent_override="$(AGENT_URL)"; \
 	  export ADMIN_TOKEN=$$(gcloud secrets versions access latest --secret=encargo-admin-token); \
 	else export APP_URL=http://localhost:3000 AGENT_URL=http://localhost:8000 ADMIN_TOKEN=$${ADMIN_TOKEN:-dev-admin}; fi; \
 	export APP_URL=$${app_override:-$$APP_URL} AGENT_URL=$${agent_override:-$$AGENT_URL}
-
-screens: ## Drive the app in Chrome (virtual passkey) and screenshot every screen to docs/screenshots/app (TARGET=cloud)
-	@$(cloud_env); cd agent && uv run python ../scripts/screens_app.py --app $$APP_URL --agent $$AGENT_URL --setup $$ADMIN_TOKEN
 
 e2e: ## Passkey flow in Chrome with a virtual authenticator: enroll → errand → sign mandate → order (TARGET=cloud)
 	@$(cloud_env); cd agent && uv run python ../scripts/e2e_passkey.py --app $$APP_URL --agent $$AGENT_URL --setup $$ADMIN_TOKEN

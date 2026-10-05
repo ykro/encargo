@@ -26,7 +26,7 @@ Guía para instalar, desplegar, probar y presentar Encargo. Para entender qué e
 | Node.js + npm | Node 24 (probado con 24.21.0, npm 12) | Tiendas y app (Next.js 16.3.8, React 19.3). Las tiendas usan `node:sqlite` |
 | uv | 0.8 (probado con 0.8.22) | Agente en Python. `agent/.python-version` fija Python **3.13**; uv lo instala si falta (`uv python install 3.13`) |
 | Google Cloud SDK | probado con 587.0.0 | ADC, Secret Manager, Cloud Build, Cloud Run |
-| Google Chrome | estable | `make phone`, `make e2e` y `make screens` (si no está, usan el Chromium de Playwright) |
+| Google Chrome | estable | `make phone`, `make e2e` y `make demo-screens` (si no está, usan el Chromium de Playwright) |
 | Chromium de Playwright | 1.63 (lo fija `agent/uv.lock`) | `browse_page` y las capturas del presentador: `cd agent && uv run playwright install chromium` |
 | Android SDK platform-tools (`adb`) + emulador | adb 1.0.41; emulador `emulator-5556` con Chrome | Solo para `make e2e-emulator` |
 | `curl`, `openssl`, `make`, `bash` | los del sistema | `make reset` y `infra/20-secrets.sh` |
@@ -267,7 +267,6 @@ cd agent && uv run python -m encargo.bias_test --runs 3 --modes on
 ### Otros comandos
 
 - `make audit URL=$PULSO_URL` — el checklist de la charla; sirve con la URL de cualquier tienda. Agrega `--json` ejecutando `cd agent && uv run python -m encargo.audit URL --json`.
-- `make screens TARGET=cloud` — vuelve a capturar todas las pantallas de la app en `docs/screenshots/app/` (1920×1080 y 390×844).
 - `make reset` — en menos de 10 s (cada `curl` tiene un tope de 8 s y corren en paralelo).
 
 ### Ensayar sin red
@@ -305,7 +304,7 @@ curl -s $AGENT_URL/passkeys/status                       # anónimo: {"registere
 curl -s -H "authorization: Bearer $ADMIN_TOKEN" $AGENT_URL/passkeys/status   # {"registered":N,"rp_id":"…","passkeys":[{"id","label","created_at","last_used_at"}]}
 ```
 
-**Borrar una passkey:** en `/configurar` (con el código de configuración escrito) cada dispositivo registrado tiene un botón «Eliminar». Por API: `DELETE /passkeys/{id}` con `authorization: Bearer <ADMIN_TOKEN>`; los id salen en `/passkeys/status`. `make e2e`, `make screens` y `make bias-test` borran solas las credenciales que crean.
+**Borrar una passkey:** en `/configurar` (con el código de configuración escrito) cada dispositivo registrado tiene un botón «Eliminar». Por API: `DELETE /passkeys/{id}` con `authorization: Bearer <ADMIN_TOKEN>`; los id salen en `/passkeys/status`. `make e2e`, `make demo-screens`, `make record-replay` y `make bias-test` borran solas las credenciales que crean.
 
 ## 8. Encender y apagar el modo de control
 

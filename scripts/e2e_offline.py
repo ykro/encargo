@@ -104,7 +104,7 @@ async def main(a: argparse.Namespace) -> int:
             await presenter.get_by_text("Mandato AP2 firmado con passkey").wait_for(timeout=30000)
             print("✓ firmado con passkey (autenticador virtual) y pedido confirmado en los dos lados", flush=True)
             await presenter.wait_for_timeout(4000)
-            await presenter.screenshot(path=str(ROOT / "docs" / "screenshots" / "app" / "presenter-offline-1920.jpg"), type="jpeg", quality=80)
+            await presenter.screenshot(path=str(ROOT / ".data" / "presenter-offline-1920.jpg"), type="jpeg", quality=80)  # local evidence, not in git
             video = await presenter.video.path() if a.video else None
             await ctx.close()
             await browser.close()

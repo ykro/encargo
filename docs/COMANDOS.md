@@ -22,7 +22,6 @@ Variables: `TARGET=local|cloud` (por omisión `local`), `URL` (por omisión `htt
 | `make up-offline` / `make e2e-offline` | Plan B sin internet: la app y las grabaciones desde el portátil / la prueba con la red cortada (`VIDEO=1` regenera el MP4). |
 | `make control-on` / `make control-off` | Enciende o apaga el modo de control al vuelo (`TARGET=cloud` en la nube). |
 | `make demo-screens` | Captura `docs/demo/` desde dos ejecuciones reales en la nube (guion de la demo). |
-| `make screens` | Recorre la app en Chrome con una passkey virtual y captura cada pantalla en `docs/screenshots/app/`. |
 | `make seed` | Regenera `catalog/catalog.json` (determinista, semilla 2027). |
 | `make images` | Genera las fotos de producto y los anuncios de Pulso con `IMAGE_MODEL`, verificados con `GEMINI_MODEL`. |
 | `make deploy` | Ejecuta `infra/10` a `infra/50`: APIs, secretos, tiendas, agente y app en Cloud Run. |
