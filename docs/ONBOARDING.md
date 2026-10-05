@@ -459,7 +459,7 @@ El guion paso a paso, con capturas y qué decir en cada pantalla, está en [DEMO
 ### Una hora antes, en el lugar
 
 - [ ] Internet en el portátil (Wi-Fi del lugar o datos móviles).
-- [ ] **Primero:** `make stage-on && make preflight` → `preflight ok`. El portero del día de la charla falla, con una línea en español por problema, si: algún servicio no está sano, no hay passkey registrada, el modo de control está encendido, algún servicio no tiene `min-instances=1`, alguna grabación del plan B ya no coincide con el catálogo y el encargo (o la app desplegada sirve otra copia) o queda poco stock de la talla 9.
+- [ ] `make stage-on && make preflight` → `preflight ok`. El portero del día de la charla falla, con una línea en español por problema, si: algún servicio no está sano, no hay passkey registrada, el modo de control está encendido, algún servicio no tiene `min-instances=1`, alguna grabación del plan B ya no coincide con el catálogo y el encargo (o la app desplegada sirve otra copia) o queda poco stock de la talla 9.
 - [ ] `make warmup TARGET=cloud` → `warmup ok` (servicios, una llamada a Gemini y Chromium). Va después de `preflight`: sus correcciones (`make stage-on`, volver a desplegar la app) reemplazan las instancias y se pierde el calentamiento.
 - [ ] `make reset TARGET=cloud` → `reset ok`.
 - [ ] Proyector a 1920×1080. Abre `$APP_URL/presenter` en pantalla completa: muestra «Control apagado».

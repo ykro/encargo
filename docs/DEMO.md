@@ -111,7 +111,7 @@ Chrome muestra su diálogo de passkey: «Usar una passkey para encargo-app-61168
 
 ![Pedido confirmado en el presentador](demo/08-presentador-pedido-confirmado.png)
 
-**Tiempo total, del encargo al pedido:** en la captura, 45 s. En la última prueba de sesgo (2026-10-01) el promedio fue 52–55 s y el máximo 110 s; depende de Gemini ese día.
+**Tiempo total, del encargo al pedido:** en la captura, 22 s. En la última prueba de sesgo (2026-10-01) el promedio fue 52–55 s y el máximo 110 s; depende de Gemini ese día.
 
 ### 6. ¿Sesgo? El modo de control · 10 s
 
