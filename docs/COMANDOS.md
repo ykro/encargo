@@ -4,6 +4,8 @@ Todos los comandos del `Makefile`. `make help` los lista con su descripción. Vo
 
 Variables: `TARGET=local|cloud` (por omisión `local`), `URL` (por omisión `http://localhost:3001`) y `RUNS` (por omisión `10`).
 
+Día de la charla, en este orden: `make stage-on` → `make preflight` → `make warmup TARGET=cloud` → `make reset TARGET=cloud`; al terminar, `make stage-off`. Detalle en [DEMO.md](DEMO.md).
+
 | Comando | Qué hace |
 | --- | --- |
 | `make help` | Lista los comandos con su descripción. |
@@ -16,7 +18,7 @@ Variables: `TARGET=local|cloud` (por omisión `local`), `URL` (por omisión `htt
 | `make audit URL=…` | Checklist de preparación para agentes de cualquier tienda. |
 | `make phone` | Abre el «teléfono» que firma: una ventana de Chrome de 390×844 en modo app, con la passkey del Mac (Touch ID). |
 | `make stage-on` / `make stage-off` | Día de la charla: una instancia mínima en los cuatro servicios / el resto del tiempo: 0 (nada se cobra las 24 horas). |
-| `make warmup` | Despierta cada servicio, hace una llamada corta a Gemini y arranca Chromium en el agente. Con `TARGET=cloud`, después de `stage-on`. |
+| `make warmup` | Despierta cada servicio, hace una llamada corta a Gemini y arranca Chromium en el agente. Con `TARGET=cloud`, después de `stage-on` y `preflight` (las correcciones de `preflight` reemplazan las instancias). |
 | `make record-replay` | Graba una ejecución real en la nube (eventos y capturas) como plan B en `app/public/replays/`. |
 | `make preflight` | Portero del día de la charla: falla si algún servicio no está sano, no hay passkey, el modo de control está encendido, falta `min-instances=1`, alguna grabación ya no coincide con el catálogo y el encargo (o la app desplegada sirve otra copia) o queda poco stock de la talla 9. |
 | `make up-offline` / `make e2e-offline` | Plan B sin internet: la app y las grabaciones desde el portátil / la prueba con la red cortada (`VIDEO=1` regenera el MP4). |
