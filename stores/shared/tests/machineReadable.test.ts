@@ -8,6 +8,8 @@ import { catalogSearch } from "../src/ucp/catalogApi";
 import { setAgentReady, isAgentReady } from "../src/store";
 import { agentReadyOnly, json } from "../src/ucp/http";
 import { addBusinessDays } from "../src/delivery";
+import { sandboxPaySpec } from "../src/ucp/sandboxPay";
+import { SANDBOX_HANDLER, SANDBOX_TOKEN } from "../src/ucp/version";
 
 describe("seed catalog at Kilómetro", () => {
   it("has 10 models and the errand model at 145 USD with size 9 in stock", () => {
@@ -51,6 +53,16 @@ describe("UCP", () => {
     );
     expect(profile.keys[0]).toMatchObject({ kty: "EC", crv: "P-256", alg: "ES256" });
     expect(profile.keys[0].d).toBeUndefined();
+  });
+
+  it("payment handler spec is served by the store itself and states that no money moves", async () => {
+    const profile = (await businessProfile("https://km.test")) as any;
+    const [handler] = profile.ucp.payment_handlers[SANDBOX_HANDLER];
+    expect(handler.spec).toBe("https://km.test/ucp/v1/payment-handlers/sandbox-pay");
+    const spec = await sandboxPaySpec().json();
+    expect(spec.name).toBe(SANDBOX_HANDLER);
+    expect(spec.instrument.credential.token).toBe(SANDBOX_TOKEN);
+    expect(spec.environment).toBe("sandbox");
   });
 
   it("catalog search filters by query and max price (cents)", async () => {

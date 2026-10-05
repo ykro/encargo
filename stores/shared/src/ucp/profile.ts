@@ -49,7 +49,7 @@ export async function businessProfile(baseUrl: string) {
           {
             id: "sandbox_pay",
             version: UCP_VERSION,
-            spec: "https://example.org/sandbox-pay",
+            spec: `${baseUrl}/ucp/v1/payment-handlers/sandbox-pay`,
             available_instruments: [{ type: "card" }],
             config: { environment: "sandbox", note: "Pagos simulados: no se mueve dinero real." },
           },

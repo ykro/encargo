@@ -49,7 +49,7 @@ class FakeStores:
                 "version": "2026-08-25",
                 "services": {"dev.ucp.shopping": [{"transport": "rest", "endpoint": f"{KM}/ucp/v1"}]},
                 "capabilities": {c: [{"version": "2026-08-25"}] for c in caps},
-                "payment_handlers": {"org.example.sandbox_pay": [{"id": "sandbox_pay"}]},
+                "payment_handlers": {"com.github.ykro.encargo.sandbox_pay": [{"id": "sandbox_pay"}]},
             },
             "keys": [public_jwk(self.key, self.kid)],
         }

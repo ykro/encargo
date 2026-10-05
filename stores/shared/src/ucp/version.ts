@@ -12,5 +12,5 @@ export const CAPABILITIES = {
 } as const;
 
 /** Sandbox payment handler: no real money or cards ever move in this demo. */
-export const SANDBOX_HANDLER = "org.example.sandbox_pay";
+export const SANDBOX_HANDLER = "com.github.ykro.encargo.sandbox_pay";
 export const SANDBOX_TOKEN = "sandbox_tok_ok";
