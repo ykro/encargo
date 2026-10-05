@@ -22,6 +22,7 @@ from pathlib import Path
 import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "agent"))
+from encargo.replay_check import fingerprint  # noqa: E402
 from encargo.software_authenticator import SoftwareAuthenticator  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "app" / "public" / "replays"
@@ -71,7 +72,8 @@ async def record(http: httpx.AsyncClient, a: argparse.Namespace, name: str, cont
             e["screenshot_data"] = "data:image/jpeg;base64," + base64.b64encode(jpg.content).decode()
     (OUT / f"{name}.json").write_text(
         json.dumps(
-            {"name": name, "control_mode": control, "recorded_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "run_id": run_id, "events": events},
+            {"name": name, "control_mode": control, "recorded_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+             "fingerprint": fingerprint(), "run_id": run_id, "events": events},
             ensure_ascii=False,
             indent=1,
         )

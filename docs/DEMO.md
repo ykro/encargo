@@ -27,7 +27,7 @@ El orden importa. `preflight` necesita `stage-on`, porque revisa `min-instances=
 - no hay passkey registrada;
 - el modo de control está encendido;
 - falta `min-instances=1`;
-- las grabaciones del plan B tienen más de 7 días;
+- alguna grabación del plan B ya no coincide con el catálogo y el encargo, o la app desplegada sirve otra copia;
 - queda poco stock de la talla 9.
 
 Corrige lo que diga y vuelve a correrlo.
@@ -169,7 +169,7 @@ make control-off TARGET=cloud
 
 | Síntoma | Qué hacer |
 | --- | --- |
-| El reloj se pone **ámbar a los 60 s** y aparece «R = repetición» | Pulsa **R** en el presentador. Se reproduce la ejecución grabada bajo la franja «REPETICIÓN GRABADA · no es en vivo» y se detiene en la tarjeta de aprobación hasta una firma real: Touch ID en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. **L** vuelve a lo en vivo. |
+| El reloj se pone **ámbar a los 60 s** y aparece «R = repetición» | Pulsa **R** en el presentador. Se reproduce la ejecución grabada bajo la franja «REPETICIÓN GRABADA», con el día en que se grabó y «no es en vivo» y se detiene en la tarjeta de aprobación hasta una firma real: Touch ID en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. **L** vuelve a lo en vivo. |
 | No hay internet en el lugar | `make up-offline` y abre `http://localhost:3000/presenter?demo=1` (proyector) y `http://localhost:3000/?demo=1` (ventana del «teléfono»). Funciona sin red. |
 | Nada funciona en el portátil | Proyecta el video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) (1920×1080, una ejecución completa). |
 | El botón «Firmar mandato con passkey» está deshabilitado («Aún no hay una passkey registrada…») | Abre `…/configurar?clave=<ADMIN_TOKEN>` en la ventana del «teléfono» y registra Touch ID. Toma 20 s. |

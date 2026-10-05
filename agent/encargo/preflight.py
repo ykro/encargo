@@ -7,7 +7,7 @@ Fails (exit 1) with one clear Spanish line per problem:
   - no passkey is registered (nobody could sign on stage)
   - control mode is on (the talk starts with Pulso opaque)
   - a service is not kept warm (min-instances must be 1: run `make stage-on`)
-  - the Plan B recordings are older than 7 days (dates on screen would be stale)
+  - a Plan B recording no longer matches the catalog/errand, or the deployed app serves another copy
   - size-9 stock of the errand model is low at a store
 """
 
@@ -15,18 +15,20 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
+import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
 
 import httpx
+
+from .replay_check import REPLAYS_DIR, fingerprint, problems
 
 SERVICES = ["encargo-pulso", "encargo-kilometro", "encargo-agent", "encargo-app"]
 REPLAYS = ["kilometro", "pulso-control"]
 ERRAND_VARIANT = "SND-001-9"
 MIN_STOCK = 10
-MAX_REPLAY_AGE = timedelta(days=7)
 
 
 class Report:
@@ -105,18 +107,28 @@ async def main(a: argparse.Namespace) -> int:
                 r.fail(f"{label}: no se pudo leer el stock ({e.__class__.__name__})", "revisa la tienda y ADMIN_TOKEN")
 
         print("Plan B (repeticiones grabadas)", flush=True)
-        now = datetime.now(timezone.utc)
+        current = fingerprint()
+        redo = "make record-replay y ./infra/50-deploy-app.sh"
         for name in REPLAYS:
+            local = REPLAYS_DIR / f"{name}.json"
             try:
-                body = (await http.get(f"{a.app}/replays/{name}.json")).json()
-                recorded = datetime.fromisoformat(body["recorded_at"])
-                age = now - recorded
-                if age <= MAX_REPLAY_AGE:
-                    r.ok(f"{name}: grabada hace {age.days} día(s)")
-                else:
-                    r.fail(f"{name}: grabada hace {age.days} días (muestra fechas viejas)", "make record-replay y vuelve a desplegar la app")
-            except (httpx.HTTPError, ValueError, KeyError) as e:
-                r.fail(f"{name}: no se pudo leer la grabación ({e.__class__.__name__})", "make record-replay y vuelve a desplegar la app")
+                data = local.read_bytes()
+                bad = problems(json.loads(data), current)
+            except (OSError, ValueError) as e:
+                r.fail(f"{name}: no se pudo leer la grabación local ({e.__class__.__name__})", redo)
+                continue
+            if bad:
+                r.fail(f"{name}: {'; '.join(bad)}", redo)
+                continue
+            try:
+                served = (await http.get(f"{a.app}/replays/{name}.json")).content
+            except httpx.HTTPError as e:
+                r.fail(f"{name}: la app no sirve la grabación ({e.__class__.__name__})", "revisa encargo-app en Cloud Run")
+                continue
+            if hashlib.sha256(served).digest() != hashlib.sha256(data).digest():
+                r.fail(f"{name}: la app desplegada sirve otra versión de la grabación", "./infra/50-deploy-app.sh")
+            else:
+                r.ok(f"{name}: coincide con el catálogo y el encargo, y es la desplegada")
 
     print("Instancias tibias (min-instances = 1)", flush=True)
     for svc in SERVICES:

@@ -18,6 +18,15 @@ export const replayChannel = () => (typeof BroadcastChannel === "undefined" ? nu
 /** How the person approved during a replay: a real passkey on this laptop, or the presenter's Space key. */
 export type ReplaySignature = "passkey" | "space" | "simulated";
 
+/** "1 oct 2026" from the recording's ISO timestamp: the dates inside a replay are the ones of that day. */
+export function recordedDay(iso: string | null): string | null {
+  if (!iso) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return null;
+  const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  return `${Number(m[3])} ${months[Number(m[2]) - 1]} ${m[1]}`;
+}
+
 export function replayName(param: string | null): ReplayName | null {
   if (!param) return null;
   if (param === "1" || param === "true") return "kilometro";
@@ -28,6 +37,7 @@ export function useReplay(name: ReplayName | null, opts: { waitForSignature: boo
   const [run, setRun] = useState<RunView>(emptyRun);
   const [state, setState] = useState<ReplayState>("loading");
   const [controlMode, setControlMode] = useState<boolean | null>(null);
+  const [recordedAt, setRecordedAt] = useState<string | null>(null);
   const events = useRef<AnyEvent[]>([]);
   const index = useRef(0);
   const offset = useRef(0); // seconds added to recorded timestamps so timers read "now"
@@ -53,6 +63,7 @@ export function useReplay(name: ReplayName | null, opts: { waitForSignature: boo
         if (!alive) return;
         events.current = body.events as AnyEvent[];
         setControlMode(Boolean(body.control_mode));
+        setRecordedAt(typeof body.recorded_at === "string" ? body.recorded_at : null);
         index.current = 0;
         setState("ready");
       })
@@ -115,5 +126,5 @@ export function useReplay(name: ReplayName | null, opts: { waitForSignature: boo
     step();
   }, [step]);
 
-  return { run, state, start, sign, controlMode };
+  return { run, state, start, sign, controlMode, recordedAt };
 }

@@ -68,7 +68,7 @@ Tests: `agent/tests/test_no_payment_without_mandate.py`, `agent/tests/test_passk
 
 ### 5. The practical checklist: `make audit`
 
-`make audit URL=https://your-store.example` (`agent/encargo/audit.py`) checks any store with GET requests only. It never creates carts or checkouts. It scores eight items:
+`make audit URL=$KILOMETRO_URL` (`agent/encargo/audit.py`, works with any store URL) checks with GET requests only. It never creates carts or checkouts. It scores eight items:
 
 1. schema.org structured data (Product + Offer).
 2. Availability per size or variant.
@@ -204,16 +204,16 @@ The errand is parsed with a deterministic parser (regular expressions), not by t
 
 ### Plan B: a recorded real run
 
-If Gemini is slow live, the presenter does not wait. `make record-replay` records a real cloud run (events and screenshots) into `app/public/replays/kilometro.json` and `pulso-control.json`, with screenshots in matching folders. The app replays it with the original timing and no agent or Gemini (`app/src/lib/useReplay.ts`):
+If Gemini is slow live, the presenter does not wait. `make record-replay` records a real cloud run (events and screenshots) into `app/public/replays/kilometro.json` and `pulso-control.json`, with the screenshots inside each file. The app replays it with the original timing and no agent or Gemini (`app/src/lib/useReplay.ts`):
 
 - `/presenter?demo=1` (or `?demo=pulso-control`) waits for the phone's errand and pauses at the approval card until the signature. The space bar does the same by hand.
 - `/?demo=1` on the phone replays the same journey. The signature is simulated and marked "Demostración grabada".
 - Phone and presenter run in the same Chrome on the laptop and coordinate over a `BroadcastChannel`.
 - **Key `R`** on the presenter switches to the recording mid-talk (the control-mode one if it is on). **`L`** goes back to live.
-- **Honesty:** a large, persistent banner says "REPETICIÓN GRABADA · no es en vivo", the control mode shown is the recording's, and the replay stops at the approval card until a real signature: the laptop's passkey (Touch ID, on `/?demo=1`) or the space bar. The confirmation says which one signed; it never says "signed with passkey" unless a passkey did.
+- **Honesty:** a large, persistent banner says "REPETICIÓN GRABADA" (recorded replay), the day it was recorded and "no es en vivo" (not live), the control mode shown is the recording's, and the replay stops at the approval card until a real signature: the laptop's passkey (Touch ID, on `/?demo=1`) or the space bar. The confirmation says which one signed; it never says "signed with passkey" unless a passkey did.
 - **No internet:** screenshots live inside each recording (data URLs). `make up-offline` serves the built app and the recordings from the laptop, with the agent and stores pointed at an unreachable address; `make e2e-offline` tests it by blocking every non-`localhost` request and signing with a virtual authenticator. Last resort: the video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) of a full run.
 
-The recording keeps the dates of the day it was made; re-record it before each talk (`make preflight` warns past 7 days).
+The recording keeps the dates of the day it was made, and the banner names that day, so it does not expire with the calendar. It expires when what it captured changes: `make record-replay` stores a fingerprint of the catalog (`catalog/catalog.json`) and the errand text, and `make preflight` fails if the fingerprint no longer matches or the deployed app serves another copy (`agent/encargo/replay_check.py`). Whoever changes the catalog or the errand re-records and redeploys the app in the same change.
 
 ### CI with GitHub Actions
 

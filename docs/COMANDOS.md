@@ -18,7 +18,7 @@ Variables: `TARGET=local|cloud` (por omisión `local`), `URL` (por omisión `htt
 | `make stage-on` / `make stage-off` | Día de la charla: una instancia mínima en los cuatro servicios / el resto del tiempo: 0 (nada se cobra las 24 horas). |
 | `make warmup` | Despierta cada servicio, hace una llamada corta a Gemini y arranca Chromium en el agente. Con `TARGET=cloud`, después de `stage-on`. |
 | `make record-replay` | Graba una ejecución real en la nube (eventos y capturas) como plan B en `app/public/replays/`. |
-| `make preflight` | Portero del día de la charla: falla si algún servicio no está sano, no hay passkey, el modo de control está encendido, falta `min-instances=1`, las grabaciones tienen más de 7 días o queda poco stock de la talla 9. |
+| `make preflight` | Portero del día de la charla: falla si algún servicio no está sano, no hay passkey, el modo de control está encendido, falta `min-instances=1`, alguna grabación ya no coincide con el catálogo y el encargo (o la app desplegada sirve otra copia) o queda poco stock de la talla 9. |
 | `make up-offline` / `make e2e-offline` | Plan B sin internet: la app y las grabaciones desde el portátil / la prueba con la red cortada (`VIDEO=1` regenera el MP4). |
 | `make control-on` / `make control-off` | Enciende o apaga el modo de control al vuelo (`TARGET=cloud` en la nube). |
 | `make demo-screens` | Captura `docs/demo/` desde dos ejecuciones reales en la nube (guion de la demo). |

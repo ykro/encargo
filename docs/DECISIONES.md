@@ -68,7 +68,7 @@ Pruebas: `agent/tests/test_no_payment_without_mandate.py`, `agent/tests/test_pas
 
 ### 5. El checklist práctico: `make audit`
 
-`make audit URL=https://tu-tienda.example` (`agent/encargo/audit.py`) revisa cualquier tienda con solo peticiones GET. No crea carritos ni checkouts. Califica ocho puntos:
+`make audit URL=$KILOMETRO_URL` (`agent/encargo/audit.py`, sirve con la URL de cualquier tienda) revisa con solo peticiones GET. No crea carritos ni checkouts. Califica ocho puntos:
 
 1. Datos estructurados schema.org (Product + Offer).
 2. Disponibilidad por talla o variante.
@@ -204,16 +204,16 @@ El encargo se interpreta con un parser determinista (expresiones regulares) y no
 
 ### Plan B: una ejecución real grabada
 
-Si Gemini va lento en vivo, el presentador no espera. `make record-replay` graba una ejecución real en la nube (eventos y capturas) en `app/public/replays/kilometro.json` y `pulso-control.json`, con sus capturas en carpetas del mismo nombre. La app la reproduce con los tiempos originales y sin agente ni Gemini (`app/src/lib/useReplay.ts`):
+Si Gemini va lento en vivo, el presentador no espera. `make record-replay` graba una ejecución real en la nube (eventos y capturas) en `app/public/replays/kilometro.json` y `pulso-control.json`, con las capturas dentro de cada archivo. La app la reproduce con los tiempos originales y sin agente ni Gemini (`app/src/lib/useReplay.ts`):
 
 - `/presenter?demo=1` (o `?demo=pulso-control`) espera el encargo del teléfono y se detiene en la tarjeta de aprobación hasta la firma. La barra espaciadora hace lo mismo a mano.
 - `/?demo=1` en el teléfono reproduce el mismo recorrido. La firma se simula y se marca «Demostración grabada».
 - El teléfono y el presentador corren en el mismo Chrome del portátil y se coordinan con un `BroadcastChannel`.
 - **Tecla `R`** en el presentador: cambia a la grabación en plena charla (la del modo de control si está encendido). **`L`** vuelve a lo en vivo.
-- **Honestidad:** una franja grande y fija dice «REPETICIÓN GRABADA · no es en vivo», el modo de control mostrado es el de la grabación, y la repetición se detiene en la tarjeta de aprobación hasta una firma real: la passkey del portátil (Touch ID, en `/?demo=1`) o la barra espaciadora. La confirmación dice cuál firmó; nunca «firmado con passkey» si no firmó una passkey.
+- **Honestidad:** una franja grande y fija dice «REPETICIÓN GRABADA», el día en que se grabó y «no es en vivo», el modo de control mostrado es el de la grabación, y la repetición se detiene en la tarjeta de aprobación hasta una firma real: la passkey del portátil (Touch ID, en `/?demo=1`) o la barra espaciadora. La confirmación dice cuál firmó; nunca «firmado con passkey» si no firmó una passkey.
 - **Sin internet:** las capturas van dentro de cada grabación (data URL). `make up-offline` sirve la app compilada y las grabaciones desde el portátil, con el agente y las tiendas apuntando a una dirección inalcanzable; `make e2e-offline` lo prueba bloqueando toda petición que no sea `localhost` y firmando con un autenticador virtual. Último recurso: el video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) de una ejecución completa.
 
-Las fechas de la grabación son las del día en que se grabó; vuelve a grabarla antes de cada charla (`make preflight` avisa si tiene más de 7 días).
+Las fechas de la grabación son las del día en que se grabó, y la franja dice ese día, así que la grabación no caduca con el calendario. Caduca cuando cambia lo que capturó: `make record-replay` guarda una huella del catálogo (`catalog/catalog.json`) y del texto del encargo, y `make preflight` falla si la huella ya no coincide o si la app desplegada sirve otra copia (`agent/encargo/replay_check.py`). Quien cambie el catálogo o el encargo vuelve a grabar y despliega la app en el mismo cambio.
 
 ### CI con GitHub Actions
 

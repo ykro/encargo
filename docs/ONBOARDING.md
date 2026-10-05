@@ -266,7 +266,7 @@ cd agent && uv run python -m encargo.bias_test --runs 3 --modes on
 
 ### Otros comandos
 
-- `make audit URL=https://…` — el checklist de la charla para cualquier tienda. Agrega `--json` ejecutando `cd agent && uv run python -m encargo.audit URL --json`.
+- `make audit URL=$PULSO_URL` — el checklist de la charla; sirve con la URL de cualquier tienda. Agrega `--json` ejecutando `cd agent && uv run python -m encargo.audit URL --json`.
 - `make screens TARGET=cloud` — vuelve a capturar todas las pantallas de la app en `docs/screenshots/app/` (1920×1080 y 390×844).
 - `make reset` — en menos de 10 s (cada `curl` tiene un tope de 8 s y corren en paralelo).
 
@@ -454,12 +454,12 @@ El guion paso a paso, con capturas y qué decir en cada pantalla, está en [DEMO
 - [ ] `make bias-test TARGET=cloud` pasa (o `RUNS=3` si hay poco tiempo).
 - [ ] Passkey del portátil del escenario registrada en la nube (sección 7). `make preflight` lo comprueba.
 - [ ] Emulador `emulator-5556` arranca y `make e2e-emulator TARGET=cloud` llega a la tarjeta de aprobación.
-- [ ] `make record-replay` graba el plan B con las fechas de la semana de la charla; vuelve a desplegar la app (`./infra/50-deploy-app.sh`) para publicarlo, y regenera el video con `REBUILD=1 make e2e-offline VIDEO=1`.
+- [ ] Solo si cambiaste el catálogo o el encargo desde la última grabación: `make record-replay`, `./infra/50-deploy-app.sh` y `REBUILD=1 make e2e-offline VIDEO=1`. Las grabaciones no caducan con el calendario (la franja dice el día en que se grabaron); `make preflight` avisa si ya no coinciden.
 - [ ] `make up-offline` arranca y `make e2e-offline` pasa (plan B sin internet).
 
 ### Una hora antes, en el lugar
 
-- [ ] **Primero:** `make stage-on && make preflight` → `preflight ok`. El portero del día de la charla falla, con una línea en español por problema, si: algún servicio no está sano, no hay passkey registrada, el modo de control está encendido, algún servicio no tiene `min-instances=1`, las grabaciones del plan B tienen más de 7 días o queda poco stock de la talla 9.
+- [ ] **Primero:** `make stage-on && make preflight` → `preflight ok`. El portero del día de la charla falla, con una línea en español por problema, si: algún servicio no está sano, no hay passkey registrada, el modo de control está encendido, algún servicio no tiene `min-instances=1`, alguna grabación del plan B ya no coincide con el catálogo y el encargo (o la app desplegada sirve otra copia) o queda poco stock de la talla 9.
 - [ ] Internet en el portátil (Wi-Fi del lugar o datos móviles).
 - [ ] `make warmup TARGET=cloud` → `warmup ok` (servicios, una llamada a Gemini y Chromium). Va después de `preflight`: sus correcciones (`make stage-on`, volver a desplegar la app) reemplazan las instancias y se pierde el calentamiento.
 - [ ] `make reset TARGET=cloud` → `reset ok`.
@@ -476,7 +476,7 @@ El guion paso a paso, con capturas y qué decir en cada pantalla, está en [DEMO
 4. Modo de control: enciéndelo (sección 8) y envía el mismo encargo. Ahora compra en Pulso.
 5. Cierra con `/auditoria`: «Probar con Pulso» y «Probar con Kilómetro».
 
-**Plan B:** a los 60 s el reloj del presentador se pone ámbar y muestra «R = repetición». Si la ejecución en vivo se alarga, pulsa `R`: reproduce la ejecución grabada (la del modo de control si está encendido) bajo la franja «REPETICIÓN GRABADA · no es en vivo», y se detiene en la tarjeta de aprobación hasta una firma real: la passkey del portátil (Touch ID) en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. La pantalla dice cuál de las dos firmó. `L` vuelve a lo en vivo.
+**Plan B:** a los 60 s el reloj del presentador se pone ámbar y muestra «R = repetición». Si la ejecución en vivo se alarga, pulsa `R`: reproduce la ejecución grabada (la del modo de control si está encendido) bajo la franja «REPETICIÓN GRABADA», con el día en que se grabó y «no es en vivo», y se detiene en la tarjeta de aprobación hasta una firma real: la passkey del portátil (Touch ID) en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. La pantalla dice cuál de las dos firmó. `L` vuelve a lo en vivo.
 
 **Sin internet:** `make up-offline` sirve la app y las grabaciones desde el portátil (`http://localhost:3000/presenter?demo=1` y `/?demo=1`; las capturas van dentro de cada grabación). Compila una vez con internet (las fuentes se incrustan) y después funciona sin red; `make e2e-offline` lo prueba bloqueando todo lo que no sea `localhost`. Último recurso: el video `docs/plan-b-replay.mp4` (una ejecución completa, 1920×1080).
 

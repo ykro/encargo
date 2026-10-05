@@ -18,7 +18,7 @@ Variables: `TARGET=local|cloud` (default `local`), `URL` (default `http://localh
 | `make stage-on` / `make stage-off` | Talk day: one minimum instance on the four services / any other day: 0 (nothing bills around the clock). |
 | `make warmup` | Wakes every service, makes one short Gemini call and launches Chromium on the agent. With `TARGET=cloud`, after `stage-on`. |
 | `make record-replay` | Records a real cloud run (events and screenshots) as the Plan B in `app/public/replays/`. |
-| `make preflight` | Talk-day gate: fails if a service is unhealthy, no passkey is registered, control mode is on, `min-instances=1` is missing, recordings are older than 7 days or size-9 stock is low. |
+| `make preflight` | Talk-day gate: fails if a service is unhealthy, no passkey is registered, control mode is on, `min-instances=1` is missing, a recording no longer matches the catalog and errand (or the deployed app serves another copy) or size-9 stock is low. |
 | `make up-offline` / `make e2e-offline` | Plan B without internet: app and recordings from the laptop / the test with the network cut (`VIDEO=1` re-renders the MP4). |
 | `make control-on` / `make control-off` | Turns control mode on or off live (`TARGET=cloud` for the cloud). |
 | `make demo-screens` | Captures `docs/demo/` from two real cloud runs (the demo script). |

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { StoreRef } from "@/lib/config";
 import { useElapsed, useRun, mmss } from "@/lib/useRun";
-import { replayChannel, replayName, useReplay, type ReplayName, type ReplaySignature } from "@/lib/useReplay";
+import { recordedDay, replayChannel, replayName, useReplay, type ReplayName, type ReplaySignature } from "@/lib/useReplay";
 import { focusOffer, humanDate, readableFields, SHORT_LABEL, STATUS_TEXT, type RunView } from "@/lib/runState";
 import { parseItem, storeName } from "@/lib/names";
 import { Wordmark } from "./Logo";
@@ -127,7 +127,7 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
     <main className={`presenter ${replay ? "is-replay" : ""}`}>
       {replay ? (
         <div className="p-replay-banner" role="status">
-          REPETICIÓN GRABADA · no es en vivo
+          REPETICIÓN GRABADA{recordedDay(recorded.recordedAt) ? ` EL ${recordedDay(recorded.recordedAt)!.toUpperCase()}` : ""} · no es en vivo
           <small>{recorded.state === "waiting_signature" ? "esperando una firma real: passkey o barra espaciadora" : recorded.state === "ready" ? "barra espaciadora para empezar · L vuelve a lo en vivo" : "L vuelve a lo en vivo"}</small>
         </div>
       ) : null}
