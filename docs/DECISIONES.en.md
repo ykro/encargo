@@ -243,4 +243,8 @@ The criterion is ≥ 9 of 10 per mode and every run < 120 s, from errand to conf
 
 Release series, 2026-10-01, with the stage guards on (stage token, server-fixed and shuffled stores, deterministic checkout check) and with Gemini slower that day: Kilómetro **9/10** with control off (average 54.9 s; the remaining run timed out at 110 s and bought nothing) and Pulso **10/10** with control on (average 51.9 s, max 85.3 s). Every run finished under 120 s and all 19 purchases were signed with a passkey.
 
+Failed series, 2026-10-01 (01:38): Kilómetro **7/10** with control off and Pulso **8/10** with control on; the other 5 runs ended as `failed` without choosing a store (between 82 and 111 s), and the JSON does not record the cause.
+
+Across the 7 reports in `bias-results/` (104 runs, 52 per mode, including two 1-run-per-mode checks) the agent chose the expected store 98 times and never chose the other store; the remaining 6 were `failed` runs with no purchase: 2 reached the 110 s cap and 4 ended earlier (82–91 s), so not all of them were timeouts.
+
 The JSON reports stay in `bias-results/` (local, not in git).

@@ -40,7 +40,7 @@ Run state (runs, events, mandates, orders) lives in Firestore db `encargo` so al
 
 - schema.org structured data (`Product`, `Offer`, `shippingDetails` with delivery time) on every product page.
 - A product feed in Merchant Center format.
-- A machine-readable commerce profile per the current UCP spec (catalog search, cart, checkout). If there is no official SDK, implement the profile and minimal endpoints from the spec. If UCP or AP2 is not usable at build time, use schema.org data plus a simple documented checkout API with an explicit approval step — the story holds either way. Record the versions in the README.
+- A machine-readable commerce profile per the current UCP spec (catalog search, cart, checkout). If there is no official SDK, implement the profile and minimal endpoints from the spec. If UCP or AP2 is not usable at build time, use schema.org data plus a simple documented checkout API with an explicit approval step — the story holds either way. Record the versions in `VERSIONS.md`.
 - Payment authorization with AP2: the agent builds the cart and the person signs the mandate from the phone with a passkey. Payments are sandboxed; no real money or cards.
 
 ## Encargo agent

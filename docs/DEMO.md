@@ -14,9 +14,12 @@ Cada bloque del diagrama dice qué pasos de este guion lo ejercitan («PASOS N»
 
 ```bash
 make stage-on            # una instancia tibia de cada servicio (sin arranques en frío)
+make preflight           # portero del día, siempre contra Cloud Run: debe terminar en «preflight ok»
 make warmup TARGET=cloud # despierta servicios, una llamada a Gemini y Chromium → «warmup ok»
-make preflight           # portero del día: debe terminar en «preflight ok»
+make reset TARGET=cloud  # stock completo, sin pedidos ni ejecuciones, control apagado → «reset ok»
 ```
+
+El orden importa. `preflight` necesita `stage-on`, porque revisa `min-instances=1`. `warmup` va después de `preflight`: las correcciones de `preflight` (`make stage-on`, volver a desplegar la app) crean una revisión nueva y reemplazan las instancias, y con eso se pierde lo que calentó `warmup`.
 
 `make preflight` falla, con una línea en español por problema, si:
 

@@ -243,4 +243,8 @@ El criterio es ≥ 9 de 10 por modo y cada ejecución < 120 s, del encargo al pe
 
 Serie de liberación, 2026-10-01, con las protecciones de escenario (token de escenario, tiendas fijas en el servidor y barajadas, revisión determinista del checkout) y con Gemini más lento ese día: Kilómetro **9/10** con el modo apagado (promedio 54.9 s; la ejecución restante se quedó sin tiempo a los 110 s y no compró nada) y Pulso **10/10** con el modo encendido (promedio 51.9 s, máximo 85.3 s). Todas las ejecuciones terminaron en menos de 120 s y las 19 compras se firmaron con passkey.
 
+Serie fallida, 2026-10-01 (01:38): Kilómetro **7/10** con el modo apagado y Pulso **8/10** con el modo encendido; las otras 5 ejecuciones terminaron en `failed` sin elegir tienda (entre 82 y 111 s) y el JSON no guarda la causa.
+
+En los 7 reportes de `bias-results/` (104 ejecuciones, 52 por modo, incluidas dos pruebas de 1 ejecución por modo) el agente eligió la tienda esperada 98 veces y nunca eligió la otra tienda; las 6 restantes fueron ejecuciones `failed` sin compra: 2 llegaron al tope de 110 s y 4 terminaron antes (82–91 s), así que no todas fueron por tiempo.
+
 Los reportes JSON quedan en `bias-results/` (local, fuera de git).

@@ -461,7 +461,7 @@ El guion paso a paso, con capturas y qué decir en cada pantalla, está en [DEMO
 
 - [ ] **Primero:** `make stage-on && make preflight` → `preflight ok`. El portero del día de la charla falla, con una línea en español por problema, si: algún servicio no está sano, no hay passkey registrada, el modo de control está encendido, algún servicio no tiene `min-instances=1`, las grabaciones del plan B tienen más de 7 días o queda poco stock de la talla 9.
 - [ ] Internet en el portátil (Wi-Fi del lugar o datos móviles).
-- [ ] `make warmup TARGET=cloud` → `warmup ok` (servicios, una llamada a Gemini y Chromium).
+- [ ] `make warmup TARGET=cloud` → `warmup ok` (servicios, una llamada a Gemini y Chromium). Va después de `preflight`: sus correcciones (`make stage-on`, volver a desplegar la app) reemplazan las instancias y se pierde el calentamiento.
 - [ ] `make reset TARGET=cloud` → `reset ok`.
 - [ ] Proyector a 1920×1080. Abre `$APP_URL/presenter` en pantalla completa: muestra «Control apagado».
 - [ ] `make phone TARGET=cloud` y coloca la ventana del «teléfono» junto al presentador. Touch ID listo (sin guantes, con el portátil abierto).
