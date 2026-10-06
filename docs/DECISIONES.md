@@ -44,7 +44,7 @@ El agente lee la portada solo para descubrir la capa para máquinas. `inspect_st
 
 ![El embudo colapsa](diagrams/funnel.png)
 
-Las herramientas del agente son exactamente ese embudo corto: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` y `request_payment_approval` (`agent/encargo/agent.py`). En Cloud Run, una ejecución completa, del encargo al pedido confirmado, tardó en la última prueba de sesgo (2026-10-01) **54.9 s de promedio con el modo apagado y 51.9 s con el modo encendido; el máximo fue 110.6 s** (ver [resultados](#resultados-de-la-prueba-de-sesgo)). La latencia depende de Gemini ese día. Regla del presentador: a los 60 s el reloj se pone ámbar y muestra «R = repetición»; con `R` se cambia a la ejecución grabada (ver «Plan B»).
+Las herramientas del agente son exactamente ese embudo corto: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` y `request_payment_approval` (`agent/encargo/agent.py`). En Cloud Run, una ejecución completa, del encargo al pedido confirmado, tardó en la última prueba de sesgo (2026-10-01) **54.9 s de promedio con el modo apagado y 51.9 s con el modo encendido; el máximo fue 110.6 s** (ver [resultados](#resultados-de-la-prueba-de-sesgo)). La latencia depende de Gemini ese día. Regla del presentador: a los 60 s el reloj se pone ámbar y el botón «Ver la ejecución grabada» también; un clic cambia a la ejecución grabada (ver «Plan B»).
 
 ### 3. El modo de control demuestra que el agente no tiene sesgo
 
@@ -137,11 +137,12 @@ Las ejecuciones, los eventos, los mandatos, los pedidos, las capturas, las passk
 
 - Los eventos son una subcolección `runs/{id}/events/{seq}`. Así, «eventos después de N» no necesita un índice compuesto.
 - El endpoint SSE consulta cada 0.4 s y entrega los eventos en orden estricto. Las herramientas en paralelo pueden escribir el evento N+1 antes que el N.
-- `make reset` cancela las ejecuciones en curso y borra en paralelo ejecuciones, mandatos, pedidos, capturas y desafíos WebAuthn pendientes. Las escrituras tardías no resucitan ejecuciones borradas (`update`, no `set(merge=True)`). Las passkeys sobreviven, porque son de la persona y no de una ejecución.
+- Un reinicio («Empezar de nuevo» en el presentador, o `make reset` en desarrollo) cancela las ejecuciones en curso y borra en paralelo ejecuciones, mandatos, pedidos, capturas y desafíos WebAuthn pendientes. Las escrituras tardías no resucitan ejecuciones borradas (`update`, no `set(merge=True)`). Las passkeys sobreviven, porque son de la persona y no de una ejecución.
 
 ### Quién puede hacer qué durante la charla
 
-- **Enviar un encargo o cancelar un pago** (`POST /runs`, `POST /mandates/{id}/reject`): en modo `passkey`, solo un dispositivo habilitado. El enlace de configuración (`/configurar?clave=<ADMIN_TOKEN>`) le entrega el token de escenario (`STAGE_TOKEN`) y borra la clave de la barra de direcciones.
+- **Enviar un encargo, cancelar un pago, «Empezar de nuevo» y el modo de control** (`POST /runs`, `POST /mandates/{id}/reject`, `POST /stage/reset`, `POST /stage/control`): en modo `passkey`, solo un navegador habilitado. «Habilitar con Touch ID» le entrega el token de escenario (`STAGE_TOKEN`) a quien firma con la passkey registrada; el enlace de configuración (`/configurar?clave=<ADMIN_TOKEN>`) también, y borra la clave de la barra de direcciones. El reinicio y el modo de control los ejecuta el agente con su `ADMIN_TOKEN`: el navegador nunca lo ve.
+- **Preparar el escenario** (`POST /stage/warmup`, `GET /stage/status`): público y barato de repetir. Despierta los servicios y dice qué está listo; la llamada a Gemini y el arranque de Chromium van como mucho cada 5 minutos, y el reinicio automático solo ocurre tras más de 10 minutos sin encargos y sin uno en curso.
 - **Pagar:** solo una passkey registrada, con un desafío atado al checkout.
 - **Ver:** el presentador es anónimo. `/runs/latest` no le muestra el `mandate_id`.
 - **Cambiar o cancelar un checkout en la tienda:** solo quien tenga su llave (encabezado `ucp-checkout-token` al crearlo) o la llave de administración de la tienda.
@@ -157,15 +158,15 @@ Las ejecuciones, los eventos, los mandatos, los pedidos, las capturas, las passk
 
 | Componente | Dónde | Configuración | Por qué |
 | --- | --- | --- | --- |
-| Pulso, Kilómetro | Cloud Run | máximo 1 instancia, 512 MiB; mínimo 1 solo con `make stage-on` | El stock, los checkouts y la llave de la tienda viven en SQLite dentro del proceso. `make reset` los restaura. |
-| Agente | Cloud Run | máximo 1 instancia (mínimo 1 con `make stage-on`), CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s | La ejecución sigue después de responder `POST /runs`. Chromium necesita memoria. El estado está en Firestore. |
-| App | Cloud Run | 0 a 2 instancias (mínimo 1 con `make stage-on`), 512 MiB | Su dominio `run.app` es el RP ID de las passkeys. |
+| Pulso, Kilómetro | Cloud Run | 0 a 1 instancias, 512 MiB | El stock, los checkouts y la llave de la tienda viven en SQLite dentro del proceso. Un reinicio (o un arranque en frío) los restaura. |
+| Agente | Cloud Run | 0 a 1 instancias, CPU siempre activa, 2 vCPU, 2 GiB, timeout de 3600 s | La ejecución sigue después de responder `POST /runs`. Chromium necesita memoria. El estado está en Firestore. |
+| App | Cloud Run | 0 a 2 instancias, 512 MiB | Su dominio `run.app` es el RP ID de las passkeys. |
 | Firestore `encargo`, Vertex AI | Google Cloud | `nam5`; Gemini en `global` | Servicios gestionados. |
 | Ventana de firma y navegador del presentador | Portátil | Chrome | Solo muestran páginas de la app. Ver «Quién firma». |
 
 Todas las URL son HTTPS públicas y deterministas (`https://SERVICIO-NUMERO_DE_PROYECTO.us-central1.run.app`, `infra/urls.sh`). Así, cada servicio conoce a los otros antes de existir.
 
-Ni el «teléfono» ni el emulador necesitan la red local del auditorio: les basta con salida a internet.
+Ni el «teléfono» ni el presentador necesitan la red local del auditorio: les basta con salida a internet.
 
 - **Por qué:** WebAuthn exige un contexto seguro (HTTPS o `localhost`). Una IP del portátil en la red local por `http://` ni siquiera permitiría usar passkeys.
 - **Por qué:** la red del lugar suele aislar a los clientes entre sí.
@@ -174,7 +175,7 @@ Ni el «teléfono» ni el emulador necesitan la red local del auditorio: les bas
 
 ### Quién firma: el portátil con Touch ID, en una ventana del tamaño de un teléfono
 
-En el escenario, el dispositivo que firma el mandato es el portátil. `make phone TARGET=cloud` abre Chrome en modo app, a 390×844, y la passkey usa el autenticador del Mac (Touch ID).
+En el escenario, el dispositivo que firma el mandato es el portátil: la página del teléfono abierta en una ventana de Chrome junto al presentador, y la passkey usa el autenticador del Mac (Touch ID). En pantallas anchas la app se dibuja como un teléfono centrado, así que no hace falta ajustar la ventana.
 
 **Por qué no el teléfono:** la charla no usa un teléfono real. El «teléfono» es el emulador Android `Pixel_9_API_36_1`, y ahí Chrome no puede crear passkeys sin iniciar sesión con una cuenta de Google. Sin un proveedor de credenciales, solo ofrece «Create passkey on another device?» (QR híbrido; ver `docs/screenshots/emulator/passkey-sheet.png`). Además, Chrome para Android no expone el autenticador virtual de DevTools. Se descartó iniciar sesión con una cuenta de Google en el emulador.
 
@@ -196,24 +197,33 @@ En la nube, el agente corre con `SIGNER_MODE=passkey`: solo una aserción WebAut
 
 El encargo se interpreta con un parser determinista (expresiones regulares) y no con el modelo. Así, las cuatro condiciones (`categoria`, `talla`, `precio`, `entrega`) son idénticas en todas las ejecuciones, que es lo que necesita la prueba de sesgo. Pruebas: `agent/tests/test_errand.py`.
 
-### Escenario: instancias tibias solo el día de la charla
+### El día de la charla no se corre nada: la página del presentador prepara el escenario
 
-`make stage-on` fija `--min-instances=1` en los cuatro servicios (sin arranques en frío en el escenario); `make stage-off` los vuelve a 0 para que nada se cobre las 24 horas (`infra/60-stage.sh`). Los despliegues usan 0 por omisión (`MIN_INSTANCES`). `make warmup` despierta cada servicio y sus caminos fríos antes de la charla: páginas, feed y perfil UCP de las tiendas, la app, una llamada corta a Gemini y el arranque de Chromium en el agente (`POST /admin/warmup`).
+Los cuatro servicios quedan con 0 instancias mínimas (`MIN_INSTANCES`, 0 por omisión), así que nada se cobra las 24 horas. Al abrirse, `/presenter` llama a `POST /stage/warmup` del agente (`agent/encargo/stage.py`):
 
-**Descartado:** dejar una instancia mínima siempre encendida. Cuesta todo el año por unas horas de escenario.
+- despierta las tiendas (portada, feed y perfil UCP) y el agente;
+- hace una llamada corta a Gemini y arranca Chromium, como mucho cada 5 minutos;
+- si pasaron más de 10 minutos desde el último encargo y no hay uno en curso, reinicia: stock completo, sin pedidos ni encargo en pantalla, modo de control apagado.
+
+Después consulta `GET /stage/status` cada 3 s y muestra «Preparando la demo…» con cada parte hasta que todo responde. Desde 0 instancias tarda unos 16 s (medido el 6 oct 2026 con instancias nuevas, reinicio incluido). Mientras la página siga abierta, cada 4 minutos vuelve a despertar los servicios, así que Cloud Run no los apaga a mitad de la charla. Lo que antes revisaba un portero de línea de comandos ahora lo dice la página: tiendas que no responden, que no haya passkey o que quede poco stock de la talla 9.
+
+**Descartado:**
+
+- Dejar una instancia mínima siempre encendida: cuesta todo el año por unas horas de escenario.
+- Comandos el día de la charla (subir instancias, calentar, revisar y reiniciar desde una terminal): son pasos que se olvidan y que alguien tiene que saber correr. La página hace lo mismo al abrirse.
 
 ### Plan B: una ejecución real grabada
 
 Si Gemini va lento en vivo, el presentador no espera. `make record-replay` graba una ejecución real en la nube (eventos y capturas) en `app/public/replays/kilometro.json` y `pulso-control.json`, con las capturas dentro de cada archivo. La app la reproduce con los tiempos originales y sin agente ni Gemini (`app/src/lib/useReplay.ts`):
 
-- `/presenter?demo=1` (o `?demo=pulso-control`) espera el encargo del teléfono y se detiene en la tarjeta de aprobación hasta la firma. La barra espaciadora hace lo mismo a mano.
-- `/?demo=1` en el teléfono reproduce el mismo recorrido. La firma se simula y se marca «Demostración grabada».
-- El teléfono y el presentador corren en el mismo Chrome del portátil y se coordinan con un `BroadcastChannel`.
-- **Tecla `R`** en el presentador: cambia a la grabación en plena charla (la del modo de control si está encendido). **`L`** vuelve a lo en vivo.
-- **Honestidad:** una franja grande y fija dice «REPETICIÓN GRABADA», el día en que se grabó y «no es en vivo», el modo de control mostrado es el de la grabación, y la repetición se detiene en la tarjeta de aprobación hasta una firma real: la passkey del portátil (Touch ID, en `/?demo=1`) o la barra espaciadora. La confirmación dice cuál firmó; nunca «firmado con passkey» si no firmó una passkey.
-- **Sin internet:** las capturas van dentro de cada grabación (data URL). `make up-offline` sirve la app compilada y las grabaciones desde el portátil, con el agente y las tiendas apuntando a una dirección inalcanzable; `make e2e-offline` lo prueba bloqueando toda petición que no sea `localhost` y firmando con un autenticador virtual. Último recurso: el video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) de una ejecución completa.
+- **«Ver la ejecución grabada»** en el presentador (abajo a la derecha; en ámbar si la ejecución en vivo pasa de 60 s o se detiene) cambia a la grabación, la del modo de control si está encendido.
+- El teléfono y el presentador corren en el mismo Chrome del portátil y se coordinan con un `BroadcastChannel`: el teléfono pasa solo a la misma grabación (`/encargo/demo-<nombre>`) y su firma continúa la del presentador. «Volver a lo en vivo» regresa los dos.
+- **Honestidad:** una franja grande y fija dice «REPETICIÓN GRABADA», el día en que se grabó y «no es en vivo», el modo de control mostrado es el de la grabación, y la repetición se detiene en la tarjeta de aprobación hasta una firma: la passkey del portátil (Touch ID) en el teléfono, o, si el teléfono no está abierto, «Continuar con firma simulada». La confirmación dice cuál firmó; nunca «firmado con passkey» si no firmó una passkey.
+- **Último recurso, sin internet en el lugar:** el video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) de una ejecución completa (`make plan-b-video VIDEO=1` lo genera desde la app desplegada).
 
-Las fechas de la grabación son las del día en que se grabó, y la franja dice ese día, así que la grabación no caduca con el calendario. Caduca cuando cambia lo que capturó: `make record-replay` guarda una huella del catálogo (`catalog/catalog.json`) y del texto del encargo, y `make preflight` falla si la huella ya no coincide o si la app desplegada sirve otra copia (`agent/encargo/replay_check.py`). Quien cambie el catálogo o el encargo vuelve a grabar y despliega la app en el mismo cambio.
+Las fechas de la grabación son las del día en que se grabó, y la franja dice ese día, así que la grabación no caduca con el calendario. Caduca cuando cambia lo que capturó: `make record-replay` guarda una huella del catálogo (`catalog/catalog.json`) y del texto del encargo, y `make test` falla si la huella de una grabación ya no coincide (`agent/encargo/replay_check.py`). Quien cambie el catálogo o el encargo vuelve a grabar y despliega la app en el mismo cambio.
+
+**Descartado:** servir la app y las grabaciones desde el portátil sin internet. Todo vive en la nube; sin red, queda el video.
 
 ### CI con GitHub Actions
 

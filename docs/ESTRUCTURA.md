@@ -45,18 +45,18 @@ encargo/
 │   ├── runstore/           Firestore (nube) o memoria (pruebas)
 │   ├── audit.py            make audit
 │   ├── bias_test.py        make bias-test
-│   ├── preflight.py        make preflight: portero del día de la charla
+│   ├── stage.py            el día de la charla desde la página: despertar, estado, reiniciar, modo de control
 │   ├── replay_check.py     huella de las grabaciones del plan B (catálogo + encargo)
 │   ├── checkout_rules.py   revisión determinista del checkout antes de pedir la firma
 │   ├── software_authenticator.py  passkey por software para grabar y probar
 │   ├── mock_planner.py     MOCK_AI=1: planificador determinista con las mismas herramientas
-│   └── api.py              FastAPI: /runs, SSE, /mandates, /passkeys, /audit, /.well-known/ucp
+│   └── api.py              FastAPI: /runs, SSE, /mandates, /passkeys, /stage, /audit, /.well-known/ucp
 ├── app/src/
-│   ├── app/                /, /encargo/[id], /presenter, /configurar, /auditoria, /api/agent (proxy), /api/control
+│   ├── app/                /, /encargo/[id], /presenter, /configurar, /auditoria, /api/agent (proxy)
 │   ├── components/         ErrandForm, RunPhone, Presenter, PasskeySetup, AuditView, PhoneTop, Logo, Icons
-│   └── lib/                useRun (SSE), runState (eventos → pantalla), useReplay (plan B), stage, auditCopy
-├── infra/                  10-enable-apis, 20-secrets, 30-deploy-stores, 40-deploy-agent, 50-deploy-app, 60-stage
-├── scripts/                up.sh, up-offline.sh, reset.sh, warmup.sh, record_replay.py, e2e_passkey.py, e2e_emulator.py, e2e_offline.py, demo_screens.py, generate_product_images.py
+│   └── lib/                useRun (SSE), runState (eventos → pantalla), useReplay (plan B), stage, stageClient (preparar, reiniciar, habilitar con Touch ID), auditCopy
+├── infra/                  10-enable-apis, 20-secrets, 30-deploy-stores, 40-deploy-agent, 50-deploy-app
+├── scripts/                up.sh, reset.sh, record_replay.py, plan_b_video.py, e2e_passkey.py, e2e_emulator.py, demo_screens.py, generate_product_images.py
 ├── data/                   SOURCES.md, DATASHEET.md
 └── docs/                   DEMO, ONBOARDING, DECISIONES, COMANDOS, ESTRUCTURA, CREDITOS (.md y .en.md), diagrams/, demo/, screenshots/
 ```

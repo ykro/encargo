@@ -16,7 +16,16 @@ Demo de la charla **«Tu próximo cliente es un agente de IA»**. Encargo es un 
 
 ![Qué se prueba en la demo](docs/diagrams/que-se-prueba.png)
 
-## Arranque rápido
+## El día de la charla
+
+No se corre ningún comando. Se abren dos páginas en el mismo Chrome del portátil:
+
+- **Presentador**, en el proyector: https://encargo-app-611681112050.us-central1.run.app/presenter. Al abrirse despierta las tiendas, el agente y Gemini, y si llevaba rato sin uso empieza de cero. Dice «Preparando la demo…» y, en unos 15–20 s, «Envía un encargo desde la app». Ahí están el interruptor del modo de control, «Empezar de nuevo» y «Ver la ejecución grabada» (el plan B).
+- **Teléfono**, en la pantalla del portátil: https://encargo-app-611681112050.us-central1.run.app. Se envía el encargo y se firma con Touch ID.
+
+El guion completo está en [docs/DEMO.md](docs/DEMO.md).
+
+## Arranque rápido (desarrollo)
 
 ```bash
 cp .env.example .env                       # modelos, URLs locales y tokens de desarrollo

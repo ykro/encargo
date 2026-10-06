@@ -16,7 +16,16 @@ The Spanish [README.md](README.md) is the primary document; this is a faithful E
 
 ![What the demo tests](docs/diagrams/que-se-prueba.png)
 
-## Quickstart
+## On talk day
+
+Nothing is run. Two pages are opened in the same Chrome on the laptop:
+
+- **Presenter**, on the projector: https://encargo-app-611681112050.us-central1.run.app/presenter. When it opens it wakes the stores, the agent and Gemini, and if it sat idle for a while it starts from scratch. It says «Preparando la demo…» and, in about 15–20 s, «Envía un encargo desde la app». The control-mode switch, «Empezar de nuevo» and «Ver la ejecución grabada» (Plan B) are there.
+- **Phone**, on the laptop screen: https://encargo-app-611681112050.us-central1.run.app. The errand is sent and signed with Touch ID there.
+
+The full script is in [docs/DEMO.en.md](docs/DEMO.en.md).
+
+## Quickstart (development)
 
 ```bash
 cp .env.example .env                       # models, local URLs and development tokens
@@ -45,7 +54,7 @@ Use these URLs, not the `…-uc.a.run.app` aliases: the passkey is bound to the 
 
 ## Documentation
 
-- [docs/DEMO.md](docs/DEMO.md): demo script with screenshots, talk points, timings and what to do if something fails (Spanish).
+- [docs/DEMO.en.md](docs/DEMO.en.md): demo script with screenshots, talk points, timings and what to do if something fails ([Spanish](docs/DEMO.md)).
 - [docs/ONBOARDING.md](docs/ONBOARDING.md): setup, cloud, tests, code walkthrough, troubleshooting and talk-day checklist (Spanish).
 - [docs/DECISIONES.en.md](docs/DECISIONES.en.md): what the demo teaches in detail, every technical decision, UCP and AP2 versions, and bias-test results.
 - [docs/COMANDOS.en.md](docs/COMANDOS.en.md): every `make` command.

@@ -44,7 +44,7 @@ The agent reads the homepage only to discover the machine-readable layer. `inspe
 
 ![The funnel collapses](diagrams/funnel.png)
 
-The agent's tools are exactly that short funnel: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` and `request_payment_approval` (`agent/encargo/agent.py`). In the last bias test (2026-10-01) a full Cloud Run run, from errand to confirmed order, averaged **54.9 s with control off and 51.9 s with it on; the maximum was 110.6 s** (see [results](#bias-test-results)). Latency depends on Gemini that day. Presenter rule: at 60 s the clock turns amber and shows "R = repetición"; pressing `R` switches to the recorded run (see "Plan B").
+The agent's tools are exactly that short funnel: `inspect_store`, `read_product_feed`, `search_catalog`, `fetch_page`, `browse_page`, `record_checklist`, `create_checkout` and `request_payment_approval` (`agent/encargo/agent.py`). In the last bias test (2026-10-01) a full Cloud Run run, from errand to confirmed order, averaged **54.9 s with control off and 51.9 s with it on; the maximum was 110.6 s** (see [results](#bias-test-results)). Latency depends on Gemini that day. Presenter rule: at 60 s the clock and the «Ver la ejecución grabada» button turn amber; one click switches to the recorded run (see "Plan B").
 
 ### 3. Control mode proves the agent has no bias
 
@@ -137,11 +137,12 @@ Runs, events, mandates, orders, screenshots, passkeys and WebAuthn challenges li
 
 - Events are a subcollection `runs/{id}/events/{seq}`. So "events after N" needs no composite index.
 - The SSE endpoint polls every 0.4 s and delivers events in strict order. Parallel tool calls can write event N+1 before event N.
-- `make reset` cancels runs in flight and deletes runs, mandates, orders, screenshots and pending WebAuthn challenges in parallel. Late writes cannot resurrect deleted runs (`update`, not `set(merge=True)`). Passkeys survive, because they belong to the person, not to a run.
+- A reset («Empezar de nuevo» on the presenter, or `make reset` in development) cancels runs in flight and deletes runs, mandates, orders, screenshots and pending WebAuthn challenges in parallel. Late writes cannot resurrect deleted runs (`update`, not `set(merge=True)`). Passkeys survive, because they belong to the person, not to a run.
 
 ### Who can do what during the talk
 
-- **Start an errand or cancel a payment** (`POST /runs`, `POST /mandates/{id}/reject`): in `passkey` mode, only an enrolled device. The setup link (`/configurar?clave=<ADMIN_TOKEN>`) hands it the stage token (`STAGE_TOKEN`) and clears the code from the address bar.
+- **Start an errand, cancel a payment, «Empezar de nuevo» and control mode** (`POST /runs`, `POST /mandates/{id}/reject`, `POST /stage/reset`, `POST /stage/control`): in `passkey` mode, only an enabled browser. «Habilitar con Touch ID» hands the stage token (`STAGE_TOKEN`) to whoever signs with the registered passkey; the setup link (`/configurar?clave=<ADMIN_TOKEN>`) does too, and clears the code from the address bar. The agent runs the reset and the control switch with its own `ADMIN_TOKEN`: the browser never sees it.
+- **Prepare the stage** (`POST /stage/warmup`, `GET /stage/status`): public and cheap to repeat. It wakes the services and reports what is ready; the Gemini call and the Chromium launch run at most every 5 minutes, and the automatic reset only happens after more than 10 minutes without errands and none in flight.
 - **Pay:** only a registered passkey, with a challenge bound to the checkout.
 - **Watch:** the presenter is anonymous; `/runs/latest` hides the `mandate_id` from it.
 - **Change or cancel a store checkout:** only its key holder (the `ucp-checkout-token` header returned at creation) or the store admin key.
@@ -157,15 +158,15 @@ Runs, events, mandates, orders, screenshots, passkeys and WebAuthn challenges li
 
 | Component | Where | Configuration | Why |
 | --- | --- | --- | --- |
-| Pulso, Kilómetro | Cloud Run | max 1 instance, 512 MiB; min 1 only with `make stage-on` | Stock, checkouts and the store key live in in-process SQLite. `make reset` restores them. |
-| Agent | Cloud Run | max 1 instance (min 1 with `make stage-on`), always-on CPU, 2 vCPU, 2 GiB, 3600 s timeout | Runs continue after `POST /runs` returns. Chromium needs memory. State is in Firestore. |
-| App | Cloud Run | 0–2 instances (min 1 with `make stage-on`), 512 MiB | Its `run.app` hostname is the passkey RP ID. |
+| Pulso, Kilómetro | Cloud Run | 0–1 instances, 512 MiB | Stock, checkouts and the store key live in in-process SQLite. A reset (or a cold start) restores them. |
+| Agent | Cloud Run | 0–1 instances, always-on CPU, 2 vCPU, 2 GiB, 3600 s timeout | Runs continue after `POST /runs` returns. Chromium needs memory. State is in Firestore. |
+| App | Cloud Run | 0–2 instances, 512 MiB | Its `run.app` hostname is the passkey RP ID. |
 | Firestore `encargo`, Vertex AI | Google Cloud | `nam5`; Gemini at `global` | Managed services. |
 | Signing window and presenter browser | Laptop | Chrome | They only display app pages. See "Who signs". |
 
 Every URL is public, deterministic HTTPS (`https://SERVICE-PROJECT_NUMBER.us-central1.run.app`, `infra/urls.sh`). So each service knows the others before they exist.
 
-Neither the "phone" nor the emulator needs the venue's local network: internet access is enough.
+Neither the "phone" nor the presenter needs the venue's local network: internet access is enough.
 
 - **Why:** WebAuthn requires a secure context (HTTPS or `localhost`). A laptop IP on the LAN over `http://` would not even allow passkeys.
 - **Why:** venue Wi-Fi often isolates clients from each other.
@@ -174,7 +175,7 @@ Neither the "phone" nor the emulator needs the venue's local network: internet a
 
 ### Who signs: the laptop with Touch ID, in a phone-sized window
 
-On stage, the device that signs the mandate is the laptop. `make phone TARGET=cloud` opens Chrome in app mode at 390×844, and the passkey uses the Mac's platform authenticator (Touch ID).
+On stage, the device that signs the mandate is the laptop: the phone page open in a Chrome window next to the presenter, and the passkey uses the Mac's platform authenticator (Touch ID). On wide screens the app draws itself as a centered phone, so the window needs no resizing.
 
 **Why not the phone:** the talk uses no real phone. The "phone" is the Android emulator `Pixel_9_API_36_1`, and there Chrome cannot create passkeys without signing in to a Google account. Without a credential provider it only offers "Create passkey on another device?" (hybrid QR; see `docs/screenshots/emulator/passkey-sheet.png`). Chrome for Android also does not expose the DevTools virtual authenticator. Signing in to a Google account on the emulator was ruled out.
 
@@ -196,24 +197,33 @@ In the cloud the agent runs with `SIGNER_MODE=passkey`: only a WebAuthn assertio
 
 The errand is parsed with a deterministic parser (regular expressions), not by the model. So the four conditions (`categoria`, `talla`, `precio`, `entrega`) are identical in every run, which is what the bias test needs. Tests: `agent/tests/test_errand.py`.
 
-### Stage: warm instances only on talk days
+### Nothing is run on talk day: the presenter page prepares the stage
 
-`make stage-on` sets `--min-instances=1` on the four services (no cold starts on stage); `make stage-off` sets them back to 0 so nothing bills around the clock (`infra/60-stage.sh`). Deploys default to 0 (`MIN_INSTANCES`). `make warmup` wakes every service and its cold paths before the talk: store pages, feed and UCP profile, the app, one short Gemini call and a Chromium launch on the agent (`POST /admin/warmup`).
+The four services keep 0 minimum instances (`MIN_INSTANCES`, 0 by default), so nothing bills around the clock. When it opens, `/presenter` calls the agent's `POST /stage/warmup` (`agent/encargo/stage.py`):
 
-**Discarded:** keeping one instance always on. It costs all year for a few hours on stage.
+- it wakes the stores (home page, feed and UCP profile) and the agent;
+- it makes one short Gemini call and launches Chromium, at most every 5 minutes;
+- if more than 10 minutes passed since the last errand and none is in flight, it resets: full stock, no orders or errand on screen, control mode off.
+
+Then it polls `GET /stage/status` every 3 s and shows «Preparando la demo…» with each part until everything answers. From 0 instances it takes about 16 s (measured on 6 Oct 2026 with fresh instances, reset included). While the page stays open it wakes the services again every 4 minutes, so Cloud Run does not scale them down mid-talk. What a command-line gate used to check, the page now says: stores not answering, no passkey, or low size-9 stock.
+
+**Ruled out:**
+
+- Keeping one instance always on: it costs all year for a few hours on stage.
+- Commands on talk day (raising instances, warming, checking and resetting from a terminal): steps that get forgotten and that someone has to know how to run. The page does the same when it opens.
 
 ### Plan B: a recorded real run
 
 If Gemini is slow live, the presenter does not wait. `make record-replay` records a real cloud run (events and screenshots) into `app/public/replays/kilometro.json` and `pulso-control.json`, with the screenshots inside each file. The app replays it with the original timing and no agent or Gemini (`app/src/lib/useReplay.ts`):
 
-- `/presenter?demo=1` (or `?demo=pulso-control`) waits for the phone's errand and pauses at the approval card until the signature. The space bar does the same by hand.
-- `/?demo=1` on the phone replays the same journey. The signature is simulated and marked "Demostración grabada".
-- Phone and presenter run in the same Chrome on the laptop and coordinate over a `BroadcastChannel`.
-- **Key `R`** on the presenter switches to the recording mid-talk (the control-mode one if it is on). **`L`** goes back to live.
-- **Honesty:** a large, persistent banner says "REPETICIÓN GRABADA" (recorded replay), the day it was recorded and "no es en vivo" (not live), the control mode shown is the recording's, and the replay stops at the approval card until a real signature: the laptop's passkey (Touch ID, on `/?demo=1`) or the space bar. The confirmation says which one signed; it never says "signed with passkey" unless a passkey did.
-- **No internet:** screenshots live inside each recording (data URLs). `make up-offline` serves the built app and the recordings from the laptop, with the agent and stores pointed at an unreachable address; `make e2e-offline` tests it by blocking every non-`localhost` request and signing with a virtual authenticator. Last resort: the video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) of a full run.
+- **«Ver la ejecución grabada»** on the presenter (bottom right; amber when the live run passes 60 s or stops) switches to the recording, the control-mode one if it is on.
+- Phone and presenter run in the same Chrome on the laptop and coordinate over a `BroadcastChannel`: the phone moves to the same recording by itself (`/encargo/demo-<name>`) and its signature continues the presenter's. «Volver a lo en vivo» brings both back.
+- **Honesty:** a large, persistent banner says "REPETICIÓN GRABADA" (recorded replay), the day it was recorded and "no es en vivo" (not live), the control mode shown is the recording's, and the replay stops at the approval card until a signature: the laptop's passkey (Touch ID) on the phone, or, if the phone is not open, «Continuar con firma simulada». The confirmation says which one signed; it never says "signed with passkey" unless a passkey did.
+- **Last resort, no internet at the venue:** the video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) of a full run (`make plan-b-video VIDEO=1` renders it from the deployed app).
 
-The recording keeps the dates of the day it was made, and the banner names that day, so it does not expire with the calendar. It expires when what it captured changes: `make record-replay` stores a fingerprint of the catalog (`catalog/catalog.json`) and the errand text, and `make preflight` fails if the fingerprint no longer matches or the deployed app serves another copy (`agent/encargo/replay_check.py`). Whoever changes the catalog or the errand re-records and redeploys the app in the same change.
+The recording keeps the dates of the day it was made, and the banner names that day, so it does not expire with the calendar. It expires when what it captured changes: `make record-replay` stores a fingerprint of the catalog (`catalog/catalog.json`) and the errand text, and `make test` fails if a recording's fingerprint no longer matches (`agent/encargo/replay_check.py`). Whoever changes the catalog or the errand re-records and redeploys the app in the same change.
+
+**Ruled out:** serving the app and the recordings from the laptop without internet. Everything lives in the cloud; without a network, there is the video.
 
 ### CI with GitHub Actions
 

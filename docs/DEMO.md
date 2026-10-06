@@ -1,8 +1,8 @@
 # Guion de la demo — Encargo
 
-Plan paso a paso para la demo en vivo de **«Tu próximo cliente es un agente de IA»**. Cada paso es una pantalla, con lo que haces, lo que dices y lo que tarda.
+Guion de la demo en vivo de **«Tu próximo cliente es un agente de IA»**. Cada paso es una pantalla, con lo que haces, lo que dices y lo que tarda. El día de la charla no se corre ningún comando: solo se abren dos páginas y se hace clic. [English version](DEMO.en.md).
 
-Las capturas de `docs/demo/` salen de una ejecución real en Cloud Run (`make demo-screens`). Esa ejecución firma con el **autenticador virtual de Chrome**, que recorre las mismas pantallas y la misma ruta WebAuthn que Touch ID. Lo único que no aparece es el diálogo del sistema de macOS: la automatización no puede mostrarlo. En el escenario firmas con la passkey `adrian-macbook` (Touch ID).
+Las capturas de `docs/demo/` salen de la demo completa en Cloud Run, hecha solo con clics como la haces tú (`make demo-screens`). En esa ejecución firma el **autenticador virtual de Chrome**, que recorre las mismas pantallas y la misma ruta WebAuthn que Touch ID. Lo único que no aparece es el diálogo de macOS, que la automatización no puede mostrar. En el escenario firmas con la passkey `adrian-macbook` (Touch ID).
 
 ![Qué se prueba en la demo](diagrams/que-se-prueba.png)
 
@@ -10,43 +10,29 @@ Cada bloque del diagrama dice qué pasos de este guion lo ejercitan («PASOS N»
 
 ## Antes de la demo
 
-### Checklist (una hora antes, con internet)
+Unos minutos antes, con internet, abre dos ventanas del mismo perfil de Chrome (ahí vive la passkey):
 
-```bash
-make stage-on            # una instancia tibia de cada servicio (sin arranques en frío)
-make preflight           # portero del día, siempre contra Cloud Run: debe terminar en «preflight ok»
-make warmup TARGET=cloud # despierta servicios, una llamada a Gemini y Chromium → «warmup ok»
-make reset TARGET=cloud  # stock completo, sin pedidos ni ejecuciones, control apagado → «reset ok»
-```
-
-El orden importa. `preflight` necesita `stage-on`, porque revisa `min-instances=1`. `warmup` va después de `preflight`: las correcciones de `preflight` (`make stage-on`, volver a desplegar la app) crean una revisión nueva y reemplazan las instancias, y con eso se pierde lo que calentó `warmup`.
-
-`make preflight` falla, con una línea en español por problema, si:
-
-- algún servicio no está sano;
-- no hay passkey registrada;
-- el modo de control está encendido;
-- falta `min-instances=1`;
-- alguna grabación del plan B ya no coincide con el catálogo y el encargo, o la app desplegada sirve otra copia;
-- queda poco stock de la talla 9.
-
-Corrige lo que diga y vuelve a correrlo.
-
-### Ventanas
-
-| Ventana | Cómo abrirla | Dónde va |
+| Ventana | Dirección | Dónde va |
 | --- | --- | --- |
-| Presentador | Chrome en pantalla completa en `https://encargo-app-611681112050.us-central1.run.app/presenter` | Proyector, 1920×1080 |
-| «Teléfono» | `make phone TARGET=cloud`: Chrome en modo app, 390×844, con la passkey del Mac | Pantalla del portátil, a un lado; la ves tú, el público ve el presentador |
-| Auditoría (para el cierre) | Una pestaña en `…/auditoria` | Detrás del presentador; la traes al proyector en el paso 10 |
+| Presentador | `https://encargo-app-611681112050.us-central1.run.app/presenter`, en pantalla completa | Proyector, 1920×1080 |
+| «Teléfono» | `https://encargo-app-611681112050.us-central1.run.app` | Pantalla del portátil, a un lado. La ves tú; el público ve el presentador |
+| Auditoría (para el cierre) | `https://encargo-app-611681112050.us-central1.run.app/auditoria`, en otra pestaña | Detrás del presentador; la traes al proyector en el paso 8 |
 
-Las dos ventanas deben ser del mismo perfil de Chrome: ahí vive la passkey y ahí se coordina el plan B. Si la ventana del «teléfono» nunca abrió el enlace de configuración, ábrelo una vez: `/configurar?clave=<ADMIN_TOKEN>`. Así queda habilitada para enviar encargos.
+![El presentador se prepara solo](demo/00-presentador-preparando.png)
+
+Al abrirse, el presentador despierta las dos tiendas, el agente, Gemini y el navegador del agente. Si llevaba más de 10 minutos sin encargos, también empieza de cero: stock completo, sin pedidos ni encargos en pantalla y el modo de control apagado. Mientras tanto, la columna central dice «Preparando la demo…» con cada parte. En unos 15–20 s cambia a «Envía un encargo desde la app». Mientras la ventana siga abierta, mantiene despiertos los servicios.
+
+Si la columna central muestra un aviso en ámbar, dice qué falta. Por ejemplo: «No hay una passkey registrada para firmar».
+
+**El teléfono, la primera vez en ese Chrome:** si muestra «Habilitar con Touch ID», tócalo y pon el dedo. Queda habilitado ese navegador, y con él el presentador: ahí se envían encargos, se firma, se reinicia y se cambia el modo de control.
+
+![Habilitar el teléfono con Touch ID](demo/01b-telefono-habilitar.png)
 
 ## Durante la demo
 
 ### 1. El escenario listo · 0 s
 
-![Presentador sin encargo](demo/01-presentador-listo.png)
+![Presentador listo](demo/01-presentador-listo.png)
 
 **Haz:** nada. El presentador muestra «Esperando un encargo…», «Modo de control · APAGADO» y las tres columnas vacías.
 
@@ -56,7 +42,7 @@ Las dos ventanas deben ser del mismo perfil de Chrome: ahí vive la passkey y ah
 
 ![Encargo escrito en el teléfono](demo/02-telefono-encargo.png)
 
-**Haz:** en la ventana del «teléfono», escribe (o deja) el encargo y pulsa **Enviar encargo**:
+**Haz:** en la ventana del «teléfono», deja el encargo que ya viene escrito (o escríbelo) y pulsa **Enviar encargo**:
 
 ```text
 Tenis para trail, talla 9, menos de 150 USD, que lleguen antes del viernes
@@ -94,13 +80,11 @@ En el «teléfono» se ve el mismo checklist, más pequeño.
 
 ![Autoriza la compra](demo/06-telefono-autoriza.png)
 
-**Haz:** en el «teléfono», lee la tarjeta «Autoriza la compra»: producto, talla, tienda, entrega, total, «Firmado por la tienda: Sí, verificado» y «Oferta válida hasta». Pulsa **Firmar mandato con passkey**.
-
-Chrome muestra su diálogo de passkey: «Usar una passkey para encargo-app-611681112050.us-central1.run.app» con la cuenta `adrian-macbook`. macOS pide **Touch ID**. Pon el dedo.
+**Haz:** en el «teléfono», lee la tarjeta «Autoriza la compra»: producto, talla, tienda, entrega, total, «Firmado por la tienda: Sí, verificado» y «Oferta válida hasta». Pulsa **Firmar mandato con passkey**. Chrome muestra su diálogo de passkey con la cuenta `adrian-macbook` y macOS pide **Touch ID**: pon el dedo.
 
 **Di:** «Confianza: el agente arma el carrito, la tienda firma los términos y yo firmo un mandato AP2 con mi huella. Sin mi firma, la tienda rechaza el pago.»
 
-**Qué cambia en el presentador** (en este orden):
+**Qué cambia en el presentador**, en este orden:
 
 1. «Firmado · la tienda confirma el pago…»
 2. «Pedido confirmado · Mandato AP2 firmado con passkey · <pedido> · <segundos>»
@@ -111,27 +95,17 @@ Chrome muestra su diálogo de passkey: «Usar una passkey para encargo-app-61168
 
 ![Pedido confirmado en el presentador](demo/08-presentador-pedido-confirmado.png)
 
-**Tiempo total, del encargo al pedido:** en la captura, 22 s. En la última prueba de sesgo (2026-10-01) el promedio fue 52–55 s y el máximo 110 s; depende de Gemini ese día.
+**Tiempo total, del encargo al pedido:** en la última prueba de sesgo (2026-10-01) el promedio fue 52–55 s y el máximo 110 s; depende de Gemini ese día.
 
-### 6. ¿Sesgo? El modo de control · 10 s
+### 6. ¿Sesgo? El modo de control · 5 s
 
-**Haz:** en una terminal del portátil (fuera del proyector):
-
-```bash
-make control-on TARGET=cloud
-```
-
-En unos 5 s, el encabezado del presentador cambia a «Modo de control · ENCENDIDO · Pulso legible para agentes».
+**Haz:** en el presentador, haz clic en **Modo de control** (arriba, junto al reloj). Cambia a «ENCENDIDO · Pulso legible para agentes».
 
 **Di:** «¿Y si el agente simplemente prefiere a Kilómetro? Le doy a Pulso la misma capa de datos y repito el mismo encargo.»
 
 ### 7. El mismo encargo, otra decisión · 25–45 s
 
-**Haz:** en el «teléfono», pulsa **Nuevo encargo** y envía el mismo texto:
-
-```text
-Tenis para trail, talla 9, menos de 150 USD, que lleguen antes del viernes
-```
+**Haz:** en el «teléfono», pulsa **Nuevo encargo** y envía el mismo texto.
 
 ![Con el control encendido, espera la firma para Pulso](demo/09-presentador-esperando-firma.png)
 
@@ -141,17 +115,11 @@ Ahora las dos tiendas cumplen todo y la decisión es «Pulso · 139 USD». Firma
 
 **Di:** «Sin sesgo: con los mismos datos, compra en la más barata. Lo probamos 10 + 10 veces: Kilómetro 9/10 con el control apagado, Pulso 10/10 con el control encendido.»
 
-**Haz:** apágalo antes de seguir:
-
-```bash
-make control-off TARGET=cloud
-```
-
 ### 8. Tu tienda: la auditoría con QR · 30 s
 
 ![Auditoría con QR](demo/11-auditoria-qr.png)
 
-**Haz:** trae la pestaña `/auditoria` al proyector. El público escanea el QR para auditar su propia tienda desde el teléfono.
+**Haz:** trae la pestaña de la auditoría al proyector. El público escanea el QR para auditar su propia tienda desde su teléfono.
 
 **Di:** «El checklist práctico: ocho cosas que un agente necesita leer. Escaneen el código y auditen su tienda.»
 
@@ -169,28 +137,16 @@ make control-off TARGET=cloud
 
 | Síntoma | Qué hacer |
 | --- | --- |
-| El reloj se pone **ámbar a los 60 s** y aparece «R = repetición» | Pulsa **R** en el presentador. Se reproduce la ejecución grabada bajo la franja «REPETICIÓN GRABADA», con el día en que se grabó y «no es en vivo», y se detiene en la tarjeta de aprobación hasta una firma real: Touch ID en la ventana del «teléfono» con `/?demo=1`, o la barra espaciadora. **L** vuelve a lo en vivo. |
-| No hay internet en el lugar | `make up-offline` y abre `http://localhost:3000/presenter?demo=1` (proyector) y `http://localhost:3000/?demo=1` (ventana del «teléfono»). Funciona sin red. |
-| Nada funciona en el portátil | Proyecta el video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4) (1920×1080, una ejecución completa). |
-| El botón «Firmar mandato con passkey» está deshabilitado («Aún no hay una passkey registrada…») | Abre `…/configurar?clave=<ADMIN_TOKEN>` en la ventana del «teléfono» y registra Touch ID. Toma 20 s. |
-| «Este dispositivo todavía no puede enviar encargos» | Mismo enlace de configuración: habilita la ventana con el token de escenario. |
+| La ejecución pasa de 60 s: el reloj y el botón «Ver la ejecución grabada» se ponen en ámbar | Haz clic en **Ver la ejecución grabada** (abajo a la derecha del presentador). Se reproduce una ejecución real grabada bajo la franja «REPETICIÓN GRABADA», con el día en que se grabó y «no es en vivo». El teléfono pasa solo a la misma grabación y se detiene en «Autoriza la compra»: firma con Touch ID como siempre. Si el teléfono no está abierto, usa **Continuar con firma simulada** en la franja (la pantalla lo dice). **Volver a lo en vivo** regresa los dos. |
+| «El encargo se detuvo» o «La tienda no completó el pago» | **Ver la ejecución grabada**, o **Empezar de nuevo** y envía otra vez el encargo. |
+| El presentador muestra una ejecución vieja, o el modo de control quedó encendido | **Empezar de nuevo** (abajo a la derecha): stock completo, sin pedidos, modo de control apagado. |
+| El teléfono dice «Habilitar con Touch ID» | Tócalo y pon el dedo (20 s). |
 | Touch ID se cancela o se agota el tiempo | Vuelve a pulsar «Firmar mandato con passkey». |
-| El presentador muestra una ejecución vieja, o el control quedó encendido | `make reset TARGET=cloud` (menos de 10 s) y vuelve a enviar el encargo. |
-| «La tienda no completó el pago» o «El encargo se detuvo» | `make reset TARGET=cloud` y repite; si vuelve a pasar, R (plan B). |
+| La columna central sigue en «Preparando la demo…» más de un minuto | Revisa que haya internet en el portátil; la página reintenta sola. |
+| No hay internet en el lugar | Proyecta el video [`docs/plan-b-replay.mp4`](plan-b-replay.mp4): una ejecución completa, 1920×1080. |
 
 ![Plan B: repetición grabada](demo/14-plan-b-repeticion.png)
 
 ## Después de la demo
 
-```bash
-make reset TARGET=cloud   # stock completo, sin pedidos ni ejecuciones, control apagado
-make stage-off            # los cuatro servicios vuelven a 0 instancias: nada se cobra las 24 horas
-```
-
-## Regenerar las capturas
-
-```bash
-make stage-on && make demo-screens && make stage-off
-```
-
-`make demo-screens` hace dos ejecuciones reales, la segunda con el modo de control encendido. Firma con el autenticador virtual (que borra al terminar), captura la auditoría y el plan B, y deja la nube reiniciada.
+Nada. Cierra las ventanas: Cloud Run apaga los servicios solo cuando dejan de recibir visitas, y la próxima vez que abras el presentador empieza de cero.

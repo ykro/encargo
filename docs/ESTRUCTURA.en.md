@@ -45,18 +45,18 @@ encargo/
 │   ├── runstore/           Firestore (cloud) or memory (tests)
 │   ├── audit.py            make audit
 │   ├── bias_test.py        make bias-test
-│   ├── preflight.py        make preflight: the talk-day gate
+│   ├── stage.py            talk day from the page: wake, status, reset, control mode
 │   ├── replay_check.py     Plan B recording fingerprint (catalog + errand)
 │   ├── checkout_rules.py   deterministic checkout check before asking for the signature
 │   ├── software_authenticator.py  software passkey for recording and tests
 │   ├── mock_planner.py     MOCK_AI=1: deterministic planner with the same tools
-│   └── api.py              FastAPI: /runs, SSE, /mandates, /passkeys, /audit, /.well-known/ucp
+│   └── api.py              FastAPI: /runs, SSE, /mandates, /passkeys, /stage, /audit, /.well-known/ucp
 ├── app/src/
-│   ├── app/                /, /encargo/[id], /presenter, /configurar, /auditoria, /api/agent (proxy), /api/control
+│   ├── app/                /, /encargo/[id], /presenter, /configurar, /auditoria, /api/agent (proxy)
 │   ├── components/         ErrandForm, RunPhone, Presenter, PasskeySetup, AuditView, PhoneTop, Logo, Icons
-│   └── lib/                useRun (SSE), runState (events → screen), useReplay (Plan B), stage, auditCopy
-├── infra/                  10-enable-apis, 20-secrets, 30-deploy-stores, 40-deploy-agent, 50-deploy-app, 60-stage
-├── scripts/                up.sh, up-offline.sh, reset.sh, warmup.sh, record_replay.py, e2e_passkey.py, e2e_emulator.py, e2e_offline.py, demo_screens.py, generate_product_images.py
+│   └── lib/                useRun (SSE), runState (events → screen), useReplay (Plan B), stage, stageClient (prepare, reset, enable with Touch ID), auditCopy
+├── infra/                  10-enable-apis, 20-secrets, 30-deploy-stores, 40-deploy-agent, 50-deploy-app
+├── scripts/                up.sh, reset.sh, record_replay.py, plan_b_video.py, e2e_passkey.py, e2e_emulator.py, demo_screens.py, generate_product_images.py
 ├── data/                   SOURCES.md, DATASHEET.md
 └── docs/                   DEMO, ONBOARDING, DECISIONES, COMANDOS, ESTRUCTURA, CREDITOS (.md and .en.md), diagrams/, demo/, screenshots/
 ```
