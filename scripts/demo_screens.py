@@ -45,7 +45,12 @@ async def run_errand(phone: Page, presenter: Page, a: argparse.Namespace, prefix
     if first:
         await shot(phone, "02-telefono-encargo")
     await phone.get_by_role("button", name="Enviar encargo").click()
-    await phone.wait_for_url("**/encargo/**", timeout=20000)
+    try:
+        await phone.wait_for_url("**/encargo/**", timeout=30000)
+    except Exception:
+        notice = await phone.locator(".notice").all_inner_texts()
+        await phone.screenshot(path=str(OUT.parent.parent / ".data" / "demo-screens-failure.png"))
+        raise SystemExit(f"El encargo no se envió: {notice}")
     if first:
         await presenter.locator(".matrix td.state.not_verifiable, .matrix td.state.met").first.wait_for(timeout=a.timeout * 1000)
         await shot(presenter, "03-presentador-razonamiento", 1500)
@@ -63,7 +68,7 @@ async def run_errand(phone: Page, presenter: Page, a: argparse.Namespace, prefix
 async def main(a: argparse.Namespace) -> None:
     admin = {"authorization": f"Bearer {a.admin_token}"}
     async with httpx.AsyncClient(timeout=30) as http, async_playwright() as pw:
-        browser = await pw.chromium.launch(channel="chrome")
+        browser = await pw.chromium.launch(channel="chrome", headless=True)
         # One Chrome profile for both windows, as on stage: the phone's enablement applies to the presenter.
         ctx = await browser.new_context(locale="es-GT", device_scale_factor=2)
         presenter = await ctx.new_page()
@@ -97,7 +102,10 @@ async def main(a: argparse.Namespace) -> None:
             await phone.get_by_role("button", name="Habilitar con Touch ID").wait_for(timeout=30000)
             await shot(phone, "01b-telefono-habilitar")
             await phone.get_by_role("button", name="Habilitar con Touch ID").click()
-            await phone.get_by_role("button", name="Habilitar con Touch ID").wait_for(state="detached", timeout=30000)
+            try:
+                await phone.locator(".enable-card").wait_for(state="detached", timeout=30000)
+            except Exception:
+                raise SystemExit(f"No se habilitó el navegador: {await phone.locator('.notice').all_inner_texts()}")
 
             await run_errand(phone, presenter, a, "05", first=True)
             await shot(phone, "07-telefono-confirmado")

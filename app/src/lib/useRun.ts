@@ -17,8 +17,12 @@ export function useRun(runId: string | undefined): { run: RunView; connection: C
   const lastSeq = useRef(0);
 
   useEffect(() => {
-    if (!runId) return;
     lastSeq.current = 0;
+    if (!runId) {
+      // After a reset there is no run any more: clear the screen instead of keeping the last one.
+      setRun(emptyRun());
+      return;
+    }
     setRun({ ...emptyRun(), id: runId });
     setConnection("connecting");
     const source = new EventSource(`/api/agent/runs/${runId}/events`);

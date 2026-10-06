@@ -34,9 +34,9 @@ async def main(a: argparse.Namespace) -> int:
     shutil.rmtree(video_dir, ignore_errors=True)
     async with async_playwright() as pw:
         try:
-            browser = await pw.chromium.launch(channel="chrome")
+            browser = await pw.chromium.launch(channel="chrome", headless=True)
         except Exception:  # noqa: BLE001
-            browser = await pw.chromium.launch()
+            browser = await pw.chromium.launch(headless=True)
         ctx = await browser.new_context(
             record_video_dir=str(video_dir) if a.video else None,
             record_video_size={"width": 1920, "height": 1080} if a.video else None,
