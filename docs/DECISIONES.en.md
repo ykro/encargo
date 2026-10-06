@@ -176,7 +176,7 @@ Neither the "phone" nor the emulator needs the venue's local network: internet a
 
 On stage, the device that signs the mandate is the laptop. `make phone TARGET=cloud` opens Chrome in app mode at 390×844, and the passkey uses the Mac's platform authenticator (Touch ID).
 
-**Why not the phone:** the talk uses no real phone. The "phone" is the Android emulator `emulator-5556`, and there Chrome cannot create passkeys without signing in to a Google account. Without a credential provider it only offers "Create passkey on another device?" (hybrid QR; see `docs/screenshots/emulator/passkey-sheet.png`). Chrome for Android also does not expose the DevTools virtual authenticator. Signing in to a Google account on the emulator was ruled out.
+**Why not the phone:** the talk uses no real phone. The "phone" is the Android emulator `Pixel_9_API_36_1`, and there Chrome cannot create passkeys without signing in to a Google account. Without a credential provider it only offers "Create passkey on another device?" (hybrid QR; see `docs/screenshots/emulator/passkey-sheet.png`). Chrome for Android also does not expose the DevTools virtual authenticator. Signing in to a Google account on the emulator was ruled out.
 
 What is tested where:
 

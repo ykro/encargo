@@ -1,6 +1,6 @@
 """The phone side on the Android emulator: Chrome driven over adb + DevTools.
 
-  make e2e-emulator                  (Cloud Run by default; TARGET=local uses adb reverse; ANDROID_SERIAL=emulator-5556)
+  make e2e-emulator                  (Cloud Run by default; TARGET=local uses adb reverse; ANDROID_SERIAL picks a device, else the first running emulator)
 
 Checks what the emulator can do without a Google account: open the app, send
 the errand, follow the run and show the approval card. It also records what
@@ -28,7 +28,46 @@ def adb(serial: str, *args: str) -> bytes:
     return subprocess.run(["adb", "-s", serial, *args], check=True, capture_output=True).stdout
 
 
-async def shot(page, name: str, serial: str = os.getenv("ANDROID_SERIAL", "emulator-5556")) -> None:
+def emulator_serial() -> str:
+    """ANDROID_SERIAL, or the first running emulator in `adb devices` (its port changes between boots)."""
+    if os.getenv("ANDROID_SERIAL"):
+        return os.environ["ANDROID_SERIAL"]
+    lines = subprocess.run(["adb", "devices"], check=True, capture_output=True, text=True).stdout.splitlines()
+    for line in lines:
+        if line.startswith("emulator-") and line.endswith("\tdevice"):
+            return line.split("\t")[0]
+    raise SystemExit("No emulator in `adb devices`: start Pixel_9_API_36_1 or set ANDROID_SERIAL")
+
+
+async def unlock(serial: str, pin: str = os.getenv("EMULATOR_PIN", "1234")) -> None:
+    """The stage emulator is shared and Escudo's `make android-prep` sets a screen PIN (a fingerprint
+    needs one). After a boot Chrome can't start until the first unlock."""
+    def locked() -> bool:
+        return b"deviceLocked=1" in adb(serial, "shell", "dumpsys", "trust")
+
+    adb(serial, "shell", "input", "keyevent", "KEYCODE_WAKEUP")
+    if not locked():
+        return
+    await asyncio.sleep(1)  # the screen turns on
+    adb(serial, "shell", "wm", "dismiss-keyguard")
+    await asyncio.sleep(1)  # the PIN pad slides in; keys typed before it are lost
+    adb(serial, "shell", "input", "text", pin)
+    adb(serial, "shell", "input", "keyevent", "KEYCODE_ENTER")
+    for _ in range(20):
+        if not locked():
+            break
+        await asyncio.sleep(0.5)
+    else:
+        raise SystemExit(f"The emulator is still locked: set EMULATOR_PIN to its screen PIN (tried {pin})")
+    # Chrome only becomes startable a moment after the first unlock (its storage unlocks then).
+    for _ in range(30):
+        if b"No activity found" not in adb(serial, "shell", "cmd", "package", "resolve-activity", "--brief",
+                                           "-c", "android.intent.category.LAUNCHER", "com.android.chrome"):
+            return
+        await asyncio.sleep(0.5)
+
+
+async def shot(page, name: str, serial: str) -> None:
     # Screenshot of *our* tab via DevTools: the emulator may be shared, so the
     # device screen (adb screencap) can show another app in the foreground.
     OUT.mkdir(parents=True, exist_ok=True)
@@ -70,12 +109,20 @@ async def wait_for(serial: str, page, locator, timeout_s: int) -> None:
 
 
 async def main(a: argparse.Namespace) -> int:
-    serial = a.serial
+    serial = a.serial or emulator_serial()
+    await unlock(serial)
     adb(serial, "shell", "am", "start", "-n", "com.android.chrome/com.google.android.apps.chrome.Main")
     await asyncio.sleep(2)
     adb(serial, "forward", f"tcp:{PORT}", "localabstract:chrome_devtools_remote")
     async with async_playwright() as pw:
-        browser = await pw.chromium.connect_over_cdp(f"http://localhost:{PORT}")
+        for attempt in range(15):  # right after a boot Chrome takes a while to open its DevTools socket
+            try:
+                browser = await pw.chromium.connect_over_cdp(f"http://localhost:{PORT}")
+                break
+            except Exception:  # noqa: BLE001
+                if attempt == 14:
+                    raise
+                await asyncio.sleep(2)
         page = await browser.contexts[0].new_page()  # our own tab, never someone else's
         await page.bring_to_front()
         # Enroll this browser for the stage (same setup link as the signing device).
@@ -83,15 +130,15 @@ async def main(a: argparse.Namespace) -> int:
         await wait_for(serial, page, page.get_by_text("Este dispositivo puede enviar encargos"), 30)
         await page.goto(a.app)
         await wait_for(serial, page, page.get_by_role("heading", name="¿Qué necesitas?"), 30)
-        await shot(page, "errand")
+        await shot(page, "errand", serial)
         await page.get_by_role("button", name="Enviar encargo").click()
         await page.wait_for_url("**/encargo/**", timeout=20000)
         print("✓ encargo enviado desde el emulador:", page.url, flush=True)
         await page.wait_for_timeout(4000)
-        await shot(page, "progress")
+        await shot(page, "progress", serial)
         await wait_for(serial, page, page.get_by_role("heading", name="Autoriza la compra"), a.timeout)
         print("✓ tarjeta de aprobación en el emulador", flush=True)
-        await shot(page, "approve")
+        await shot(page, "approve", serial)
         sign = page.get_by_role("button", name="Firmar mandato con passkey")
         print("  botón Firmar", "habilitado" if await sign.is_enabled() else "deshabilitado (no hay passkey registrada)", flush=True)
         # Leave nothing pending: cancel from the phone; nothing is paid.
@@ -104,7 +151,7 @@ async def main(a: argparse.Namespace) -> int:
         except Exception:  # noqa: BLE001 — a backgrounded tab may miss the live event; the reload replays it
             await page.reload()
             await wait_for(serial, page, page.get_by_role("heading", name="Compra cancelada"), 30)
-        await shot(page, "cancelled")
+        await shot(page, "cancelled", serial)
         if a.try_passkey:
             # What Chrome offers when this device is asked to create a passkey.
             await page.goto(f"{a.app}/configurar?clave={a.setup}")
@@ -114,7 +161,7 @@ async def main(a: argparse.Namespace) -> int:
             screencap(serial, "passkey-sheet")
             adb(serial, "shell", "input", "keyevent", "KEYCODE_BACK")
             await page.wait_for_timeout(1500)
-            await shot(page, "passkey-cancelled")
+            await shot(page, "passkey-cancelled", serial)
         print("✓ cancelado desde el emulador (sin cobro)", flush=True)
         await page.close()
     return 0
@@ -123,7 +170,7 @@ async def main(a: argparse.Namespace) -> int:
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--app", required=True)
-    p.add_argument("--serial", default=os.getenv("ANDROID_SERIAL", "emulator-5556"))
+    p.add_argument("--serial", default="", help="default: ANDROID_SERIAL or the first running emulator")
     p.add_argument("--timeout", type=int, default=150)
     p.add_argument("--setup", default=os.getenv("ADMIN_TOKEN", ""), help="setup code, to record the passkey sheet")
     p.add_argument("--try-passkey", action="store_true", help="also record what Chrome shows when a passkey is requested")

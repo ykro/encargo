@@ -28,7 +28,7 @@ Guía para instalar, desplegar, probar y presentar Encargo. Para entender qué e
 | Google Cloud SDK | probado con 587.0.0 | ADC, Secret Manager, Cloud Build, Cloud Run |
 | Google Chrome | estable | `make phone`, `make e2e` y `make demo-screens` (si no está, usan el Chromium de Playwright) |
 | Chromium de Playwright | 1.63 (lo fija `agent/uv.lock`) | `browse_page` y las capturas del presentador: `cd agent && uv run playwright install chromium` |
-| Android SDK platform-tools (`adb`) + emulador | adb 1.0.41; emulador `emulator-5556` con Chrome | Solo para `make e2e-emulator` |
+| Android SDK platform-tools (`adb`) + emulador | adb 1.0.41; emulador `Pixel_9_API_36_1` con Chrome | Solo para `make e2e-emulator` |
 | `curl`, `openssl`, `make`, `bash` | los del sistema | `make reset` y `infra/20-secrets.sh` |
 
 Acceso a Google Cloud:
@@ -227,7 +227,7 @@ Imprime una línea `✓` por paso y sale con un código distinto de cero si algo
 El script abre primero `/configurar?clave=…` en el emulador para habilitar ese navegador con el token de escenario.
 
 ```bash
-emulator -avd <tu_avd> &                 # el emulador debe ser emulator-5556 (o exporta ANDROID_SERIAL)
+emulator -avd Pixel_9_API_36_1 &        # usa el primer emulador de adb devices (o exporta ANDROID_SERIAL)
 make e2e-emulator                       # Cloud Run por defecto
 make e2e-emulator TARGET=local          # contra make up: adb reverse tcp:3000 tcp:3000 automático
 ```
@@ -240,7 +240,7 @@ make e2e-emulator TARGET=local          # contra make up: adb reverse tcp:3000 t
 
 El Makefile pasa `--try-passkey`, así que también abre `/configurar` y captura la hoja nativa de Chrome («Create passkey on another device?»). Esa hoja es la razón por la que en el escenario firma el portátil. Las capturas quedan en `docs/screenshots/emulator/`.
 
-Por defecto va contra Cloud Run: desde el emulador, `localhost` es el propio emulador. Con `TARGET=local` el Makefile ejecuta `adb -s emulator-5556 reverse tcp:3000 tcp:3000` para que el `localhost:3000` del emulador llegue a la app de `make up`.
+Por defecto va contra Cloud Run: desde el emulador, `localhost` es el propio emulador. Con `TARGET=local` el Makefile ejecuta `adb reverse tcp:3000 tcp:3000` sobre ese emulador para que el `localhost:3000` del emulador llegue a la app de `make up`.
 
 ### `make bias-test` — sin sesgo y en menos de 2 minutos
 
@@ -452,7 +452,7 @@ El guion paso a paso, con capturas y qué decir en cada pantalla, está en [DEMO
 - [ ] `make e2e TARGET=cloud` termina con el pedido confirmado.
 - [ ] `make bias-test TARGET=cloud` pasa (o `RUNS=3` si hay poco tiempo).
 - [ ] Passkey del portátil del escenario registrada en la nube (sección 7). `make preflight` lo comprueba.
-- [ ] Emulador `emulator-5556` arranca y `make e2e-emulator TARGET=cloud` llega a la tarjeta de aprobación.
+- [ ] Emulador `Pixel_9_API_36_1` arranca y `make e2e-emulator TARGET=cloud` llega a la tarjeta de aprobación.
 - [ ] Solo si cambiaste el catálogo o el encargo desde la última grabación: `make record-replay`, `./infra/50-deploy-app.sh` y `REBUILD=1 make e2e-offline VIDEO=1`. Las grabaciones no caducan con el calendario (la franja dice el día en que se grabaron); `make preflight` avisa si ya no coinciden.
 - [ ] `make up-offline` arranca y `make e2e-offline` pasa (plan B sin internet).
 

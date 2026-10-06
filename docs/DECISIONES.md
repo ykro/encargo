@@ -176,7 +176,7 @@ Ni el «teléfono» ni el emulador necesitan la red local del auditorio: les bas
 
 En el escenario, el dispositivo que firma el mandato es el portátil. `make phone TARGET=cloud` abre Chrome en modo app, a 390×844, y la passkey usa el autenticador del Mac (Touch ID).
 
-**Por qué no el teléfono:** la charla no usa un teléfono real. El «teléfono» es el emulador Android `emulator-5556`, y ahí Chrome no puede crear passkeys sin iniciar sesión con una cuenta de Google. Sin un proveedor de credenciales, solo ofrece «Create passkey on another device?» (QR híbrido; ver `docs/screenshots/emulator/passkey-sheet.png`). Además, Chrome para Android no expone el autenticador virtual de DevTools. Se descartó iniciar sesión con una cuenta de Google en el emulador.
+**Por qué no el teléfono:** la charla no usa un teléfono real. El «teléfono» es el emulador Android `Pixel_9_API_36_1`, y ahí Chrome no puede crear passkeys sin iniciar sesión con una cuenta de Google. Sin un proveedor de credenciales, solo ofrece «Create passkey on another device?» (QR híbrido; ver `docs/screenshots/emulator/passkey-sheet.png`). Además, Chrome para Android no expone el autenticador virtual de DevTools. Se descartó iniciar sesión con una cuenta de Google en el emulador.
 
 Qué se prueba en cada lugar:
 

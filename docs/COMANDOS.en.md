@@ -13,7 +13,7 @@ Talk day, in this order: `make stage-on` → `make preflight` → `make warmup T
 | `make reset` | Back to the initial state: seed stock; no carts, checkouts or orders; Pulso opaque; no runs, events, mandates or screenshots. Passkeys are kept. It waits for every call and fails (naming the service) if any fails; only then it prints `reset ok`. `TARGET=cloud` resets the Cloud Run services. |
 | `make test` | Commerce kit (vitest), store and app typecheck, agent (pytest with `MOCK_AI=1`, in-memory run store, no browser). |
 | `make e2e` | Passkey flow in Chrome with the DevTools virtual authenticator: enroll → send the errand → sign the mandate → order confirmed. Removes the credential at the end. |
-| `make e2e-emulator` | Phone side on the Android emulator (`emulator-5556`): errand, progress, approval card and cancel. Saves screenshots to `docs/screenshots/emulator/`. Defaults to Cloud Run (the emulator cannot reach the laptop's `localhost`); `TARGET=local` maps port 3000 with `adb reverse`. |
+| `make e2e-emulator` | Phone side on the Android emulator (`Pixel_9_API_36_1`; if it has a screen PIN it unlocks it with `EMULATOR_PIN`, 1234 by default): errand, progress, approval card and cancel. Saves screenshots to `docs/screenshots/emulator/`. Defaults to Cloud Run (the emulator cannot reach the laptop's `localhost`); `TARGET=local` maps port 3000 with `adb reverse`. |
 | `make bias-test` | 10 runs with control mode off (expects Kilómetro) and 10 with it on (expects Pulso). Each run goes from errand to passkey signature to order. Writes the report to `bias-results/`. |
 | `make audit URL=…` | Agent-readiness checklist for any store. |
 | `make phone` | Opens the signing "phone": a 390×844 Chrome app window, with the Mac's passkey (Touch ID). |

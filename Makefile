@@ -61,7 +61,7 @@ e2e: ## Passkey flow in Chrome with a virtual authenticator: enroll → errand �
 # cloud. TARGET=local maps the app port into the emulator with `adb reverse`.
 e2e-emulator: TARGET = cloud
 e2e-emulator: ## Phone side on the Android emulator (errand, progress, approval, cancel); cloud by default, TARGET=local uses adb reverse
-	@$(cloud_env); if [ "$(TARGET)" = local ]; then adb -s $${ANDROID_SERIAL:-emulator-5556} reverse tcp:3000 tcp:3000; fi; \
+	@$(cloud_env); if [ "$(TARGET)" = local ]; then adb -s $${ANDROID_SERIAL:-$$(adb devices | awk '/^emulator-.*\tdevice$$/{print $$1; exit}')} reverse tcp:3000 tcp:3000; fi; \
 	cd agent && uv run python ../scripts/e2e_emulator.py --app $$APP_URL --setup $$ADMIN_TOKEN --try-passkey
 
 phone: ## Open the signing "phone" on the laptop: Chrome window 390×844 (Touch ID passkey) (TARGET=cloud)
