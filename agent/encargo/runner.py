@@ -66,7 +66,7 @@ async def start_run(store: RunStore, errand: str, stores: list[str], run_date=No
 
 
 async def cancel_all() -> int:
-    """`make reset`: stop runs in flight so they cannot write into the fresh state."""
+    """A reset («Empezar de nuevo» or `make reset`): stop runs in flight so they cannot write into the fresh state."""
     tasks = [t for t in _tasks if not t.done()]
     for t in tasks:
         t.cancel()

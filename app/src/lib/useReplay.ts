@@ -3,8 +3,9 @@
 // original timing, through the same reducer as a live run. No agent, no Gemini.
 //
 // The phone and the presenter run in the same Chrome on the laptop, so they
-// coordinate over a BroadcastChannel: the phone's "start" starts the presenter's
-// replay, and its "signed" lets the replay continue past the approval card.
+// coordinate over a BroadcastChannel: the presenter's «Ver la ejecución grabada»
+// sends the phone to the same recording, and the phone's "signed" lets the
+// presenter's replay continue past the approval card.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { emptyRun, reduce, type RunView } from "./runState";
 
@@ -15,8 +16,8 @@ type AnyEvent = Record<string, any> & { type: string; seq: number; at: number };
 export type ReplayState = "loading" | "ready" | "playing" | "waiting_signature" | "done" | "error";
 
 export const replayChannel = () => (typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel("encargo-demo"));
-/** How the person approved during a replay: a real passkey on this laptop, or the presenter's Space key. */
-export type ReplaySignature = "passkey" | "space" | "simulated";
+/** How the person approved during a replay: a real passkey on this laptop, or an explicitly simulated signature. */
+export type ReplaySignature = "passkey" | "simulated";
 
 /** "1 oct 2026" from the recording's ISO timestamp: the dates inside a replay are the ones of that day. */
 export function recordedDay(iso: string | null): string | null {
@@ -29,7 +30,6 @@ export function recordedDay(iso: string | null): string | null {
 
 export function replayName(param: string | null): ReplayName | null {
   if (!param) return null;
-  if (param === "1" || param === "true") return "kilometro";
   return (REPLAYS as readonly string[]).includes(param) ? (param as ReplayName) : null;
 }
 
@@ -44,7 +44,7 @@ export function useReplay(name: ReplayName | null, opts: { waitForSignature: boo
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const waiting = useRef(false);
   const signed = useRef(false);
-  const method = useRef<ReplaySignature>("space");
+  const method = useRef<ReplaySignature>("simulated");
 
   const stop = () => {
     if (timer.current) clearTimeout(timer.current);
@@ -114,7 +114,7 @@ export function useReplay(name: ReplayName | null, opts: { waitForSignature: boo
     step();
   }, [name, step]);
 
-  const sign = useCallback((how: ReplaySignature = "space") => {
+  const sign = useCallback((how: ReplaySignature = "simulated") => {
     method.current = how;
     signed.current = true;
     if (!waiting.current) return;

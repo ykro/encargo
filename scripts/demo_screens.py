@@ -1,11 +1,16 @@
-"""Captures docs/demo/NN-*.png: the talk, screen by screen, from a real Cloud Run run.
+"""The whole demo, end to end, the way the presenter does it, with docs/demo/NN-*.png.
 
-  make demo-screens          (needs `make stage-on`; leaves the cloud reset)
+  make demo-screens          (against Cloud Run, best from a cold start; leaves the cloud reset)
 
-Presenter at 1920×1080 and the phone window at 390×844 in one Chrome, like on
-stage. The phone signs with Chrome's DevTools virtual authenticator: same app
-screens and same WebAuthn path as Touch ID, minus the macOS system dialog
-(which automation cannot show). That credential is removed at the end.
+Presenter at 1920×1080 and the phone window at 390×844 in one Chrome, like on stage,
+and only clicks: open the presenter (it wakes everything), enable the phone with the
+passkey, send the errand, sign, turn control mode on from the presenter, repeat, audit,
+the recorded run from the presenter's button, «Empezar de nuevo». No command in between.
+
+The phone signs with Chrome's DevTools virtual authenticator: same app screens and the
+same WebAuthn path as Touch ID, minus the macOS system dialog (which automation cannot
+show). Registering that test passkey is the one step that uses the setup code; it is
+removed at the end.
 """
 
 from __future__ import annotations
@@ -13,6 +18,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import time
 from pathlib import Path
 
 import httpx
@@ -25,7 +31,9 @@ ERRAND = "Tenis para trail, talla 9, menos de 150 USD, que lleguen antes del vie
 async def shot(page: Page, name: str, wait: int = 600) -> None:
     await page.wait_for_timeout(wait)
     OUT.mkdir(parents=True, exist_ok=True)
-    await page.screenshot(path=str(OUT / f"{name}.png"))
+    # The phone keeps its 2× pixels; the presenter is saved at its 1920×1080 CSS size.
+    scale = "device" if (page.viewport_size or {}).get("width", 0) < 800 else "css"
+    await page.screenshot(path=str(OUT / f"{name}.png"), scale=scale)
     print("saved", name, flush=True)
 
 
@@ -56,39 +64,52 @@ async def main(a: argparse.Namespace) -> None:
     admin = {"authorization": f"Bearer {a.admin_token}"}
     async with httpx.AsyncClient(timeout=30) as http, async_playwright() as pw:
         browser = await pw.chromium.launch(channel="chrome")
-        ctx = await browser.new_context(locale="es-GT")
+        # One Chrome profile for both windows, as on stage: the phone's enablement applies to the presenter.
+        ctx = await browser.new_context(locale="es-GT", device_scale_factor=2)
         presenter = await ctx.new_page()
         await presenter.set_viewport_size({"width": 1920, "height": 1080})
-        phone_ctx = await browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True, locale="es-GT")
-        phone = await phone_ctx.new_page()
-        cdp = await phone_ctx.new_cdp_session(phone)
+        phone = await ctx.new_page()
+        await phone.set_viewport_size({"width": 390, "height": 844})
+        cdp = await ctx.new_cdp_session(phone)
         await cdp.send("WebAuthn.enable", {"enableUI": False})
         auth = await cdp.send("WebAuthn.addVirtualAuthenticator", {"options": {
             "protocol": "ctap2", "transport": "internal", "hasResidentKey": True,
             "hasUserVerification": True, "isUserVerified": True, "automaticPresenceSimulation": True}})
         try:
-            await presenter.goto(f"{a.app}/presenter")
-            await presenter.get_by_text("Esperando un encargo").wait_for(timeout=30000)
-            await shot(presenter, "01-presentador-listo", 1500)
-
-            # The phone window: enrolled once with the setup link (stage token + passkey).
+            # The test passkey (on stage it already exists: Touch ID on the presenter's laptop).
             await phone.goto(f"{a.app}/configurar?clave={a.admin_token}")
             await phone.get_by_label("Nombre del dispositivo").fill("captura (autenticador virtual)")
             await phone.get_by_role("button", name="Registrar passkey en este dispositivo").click()
-            await phone.get_by_text("ya puede firmar pagos").wait_for(timeout=30000)
+            await phone.get_by_text("ya puede firmar pagos").wait_for(timeout=60000)
+            await phone.evaluate("localStorage.clear()")  # from here on, a browser nobody configured
+
+            # 1. Open the presenter: it wakes the stores, the agent, Gemini and Chromium by itself.
+            t = time.monotonic()
+            await presenter.goto(f"{a.app}/presenter")
+            if await presenter.get_by_text("Preparando la demo").or_(presenter.get_by_text("Despertando el agente")).is_visible():
+                await shot(presenter, "00-presentador-preparando", 300)
+            await presenter.get_by_text("Envía un encargo desde la app").wait_for(timeout=180000)
+            print(f"presenter ready after {time.monotonic() - t:.0f} s", flush=True)
+            await shot(presenter, "01-presentador-listo", 800)
+
+            # 2. The phone: enable this browser with the passkey (Touch ID on stage), then the errand.
+            await phone.goto(a.app)
+            await phone.get_by_role("button", name="Habilitar con Touch ID").wait_for(timeout=30000)
+            await shot(phone, "01b-telefono-habilitar")
+            await phone.get_by_role("button", name="Habilitar con Touch ID").click()
+            await phone.get_by_role("button", name="Habilitar con Touch ID").wait_for(state="detached", timeout=30000)
 
             await run_errand(phone, presenter, a, "05", first=True)
             await shot(phone, "07-telefono-confirmado")
             await shot(presenter, "08-presentador-pedido-confirmado", 1500)
 
-            # Control mode: Pulso publishes the same data; the same errand now buys at Pulso.
-            await http.post(f"{a.pulso}/api/admin/agent-ready", json={"enabled": True}, headers=admin)
-            await presenter.get_by_text("ENCENDIDO").wait_for(timeout=20000)
+            # 3. Control mode, from the presenter's switch: the same errand now buys at Pulso.
+            await presenter.get_by_role("button", name="Modo de control").click()
+            await presenter.locator(".p-control strong", has_text="ENCENDIDO").wait_for(timeout=30000)
             await run_errand(phone, presenter, a, "09", first=False)
             await shot(presenter, "10-presentador-control-pulso", 1500)
-            await http.post(f"{a.pulso}/api/admin/agent-ready", json={"enabled": False}, headers=admin)
 
-            # The audit: QR for the audience, then the two stores side by side.
+            # 4. The audit: QR for the audience, then the two stores side by side.
             audit = await ctx.new_page()
             await audit.set_viewport_size({"width": 1920, "height": 1080})
             await audit.goto(f"{a.app}/auditoria")
@@ -99,13 +120,26 @@ async def main(a: argparse.Namespace) -> None:
             await audit.get_by_role("button", name="Probar con Kilómetro").click()
             await audit.locator(".audit-grid li.ok").first.wait_for(timeout=60000)
             await shot(audit, "13-auditoria-kilometro", 800)
+            await audit.close()
 
-            # Plan B: R on the presenter (control mode back off, so it plays the main recording).
+            # 5. «Empezar de nuevo»: stock back, no errand on screen, control mode off.
             await presenter.bring_to_front()
-            await presenter.locator(".p-control strong", has_text="APAGADO").wait_for(timeout=20000)
-            await presenter.keyboard.press("r")
-            await presenter.get_by_text("esperando una firma real").wait_for(timeout=90000)
+            await presenter.get_by_role("button", name="Empezar de nuevo").click()
+            await presenter.locator(".p-control strong", has_text="APAGADO").wait_for(timeout=30000)
+            await presenter.get_by_text("Esperando un encargo").wait_for(timeout=30000)
+            print("✓ «Empezar de nuevo»: modo de control apagado y sin encargo en pantalla", flush=True)
+
+            # 6. Plan B from the presenter's button; the phone follows to the recorded approval.
+            await phone.goto(a.app)
+            await presenter.get_by_role("button", name="Ver la ejecución grabada").click()
+            await presenter.get_by_text("esperando la firma en el teléfono").wait_for(timeout=90000)
             await shot(presenter, "14-plan-b-repeticion", 800)
+            await phone.get_by_role("heading", name="Autoriza la compra").wait_for(timeout=30000)
+            await phone.get_by_role("button", name="Firmar mandato con passkey").click()
+            await presenter.get_by_text("Mandato AP2 firmado con passkey").wait_for(timeout=60000)
+            await presenter.get_by_role("button", name="Volver a lo en vivo").click()
+            await phone.wait_for_url(f"{a.app.rstrip('/')}/", timeout=15000)
+            print("✓ plan B: el teléfono siguió, se firmó y volvió a lo en vivo", flush=True)
         finally:
             creds = await cdp.send("WebAuthn.getCredentials", {"authenticatorId": auth["authenticatorId"]})
             for c in creds.get("credentials", []):

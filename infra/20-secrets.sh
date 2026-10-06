@@ -3,7 +3,7 @@
 # account read them. Nothing secret is ever written to the repo.
 #   encargo-platform-jwk  — the agent's AP2 mandate signing key (private EC P-256 JWK)
 #   encargo-human-token   — test-mode signer token (only honored when SIGNER_MODE=test; the cloud uses passkeys)
-#   encargo-admin-token   — setup code + store/agent admin (`make reset`, control mode)
+#   encargo-admin-token   — setup code + store/agent admin (reset and control mode, used by the agent for the presenter page)
 #   encargo-stage-token   — what an enrolled device presents to start errands / cancel payments
 source "$(dirname "$0")/env.sh"
 REPO_DIR="$(cd "$INFRA_DIR/.." && pwd)"

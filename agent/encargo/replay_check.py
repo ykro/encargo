@@ -3,7 +3,7 @@
 A recording does not go stale with the calendar: the presenter banner says the day it
 was recorded, so its delivery dates read as that day's. It goes stale when what it
 captured changes: the catalog (products, prices, stock, copy) or the errand text.
-`make record-replay` stores this fingerprint and `make preflight` compares it.
+`make record-replay` stores this fingerprint; `make test` fails if a committed recording no longer matches.
 """
 
 from __future__ import annotations

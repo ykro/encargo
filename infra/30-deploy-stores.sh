@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploys Pulso and Kilómetro. Each runs as a single instance: its SQLite state
-# and merchant key live in the process (`make reset` restores the seed).
+# and merchant key live in the process (a reset, or a cold start, restores the seed).
 source "$(dirname "$0")/env.sh"
 source "$INFRA_DIR/urls.sh"
 REPO_DIR="$(cd "$INFRA_DIR/.." && pwd)"

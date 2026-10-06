@@ -156,3 +156,50 @@ async def verify_signature(store: RunStore, mandate: dict[str, Any], flow_id: st
         "checkout_hash": hash_,
         "nonce": flow["nonce"],
     }
+
+
+async def session_options(store: RunStore) -> dict[str, Any]:
+    """Enabling a device on stage: a fresh challenge any registered passkey can sign.
+
+    Whoever holds a registered passkey (Touch ID on the presenter's laptop) can enable
+    that browser to start errands, with no setup code to type on the day."""
+    s = settings()
+    passkeys = [p for p in await store.list_passkeys() if p.get("rp_id") == s.passkey_rp_id]
+    if not passkeys:
+        raise PasskeyError("No hay ninguna passkey registrada.")
+    challenge = secrets.token_bytes(32)
+    options = generate_authentication_options(
+        rp_id=s.passkey_rp_id,
+        challenge=challenge,
+        allow_credentials=[PublicKeyCredentialDescriptor(id=base64url_to_bytes(p["id"])) for p in passkeys],
+        user_verification=UserVerificationRequirement.REQUIRED,
+    )
+    flow_id = f"ses_{secrets.token_hex(8)}"
+    await store.save_challenge(flow_id, {"kind": "session", "challenge": bytes_to_base64url(challenge), "at": time.time()})
+    return {"flow_id": flow_id, "options": options_to_json(options)}
+
+
+async def verify_session(store: RunStore, flow_id: str, credential: dict[str, Any]) -> dict[str, Any]:
+    s = settings()
+    flow = await store.pop_challenge(flow_id)
+    if not flow or flow.get("kind") != "session":
+        raise PasskeyError("La solicitud no corresponde a este dispositivo.")
+    if time.time() - flow["at"] > CHALLENGE_TTL_S:
+        raise PasskeyError("La solicitud expiró. Intenta de nuevo.")
+    passkey = next((p for p in await store.list_passkeys() if p["id"] == credential.get("id")), None)
+    if not passkey:
+        raise PasskeyError("Esta passkey no está registrada.")
+    try:
+        verified = verify_authentication_response(
+            credential=credential,
+            expected_challenge=base64url_to_bytes(flow["challenge"]),
+            expected_rp_id=s.passkey_rp_id,
+            expected_origin=s.passkey_origin,
+            credential_public_key=base64url_to_bytes(passkey["public_key"]),
+            credential_current_sign_count=passkey.get("sign_count", 0),
+            require_user_verification=True,
+        )
+    except Exception as e:  # noqa: BLE001
+        raise PasskeyError(f"La passkey no es válida: {e}") from e
+    await store.update_passkey(passkey["id"], {"sign_count": verified.new_sign_count, "last_used_at": time.time()})
+    return {"label": passkey.get("label")}

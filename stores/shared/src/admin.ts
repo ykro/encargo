@@ -1,4 +1,5 @@
-// Demo operations: `make reset` and control mode. Protected by ADMIN_TOKEN so
+// Demo operations: reset and control mode (the presenter page reaches them through the
+// agent, which holds the token; `make reset` in development). Protected by ADMIN_TOKEN so
 // nobody in the audience can reset the stores mid-talk.
 import { listOrders, resetStore, stockOf } from "./db";
 import { currentStore, isAgentReady, setAgentReady } from "./store";
@@ -41,7 +42,7 @@ export async function adminOrders(req: Request): Promise<Response> {
   return json({ store: currentStore().key, orders: listOrders() });
 }
 
-/** GET ?variant=SND-001-9 → units in stock (`make preflight` checks the errand's size 9). */
+/** GET ?variant=SND-001-9 → units in stock (the presenter page warns when the errand's size 9 runs low). */
 export async function adminStock(req: Request): Promise<Response> {
   if (!authorized(req)) return json({ error: "No autorizado" }, 401);
   const variant = new URL(req.url).searchParams.get("variant") ?? "";

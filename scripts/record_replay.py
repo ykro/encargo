@@ -7,7 +7,7 @@ the stage token, sign the AP2 mandate with a software passkey (the same WebAuthn
 path as the phone), wait for the order, then save every event, with its screenshots embedded,
 to app/public/replays/<name>.json (one self-contained file per recording).
 The app replays them with the original timing and no Gemini at all
-(/presenter?demo=1, key R on the presenter, /?demo=1 on the phone).
+(«Ver la ejecución grabada» on the presenter; the phone follows).
 """
 
 from __future__ import annotations

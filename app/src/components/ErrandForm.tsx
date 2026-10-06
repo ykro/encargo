@@ -5,7 +5,7 @@ import type { StoreRef } from "@/lib/config";
 import { PhoneTop } from "./PhoneTop";
 import { Arrow } from "./Icons";
 import { stageHeaders } from "@/lib/stage";
-import { replayChannel, replayName } from "@/lib/useReplay";
+import { enableWithPasskey, useEnrolled, usePhoneFollowsPresenter, useStageStatus } from "@/lib/stageClient";
 
 const DEFAULT = "Tenis para trail, talla 9, menos de 150 USD, que lleguen antes del viernes.";
 
@@ -15,17 +15,26 @@ export function ErrandForm({ stores }: { stores: StoreRef[] }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
+  const [enrolled, recheck] = useEnrolled();
+  const [enabling, setEnabling] = useState(false);
+  const stage = useStageStatus({ autoReset: false });
+  usePhoneFollowsPresenter("live");
+
+  async function enable() {
+    setEnabling(true);
+    setError(null);
+    const problem = await enableWithPasskey();
+    if (problem) setError(problem);
+    else {
+      setLocked(false);
+      recheck();
+    }
+    setEnabling(false);
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!errand.trim()) return setError("Escribe qué necesitas.");
-    const demo = replayName(new URLSearchParams(window.location.search).get("demo"));
-    if (demo) {
-      // Plan B: play the recorded run here and on the presenter (same Chrome).
-      replayChannel()?.postMessage("start");
-      router.push(`/encargo/demo-${demo}`);
-      return;
-    }
     setSending(true);
     setError(null);
     try {
@@ -68,12 +77,13 @@ export function ErrandForm({ stores }: { stores: StoreRef[] }) {
             </span>
           ))}
         </div>
-        {locked ? (
-          <p className="notice notice-info" role="alert" style={{ marginTop: 16 }}>
-            <span>
-              Este dispositivo todavía no puede enviar encargos. Ábrelo una vez desde el <a href="/configurar">enlace de configuración</a>.
-            </span>
-          </p>
+        {locked || !enrolled ? (
+          <div className="notice notice-info enable-card" role={locked ? "alert" : undefined} style={{ marginTop: 16 }}>
+            <span>Para enviar encargos y firmar desde este navegador, habilítalo con la passkey de este portátil.</span>
+            <button className="btn btn-secondary" type="button" onClick={enable} disabled={enabling}>
+              {enabling ? "Esperando Touch ID…" : "Habilitar con Touch ID"}
+            </button>
+          </div>
         ) : null}
         {error ? (
           <p className="notice notice-error" role="alert" style={{ marginTop: 16 }}>
@@ -86,7 +96,7 @@ export function ErrandForm({ stores }: { stores: StoreRef[] }) {
             {!sending && <Arrow />}
           </button>
           <p className="hint" style={{ textAlign: "center" }}>
-            Nada se paga sin tu firma con passkey.
+            {stage.status && !stage.status.ready ? "Preparando las tiendas y el agente… puedes enviarlo igual." : "Nada se paga sin tu firma con passkey."}
           </p>
         </div>
       </form>

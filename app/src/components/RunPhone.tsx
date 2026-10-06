@@ -10,6 +10,7 @@ import { humanDate, SHORT_LABEL, STATUS_TEXT, type RunView } from "@/lib/runStat
 import { parseItem, storeName } from "@/lib/names";
 import { PhoneTop } from "./PhoneTop";
 import { replayChannel, replayName, useReplay } from "@/lib/useReplay";
+import { usePhoneFollowsPresenter } from "@/lib/stageClient";
 import { stageHeaders } from "@/lib/stage";
 import { Check, Cross, Dash, Key } from "./Icons";
 
@@ -19,6 +20,7 @@ export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] 
   // /encargo/demo-<name>: the recorded run (Plan B), no agent and no Gemini.
   const demo = runId.startsWith("demo-") ? replayName(runId.slice(5)) : null;
   const live = useRun(demo ? undefined : runId);
+  usePhoneFollowsPresenter(demo ?? "live");
   const recorded = useReplay(demo, { waitForSignature: true });
   const [cancelled, setCancelled] = useState(false);
   const [simulateOffer, setSimulateOffer] = useState(false);
@@ -109,12 +111,12 @@ export function RunPhone({ runId, stores }: { runId: string; stores: StoreRef[] 
     if (!mid) return;
     const res = await fetch(`/api/agent/mandates/${mid}/reject`, { method: "POST", headers: stageHeaders() });
     if (!res.ok) {
-      setSignError(res.status === 401 ? "Este dispositivo no puede cancelar: ábrelo desde el enlace de configuración." : "No se pudo cancelar. Intenta de nuevo.");
+      setSignError(res.status === 401 ? "Este navegador no está habilitado: vuelve al inicio y toca «Habilitar con Touch ID»." : "No se pudo cancelar. Intenta de nuevo.");
       setSign("error");
     }
   }
 
-  const badge = demo ? <p className="demo-badge" role="status">Demostración grabada · sin conexión al agente</p> : null;
+  const badge = demo ? <p className="demo-badge" role="status">Ejecución grabada · no es en vivo</p> : null;
   if (run.phase === "completed" && run.order) return <>{badge}<Confirmed run={run} stores={stores} /></>;
   if (run.phase === "awaiting_approval" || run.phase === "signing") {
     return (

@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { StoreRef } from "@/lib/config";
 import { useElapsed, useRun, mmss } from "@/lib/useRun";
-import { recordedDay, replayChannel, replayName, useReplay, type ReplayName, type ReplaySignature } from "@/lib/useReplay";
+import { recordedDay, replayChannel, useReplay, type ReplayName, type ReplaySignature } from "@/lib/useReplay";
+import { stagePost, useEnrolled, useStageStatus, type StageStatus } from "@/lib/stageClient";
 import { focusOffer, humanDate, readableFields, SHORT_LABEL, STATUS_TEXT, type RunView } from "@/lib/runState";
 import { parseItem, storeName } from "@/lib/names";
 import { Wordmark } from "./Logo";
@@ -36,60 +37,59 @@ function useLatestRunId(): { id?: string; checked: boolean } {
   return { id, checked };
 }
 
-function useControlMode(): boolean | null {
-  const [on, setOn] = useState<boolean | null>(null);
-  useEffect(() => {
-    const load = () => fetch("/api/control").then((r) => r.json()).then((b) => setOn(b.pulsoAgentReady)).catch(() => setOn(null));
-    load();
-    const t = setInterval(load, 5000);
-    return () => clearInterval(t);
-  }, []);
-  return on;
-}
-
-type Mode = { kind: "live" } | { kind: "replay"; name: ReplayName; waitForSignature: boolean; autostart: boolean };
-
-/** ?demo=1 (or =pulso-control) starts in replay mode; R switches to it mid-talk, L goes back to live. */
-function useMode(control: boolean | null): [Mode, (m: Mode) => void] {
-  const [mode, setMode] = useState<Mode>({ kind: "live" });
-  useEffect(() => {
-    const name = replayName(new URLSearchParams(window.location.search).get("demo"));
-    if (name) setMode({ kind: "replay", name, waitForSignature: true, autostart: false });
-  }, []);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "r" || e.key === "R") {
-        // Even mid-talk, the replay stops at the approval card until someone signs for real.
-        setMode({ kind: "replay", name: control ? "pulso-control" : "kilometro", waitForSignature: true, autostart: true });
-      } else if (e.key === "l" || e.key === "L") {
-        setMode({ kind: "live" });
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [control]);
-  return [mode, setMode];
-}
+type Mode = { kind: "live" } | { kind: "replay"; name: ReplayName };
 
 export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: string }) {
-  const control = useControlMode();
-  const [mode] = useMode(control);
+  // Opening this page is the whole talk-day checklist: it wakes every service, and after a long
+  // idle period it starts from a clean slate (stock, no old errand, control mode off).
+  const stage = useStageStatus({ autoReset: true });
+  const [enrolled] = useEnrolled();
+  const [override, setOverride] = useState<boolean | null>(null);
+  const control = override ?? stage.status?.control ?? null;
+  useEffect(() => setOverride(null), [stage.status?.control]);
+  const [busy, setBusy] = useState<"reset" | "control" | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [mode, setMode] = useState<Mode>({ kind: "live" });
   const replay = mode.kind === "replay" ? mode : null;
   const latest = useLatestRunId();
   const live = useRun(replay ? undefined : latest.id);
-  const recorded = useReplay(replay?.name ?? null, { waitForSignature: replay?.waitForSignature ?? false });
+  const recorded = useReplay(replay?.name ?? null, { waitForSignature: true });
   const run = replay ? recorded.run : live.run;
   const connection = replay ? "live" : live.connection;
   const id = replay ? (recorded.state === "ready" ? undefined : run.id) : latest.id;
   const checked = replay ? recorded.state !== "loading" : latest.checked;
   const shotSrc = (shot: string) => `/api/agent/screenshots/${shot}.jpg`;
 
-  // Replay controls: the phone (same Chrome) broadcasts start/signed; Space does the same by hand.
+  // The phone window (same Chrome) follows: it shows the recorded approval card, and its
+  // passkey (or its explicit simulated signature) lets the replay continue.
+  const showReplay = () => {
+    const name: ReplayName = control ? "pulso-control" : "kilometro";
+    replayChannel()?.postMessage({ type: "replay", name });
+    setMode({ kind: "replay", name });
+  };
+  const backToLive = () => {
+    replayChannel()?.postMessage({ type: "live" });
+    setMode({ kind: "live" });
+  };
+  async function act(kind: "reset" | "control") {
+    setBusy(kind);
+    setActionError(null);
+    const next = !control;
+    const error = kind === "reset" ? await stagePost("reset") : await stagePost("control", { enabled: next });
+    if (error) setActionError(error);
+    else if (kind === "control") setOverride(next);
+    else {
+      setOverride(false);
+      backToLive();
+    }
+    stage.refresh();
+    setBusy(null);
+  }
+
   const player = useRef(recorded);
   player.current = recorded;
   useEffect(() => {
-    if (replay?.autostart && recorded.state === "ready") player.current.start();
+    if (replay && recorded.state === "ready") player.current.start();
   }, [replay, recorded.state]);
   useEffect(() => {
     if (!replay) return;
@@ -97,22 +97,10 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
     if (channel) {
       channel.onmessage = (m) => {
         const msg = typeof m.data === "string" ? { type: m.data } : m.data;
-        if (msg.type === "start") player.current.start();
-        if (msg.type === "signed") player.current.sign((msg.method as ReplaySignature) ?? "space");
+        if (msg.type === "signed") player.current.sign((msg.method as ReplaySignature) ?? "simulated");
       };
     }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== " ") return;
-      e.preventDefault();
-      const p = player.current;
-      if (p.state === "ready" || p.state === "done") p.start();
-      else if (p.state === "waiting_signature") p.sign("space");
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      channel?.close();
-      window.removeEventListener("keydown", onKey);
-    };
+    return () => channel?.close();
   }, [replay]);
   const elapsed = useElapsed(run.startedAt, run.finishedAt ?? (run.phase === "no_purchase" || run.phase === "failed" || run.phase === "rejected" ? Date.now() : undefined));
   const urlOf = (s: StoreRef) => run.stores.find((u) => storeName(stores, u) === s.name) ?? s.url;
@@ -120,28 +108,40 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
   // In a replay, the control mode shown is the recording's, not today's.
   const shownControl = replay ? recorded.controlMode : control;
   const running = !replay && (run.phase === "running" || run.phase === "awaiting_approval" || run.phase === "signing");
-  // Honest timing: past 60 s live, the clock turns amber and reminds the presenter of Plan B.
+  // Honest timing: past 60 s live, the clock turns amber and the recorded run is offered.
   const slow = running && elapsed >= 60;
+  const stuck = !replay && Boolean(id) && (run.phase === "failed" || connection === "lost");
 
   return (
     <main className={`presenter ${replay ? "is-replay" : ""}`}>
       {replay ? (
         <div className="p-replay-banner" role="status">
           REPETICIÓN GRABADA{recordedDay(recorded.recordedAt) ? ` EL ${recordedDay(recorded.recordedAt)!.toUpperCase()}` : ""} · no es en vivo
-          <small>{recorded.state === "waiting_signature" ? "esperando una firma real: passkey o barra espaciadora" : recorded.state === "ready" ? "barra espaciadora para empezar · L vuelve a lo en vivo" : "L vuelve a lo en vivo"}</small>
+          <small>{recorded.state === "waiting_signature" ? "esperando la firma en el teléfono" : "se reproduce con su tiempo original"}</small>
+          {recorded.state === "waiting_signature" ? (
+            <button type="button" className="p-btn" onClick={() => player.current.sign("simulated")}>Continuar con firma simulada</button>
+          ) : null}
+          <button type="button" className="p-btn" onClick={backToLive}>Volver a lo en vivo</button>
         </div>
       ) : null}
       <header className="p-head">
         <div><Wordmark /></div>
         <div className={`errand ${run.errand ? "" : "empty"}`}>{run.errand ? run.errand.replace(/\.$/, "") : idle && checked ? "Esperando un encargo…" : "Conectando…"}</div>
-        <div className={`p-control ${shownControl ? "on" : ""}`} aria-live="polite">
+        <button
+          type="button"
+          className={`p-control ${shownControl ? "on" : ""}`}
+          aria-live="polite"
+          aria-pressed={Boolean(shownControl)}
+          disabled={Boolean(replay) || !enrolled || shownControl === null || busy !== null}
+          onClick={() => act("control")}
+          title={enrolled ? (shownControl ? "Apagar el modo de control" : "Encender el modo de control") : "Habilita este navegador desde el teléfono"}
+        >
           <span>Modo de control</span>
           <strong>{shownControl === null ? "—" : shownControl ? "ENCENDIDO" : "APAGADO"}</strong>
-          <span>{shownControl === null ? "sin datos" : shownControl ? "Pulso legible para agentes" : "Pulso opaco"}</span>
-        </div>
+          <span>{busy === "control" ? "cambiando…" : shownControl === null ? "sin datos" : shownControl ? "Pulso legible para agentes" : "Pulso opaco"}</span>
+        </button>
         <div className={`clock num ${run.phase === "completed" ? "done" : ""} ${slow ? "slow" : ""}`} aria-label="Tiempo transcurrido">
           <span>{mmss(elapsed)}</span>
-          {slow ? <small>R = repetición</small> : null}
         </div>
       </header>
 
@@ -171,10 +171,7 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
           <h2 className="p-col-head" id="c2"><span className="p-num">02</span>Razonamiento</h2>
           <div className="p-body">
             {idle ? (
-              <div className="p-idle">
-                <strong>Envía un encargo desde la app</strong>
-                <span>{appHost || "la app de Encargo"}</span>
-              </div>
+              <Readiness status={stage.status} agentDown={stage.agentDown} appHost={appHost} />
             ) : (
               <>
                 <Matrix run={run} stores={stores} urlOf={urlOf} />
@@ -197,8 +194,52 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
 
       <div className="p-status" aria-live="polite">
         {id && connection === "lost" ? <span className="tag">Reconectando…</span> : null}
+        {actionError ? <span className="tag err" role="alert">{actionError}</span> : null}
+        {!replay ? (
+          // Plan B is always one click away; it turns amber when the live run is slow or stopped.
+          <button type="button" className={`p-btn ${slow || stuck ? "p-btn-amber" : ""}`} onClick={showReplay}>Ver la ejecución grabada</button>
+        ) : null}
+        {!replay ? (
+          <button type="button" className="p-btn" onClick={() => act("reset")} disabled={!enrolled || busy !== null} title={enrolled ? "Stock completo, sin pedidos, modo de control apagado" : "Habilita este navegador desde el teléfono"}>
+            {busy === "reset" ? "Reiniciando…" : "Empezar de nuevo"}
+          </button>
+        ) : null}
       </div>
     </main>
+  );
+}
+
+/** What the presenter sees before the first errand: everything waking up, then «Listo». */
+function Readiness({ status, agentDown, appHost }: { status: StageStatus | null; agentDown: boolean; appHost: string }) {
+  const store = (key: string) => status?.stores.find((s) => s.key === key);
+  const items: { label: string; ok: boolean }[] = [
+    { label: "Pulso", ok: Boolean(store("pulso")?.ok) },
+    { label: "Kilómetro", ok: Boolean(store("kilometro")?.ok) },
+    { label: "Agente y modelo", ok: Boolean(status && status.agent.model_warm && status.agent.browser_warm) },
+    { label: "Passkey para firmar", ok: Boolean(status && status.passkeys > 0) },
+  ];
+  if (status?.ready) {
+    return (
+      <div className="p-idle">
+        <strong>Envía un encargo desde la app</strong>
+        <span>{appHost || "la app de Encargo"}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="p-idle p-ready" role="status">
+      <strong>{agentDown ? "Despertando el agente…" : "Preparando la demo…"}</strong>
+      <ul className="p-ready-list">
+        {items.map((it) => (
+          <li key={it.label} className={it.ok ? "ok" : ""}>
+            <span className="dot" aria-hidden />
+            {it.label}
+            <span className="visually-hidden">{it.ok ? ": listo" : ": preparando"}</span>
+          </li>
+        ))}
+      </ul>
+      {status?.problems.filter((p) => !p.includes("no responde")).map((p) => <span key={p} className="p-ready-problem">{p}</span>)}
+    </div>
   );
 }
 
@@ -340,8 +381,7 @@ function AgentView({ run, store, url, idle }: { run: RunView; store: StoreRef; u
 /** Never claims a passkey unless one signed: live passkey, test signer, or a replay's real/simulated approval. */
 function signatureText(method?: string): string {
   if (method === "passkey") return "Mandato AP2 firmado con passkey";
-  if (method === "space") return "Firma simulada con la barra espaciadora (grabación)";
-  if (method === "simulated") return "Firma simulada en el teléfono (grabación)";
+  if (method === "simulated") return "Firma simulada (grabación)";
   if (method === "test") return "Mandato AP2 firmado con el firmador de prueba";
   return "Mandato AP2 firmado";
 }

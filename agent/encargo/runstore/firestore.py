@@ -28,7 +28,7 @@ class FirestoreRunStore:
         return snap.to_dict() if snap.exists else None
 
     async def update_run(self, run_id: str, fields: dict[str, Any]) -> None:
-        # update(), not set(merge=True): a run deleted by `make reset` must not come back.
+        # update(), not set(merge=True): a run deleted by a reset must not come back.
         try:
             await self.db.collection("runs").document(run_id).update(fields)
         except NotFound:

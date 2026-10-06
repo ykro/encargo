@@ -12,6 +12,9 @@
   GET  /.well-known/ucp         platform profile: the public key stores use to verify mandates
   GET  /audit?url=…             agent-readiness audit of any store
   GET  /screenshots/{id}.jpg    what a human sees (presenter view)
+  GET  /stage/status, POST /stage/warmup   talk-day readiness, called by the presenter page
+  POST /stage/reset, /stage/control        «Empezar de nuevo» and the control-mode switch (enrolled device)
+  POST /stage/session/passkey*             enable a browser with the registered passkey
 """
 
 from __future__ import annotations
@@ -29,7 +32,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import passkey, purchase
+from . import passkey, purchase, stage
 from .ap2.signer import platform_key
 from urllib.parse import urlparse
 
@@ -353,43 +356,89 @@ async def get_screenshot(shot_id: str) -> Response:
 
 @app.post("/admin/warmup")
 async def warmup(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    """Before the talk: one short model call and a headless Chromium launch, so the
-    first live errand does not pay for cold clients, cold Vertex paths or browser start."""
+    """One short model call and a headless Chromium launch, so the first errand does not
+    pay for cold clients, cold Vertex paths or browser start (the presenter page does this
+    by itself through /stage/warmup)."""
     _require_admin(authorization)
-    import time as _time
-
-    s = settings()
-    out: dict[str, Any] = {}
-    t = _time.monotonic()
-    if s.mock_ai or not s.gemini_model:
-        out["model"] = "omitido (MOCK_AI)"
-    else:
-        from google import genai
-        from google.genai import types
-
-        client = genai.Client(vertexai=True, project=s.project, location=s.location)
-        res = await client.aio.models.generate_content(
-            model=s.gemini_model,
-            contents="Responde solo: listo",
-            config=types.GenerateContentConfig(thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.LOW)),
-        )
-        out["model"] = (res.text or "").strip()[:40]
-    out["model_s"] = round(_time.monotonic() - t, 1)
-    t = _time.monotonic()
-    if s.browser_enabled:
-        from .tools.browser import _get_browser
-
-        await _get_browser()
-        out["browser"] = "listo"
-    out["browser_s"] = round(_time.monotonic() - t, 1)
-    return out
+    return await stage.warm_model_and_browser(force=True) or {}
 
 
 @app.post("/admin/reset")
 async def reset(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    """Agent state only (runs, events, mandates, orders); /stage/reset also resets the stores."""
     _require_admin(authorization)
     from .runner import cancel_all
 
     cancelled = await cancel_all()
     await default_store().reset()
     return {"reset": True, "cancelled_runs": cancelled}
+
+
+# --- Talk day, from the pages themselves (no commands) ---------------------------------
+
+
+@app.get("/stage/status")
+async def stage_status() -> dict[str, Any]:
+    """Public: what is ready, so the presenter can say «Preparando…» or «Listo»."""
+    return await stage.status()
+
+
+class WarmupRequest(BaseModel):
+    auto_reset: bool = False
+
+
+@app.post("/stage/warmup")
+async def stage_warmup(body: WarmupRequest | None = None) -> dict[str, Any]:
+    """Public and cheap to repeat: wakes the stores; the model call and Chromium launch run at
+    most every few minutes. With auto_reset, a page opened after a long idle period starts clean."""
+    return await stage.warmup(auto_reset=bool(body and body.auto_reset))
+
+
+@app.post("/stage/reset")
+async def stage_reset(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    """«Empezar de nuevo» on the presenter (enrolled device only)."""
+    _require_stage(authorization)
+    result = await stage.reset()
+    if not result["reset"]:
+        raise HTTPException(502, "No se pudo reiniciar: " + ", ".join(result.get("failed") or []))
+    return result
+
+
+class ControlRequest(BaseModel):
+    enabled: bool
+
+
+@app.post("/stage/control")
+async def stage_control(body: ControlRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    """The control-mode switch on the presenter (enrolled device only)."""
+    _require_stage(authorization)
+    result = await stage.control(body.enabled)
+    if not result["ok"]:
+        raise HTTPException(502, result["error"])
+    return result
+
+
+@app.post("/stage/session/passkey-options")
+async def stage_session_options() -> dict[str, Any]:
+    """Enable this browser with the registered passkey (Touch ID) instead of a setup code."""
+    try:
+        return await passkey.session_options(default_store())
+    except passkey.PasskeyError as e:
+        raise HTTPException(409, str(e)) from e
+
+
+class SessionPasskey(BaseModel):
+    flow_id: str
+    credential: dict[str, Any]
+
+
+@app.post("/stage/session/passkey")
+async def stage_session_passkey(body: SessionPasskey) -> dict[str, Any]:
+    s = settings()
+    try:
+        who = await passkey.verify_session(default_store(), body.flow_id, body.credential)
+    except passkey.PasskeyError as e:
+        raise HTTPException(401, str(e)) from e
+    if s.stage_required and not s.stage_token:
+        raise HTTPException(503, "El acceso de escenario no está configurado (STAGE_TOKEN).")
+    return {"stage_token": s.stage_token, "required": s.stage_required, "label": who.get("label")}
