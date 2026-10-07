@@ -2,7 +2,7 @@
 
 Guion de la demo en vivo de **«Tu próximo cliente es un agente de IA»**. Cada paso es una pantalla, con lo que haces, lo que dices y lo que tarda. El día de la charla no se corre ningún comando: solo se abren dos páginas y se hace clic. [English version](DEMO.en.md).
 
-Las capturas de `docs/demo/` salen de la demo completa en Cloud Run, hecha solo con clics como la haces tú (`make demo-screens`). En esa ejecución firma el **autenticador virtual de Chrome**, que recorre las mismas pantallas y la misma ruta WebAuthn que Touch ID. Lo único que no aparece es el diálogo de macOS, que la automatización no puede mostrar. En el escenario firmas con la passkey `adrian-macbook` (Touch ID).
+Las capturas de `docs/demo/` salen de la demo completa en Cloud Run, hecha solo con clics como la haces tú (`make demo-screens`). En esa ejecución firma el **autenticador virtual de Chrome**, que recorre las mismas pantallas y la misma ruta WebAuthn que Touch ID. Lo único que no aparece es el diálogo de macOS, que la automatización no puede mostrar. En el escenario firmas con la passkey del portátil (Touch ID).
 
 ![Qué se prueba en la demo](diagrams/que-se-prueba.png)
 
@@ -82,7 +82,7 @@ En el «teléfono» se ve el mismo checklist, más pequeño.
 
 ![Autoriza la compra](demo/06-telefono-autoriza.png)
 
-**Haz:** en el «teléfono», lee la tarjeta «Autoriza la compra»: producto, talla, tienda, entrega, total, «Firmado por la tienda: Sí, verificado» y «Oferta válida hasta». Pulsa **Firmar mandato con passkey**. Chrome muestra su diálogo de passkey con la cuenta `adrian-macbook` y macOS pide **Touch ID**: pon el dedo.
+**Haz:** en el «teléfono», lee la tarjeta «Autoriza la compra»: producto, talla, tienda, entrega, total, «Firmado por la tienda: Sí, verificado» y «Oferta válida hasta». Pulsa **Firmar mandato con passkey**. Chrome muestra su diálogo de passkey con la cuenta registrada y macOS pide **Touch ID**: pon el dedo.
 
 **Di:** «Confianza: el agente arma el carrito, la tienda firma los términos y yo firmo un mandato AP2 con mi huella. Sin mi firma, la tienda rechaza el pago.»
 

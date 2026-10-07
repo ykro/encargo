@@ -2,7 +2,7 @@
 
 Script for the live demo of **"Your next customer is an AI agent"**. Each step is one screen, with what you do, what you say and how long it takes. On talk day no command is run: you open two pages and click. [Versión en español](DEMO.md).
 
-The screenshots in `docs/demo/` come from the whole demo on Cloud Run, done with clicks only, the way you do it (`make demo-screens`). In that run **Chrome's virtual authenticator** signs: same screens and same WebAuthn path as Touch ID. The only thing missing is the macOS dialog, which automation cannot show. On stage you sign with the `adrian-macbook` passkey (Touch ID).
+The screenshots in `docs/demo/` come from the whole demo on Cloud Run, done with clicks only, the way you do it (`make demo-screens`). In that run **Chrome's virtual authenticator** signs: same screens and same WebAuthn path as Touch ID. The only thing missing is the macOS dialog, which automation cannot show. On stage you sign with the laptop's passkey (Touch ID).
 
 ![What the demo tests](diagrams/que-se-prueba.png)
 
@@ -82,7 +82,7 @@ The "phone" shows the same checklist, smaller.
 
 ![Authorize the purchase](demo/06-telefono-autoriza.png)
 
-**Do:** on the "phone", read the «Autoriza la compra» card: product, size, store, delivery, total, «Firmado por la tienda: Sí, verificado» and «Oferta válida hasta». Press **Firmar mandato con passkey**. Chrome shows its passkey dialog with the `adrian-macbook` account and macOS asks for **Touch ID**: use your finger.
+**Do:** on the "phone", read the «Autoriza la compra» card: product, size, store, delivery, total, «Firmado por la tienda: Sí, verificado» and «Oferta válida hasta». Press **Firmar mandato con passkey**. Chrome shows its passkey dialog with the registered account and macOS asks for **Touch ID**: use your finger.
 
 **Say:** "Trust: the agent builds the cart, the store signs the terms and I sign an AP2 mandate with my fingerprint. Without my signature, the store refuses the payment."
 

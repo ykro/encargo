@@ -73,3 +73,14 @@ The agent has no page: it is a service (https://encargo-agent-611681112050.us-ce
 - [VERSIONS.md](VERSIONS.md): protocol and dependency versions (Spanish).
 - [docs/diagrams/](docs/diagrams/): architecture, what the demo tests, sequence of one purchase, readability matrix and funnel (HTML, SVG and PNG).
 - [data/SOURCES.md](data/SOURCES.md) and [data/DATASHEET.md](data/DATASHEET.md): synthetic data.
+
+## Use your own Google Cloud project
+
+The `infra/` scripts read `PROJECT_ID` (the talk's project by default). To deploy to yours, run
+`PROJECT_ID=<your-project> make deploy` and put the same ID in `.env`. Details in the
+[onboarding guide](docs/ONBOARDING.md) (Spanish).
+
+## License
+
+Code under [Apache 2.0](LICENSE). Catalog images are synthetic; the brand, stores and data are fictional
+([NOTICE](NOTICE), [credits](docs/CREDITOS.en.md)).

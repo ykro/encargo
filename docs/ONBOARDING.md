@@ -275,7 +275,7 @@ Pon `MOCK_AI=1` en `.env` y ejecuta `make up`. El planificador determinista (`ag
 
 ## 7. La passkey y los navegadores habilitados
 
-La passkey es la única forma de aprobar un pago en la nube. Ya hay una registrada para el portátil del escenario (`adrian-macbook`, Touch ID); sobrevive a cualquier reinicio, y el presentador avisa si no hubiera ninguna («No hay una passkey registrada para firmar»).
+La passkey es la única forma de aprobar un pago en la nube. Ya hay una registrada para el portátil del escenario (Touch ID); sobrevive a cualquier reinicio, y el presentador avisa si no hubiera ninguna («No hay una passkey registrada para firmar»).
 
 **Habilitar un navegador** (enviar encargos, cancelar, «Empezar de nuevo» y el interruptor del modo de control): en la página del teléfono, «Habilitar con Touch ID». La app pide una firma a la passkey registrada y, si es válida, el agente entrega el token de escenario, que queda en ese perfil de Chrome (`localStorage`). El presentador y el teléfono son del mismo perfil, así que basta hacerlo una vez en cualquiera de los dos. No hay código que escribir.
 

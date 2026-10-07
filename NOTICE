@@ -1,0 +1,14 @@
+Encargo
+Copyright 2026 Adrián Catalán
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party material:
+- Fonts loaded at build time through next/font/google (Geist, Geist Mono, Public Sans, Mulish,
+  Tenor Sans): SIL Open Font License 1.1. They are not stored in this repository.
+
+Generated material: every catalog image was generated with gemini-3.1-flash-lite-image (prompt in the
+.prompt.json next to each file). The "Senda" brand, the stores Kilómetro and Pulso and all catalog data
+are fictional. Full inventory: data/SOURCES.md and docs/CREDITOS.md.
+
+Dependencies are installed from their registries (uv, npm) and keep their own licenses.

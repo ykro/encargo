@@ -73,3 +73,14 @@ El agente no tiene página: es un servicio (https://encargo-agent-611681112050.u
 - [VERSIONS.md](VERSIONS.md): versiones de los protocolos y las dependencias.
 - [docs/diagrams/](docs/diagrams/): arquitectura, qué se prueba, secuencia de una compra, matriz de lectura y embudo (HTML, SVG y PNG).
 - [data/SOURCES.md](data/SOURCES.md) y [data/DATASHEET.md](data/DATASHEET.md): datos sintéticos.
+
+## Usar tu propio proyecto de Google Cloud
+
+Los scripts de `infra/` usan `PROJECT_ID` (por defecto el proyecto de la charla). Para desplegar en el tuyo,
+corre `PROJECT_ID=<tu-proyecto> make deploy` y pon el mismo ID en `.env`. El detalle está en la
+[guía de incorporación](docs/ONBOARDING.md).
+
+## Licencia
+
+Código bajo [Apache 2.0](LICENSE). Las imágenes del catálogo son sintéticas y la marca, las tiendas y los
+datos son ficticios ([NOTICE](NOTICE), [créditos](docs/CREDITOS.md)).
