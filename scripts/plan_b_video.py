@@ -59,7 +59,7 @@ async def main(a: argparse.Namespace) -> int:
             "rpId": urlparse(app).hostname, "privateKey": base64.b64encode(key).decode(),
             "userHandle": base64.b64encode(b"encargo-persona").decode(), "signCount": 0}})
 
-        await presenter.goto(f"{app}/presenter")
+        await presenter.goto(f"{app}/presentador")
         await phone.goto(f"{app}/")
         await presenter.get_by_role("button", name="Ver la ejecución grabada").click(timeout=60000)
         await presenter.get_by_text("REPETICIÓN GRABADA").wait_for(timeout=20000)

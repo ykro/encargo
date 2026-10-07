@@ -90,7 +90,7 @@ async def main(a: argparse.Namespace) -> None:
 
             # 1. Open the presenter: it wakes the stores, the agent, Gemini and Chromium by itself.
             t = time.monotonic()
-            await presenter.goto(f"{a.app}/presenter")
+            await presenter.goto(f"{a.app}/presentador")
             if await presenter.get_by_text("Preparando la demo").or_(presenter.get_by_text("Despertando el agente")).is_visible():
                 await shot(presenter, "00-presentador-preparando", 300)
             await presenter.get_by_text("Envía un encargo desde la app").wait_for(timeout=180000)

@@ -368,3 +368,52 @@ button.p-control[disabled] { cursor: default; }
 .btn-secondary:hover:not([disabled]) { background: var(--cobalt-wash); }
 .btn-secondary[disabled] { color: var(--muted); border-color: var(--line-strong); cursor: progress; }
 .enable-card { flex-direction: column; align-items: stretch; gap: 12px; }
+
+/* Presentador below projector size: phones and tablets (the rules above are for 1920×1080). */
+@media (max-width: 1100px) {
+  button.p-control { border-right: 0; }
+  .p-ready-list { font-size: 18px; gap: 10px; }
+  .p-ready-list .dot { width: 12px; height: 12px; }
+  .p-ready-problem { font-size: 16px; }
+  .p-idle { overflow-wrap: anywhere; }
+  .p-status { flex-wrap: wrap; gap: 10px; }
+  .p-status .tag.err { max-width: 100%; }
+  .p-btn { font-size: 15px; min-height: 44px; padding: 0 16px; }
+  .p-replay-banner .p-btn { font-size: 14px; }
+  .decision { flex-wrap: wrap; gap: 8px; }
+  .decision small { font-size: 15px; }
+  .approval { padding: 14px 16px; }
+}
+/* Tablets: the two store captures side by side. */
+@media (min-width: 640px) and (max-width: 1100px) {
+  .p-col:first-child .p-body { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .p-col:first-child .shot { grid-template-rows: 260px auto; }
+}
+/* Phones: the reasoning table stays readable at 360 px. */
+@media (max-width: 480px) {
+  .matrix th:first-child { width: 40%; }
+  .matrix th, .matrix td.cond { font-size: 16px; }
+  .matrix td { height: 56px; padding: 0 6px; }
+  .matrix .badge { width: 28px; height: 28px; }
+  .matrix .state-text { font-size: 13px; }
+  .p-head .clock { font-size: 26px; }
+  .p-body { padding: 16px; }
+}
+/* The recorded-run sizes above are for the projector too: undo them below 1100 px. */
+@media (max-width: 1100px) {
+  .presenter.is-replay .p-col { grid-template-rows: 64px auto; }
+  .presenter.is-replay .p-col-head { font-size: 20px; }
+  .presenter.is-replay .p-body { gap: 16px; }
+  .presenter.is-replay .matrix th, .presenter.is-replay .matrix td.cond { font-size: 20px; }
+  .presenter.is-replay .matrix td { height: 64px; }
+  .presenter.is-replay .decision { font-size: 20px; padding: 16px; }
+  .presenter.is-replay .av-table div, .presenter.is-replay .av-empty { font-size: 17px; padding: 10px 14px; }
+  .av-store h3 { flex-wrap: wrap; row-gap: 2px; }
+  .av-store h3 > span:first-child { white-space: normal; }
+  .av-store h3 .model { font-size: 16px; }
+  .av-table div { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .presenter.is-replay .matrix th, .presenter.is-replay .matrix td.cond { font-size: 16px; }
+  .presenter.is-replay .matrix td { height: 56px; }
+}

@@ -28,7 +28,7 @@ done
 (cd "$ROOT/agent" && uv run uvicorn encargo.api:app --port 8000 >"$LOGS/agent.log" 2>&1) &
 (cd "$ROOT/app" && npm run dev >"$LOGS/app.log" 2>&1) &
 
-echo "Encargo    http://localhost:3000  (presentador: /presenter · passkey: /configurar?clave=$ADMIN_TOKEN)"
+echo "Encargo    http://localhost:3000  (presentador: /presentador · passkey: /configurar?clave=$ADMIN_TOKEN)"
 echo "Kilómetro  http://localhost:3001"
 echo "Pulso      http://localhost:3002"
 echo "Agente     http://localhost:8000  (logs en .data/logs/)"

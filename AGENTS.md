@@ -51,7 +51,7 @@ Run state (runs, events, mandates, orders) lives in Firestore db `encargo` so al
 - Stops before paying and requests approval through AP2.
 - Streams every step to the presenter view as server-sent events.
 
-## Presenter view (`encargo-app` route `/presenter`)
+## Presenter view (`encargo-app` route `/presentador`; `/presenter` redirects there)
 
 - Left: what a human sees — live screenshots of both stores. Right: what the agent sees — the data it extracted from each.
 - Center: the agent's reasoning step by step, the checklist filling in live, the final decision.
@@ -73,7 +73,7 @@ Run state (runs, events, mandates, orders) lives in Firestore db `encargo` so al
 - No payment completes without an AP2 mandate signed by the person (test).
 - A full run, errand to confirmation, < 2 minutes.
 - A reset («Empezar de nuevo» on the presenter, `make reset` in development) restores stock and clears carts, orders and events.
-- Talk day needs no command: opening `/presenter` wakes, checks and (after a long idle period) resets everything through the agent's `/stage/*` endpoints (`agent/encargo/stage.py`). Don't add talk-day steps that require a terminal, a key press or a script.
+- Talk day needs no command: opening `/presentador` wakes, checks and (after a long idle period) resets everything through the agent's `/stage/*` endpoints (`agent/encargo/stage.py`). Don't add talk-day steps that require a terminal, a key press or a script.
 - `make test` passes.
 
 ## Shared rules (all four demo repos)

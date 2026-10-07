@@ -68,7 +68,7 @@ export function AuditView({ stores, qr, pageUrl }: { stores: StoreRef[]; qr: str
           <p className="lede">Ocho cosas que un agente necesita leer para comprarte sin adivinar. La auditoría solo lee: no crea carritos ni pedidos.</p>
           <form onSubmit={(e) => { e.preventDefault(); run(url); }}>
             <label htmlFor="url" className="visually-hidden">Dirección de la tienda</label>
-            <input id="url" className="text" type="url" inputMode="url" placeholder="Pega la dirección de tu tienda (https://…)" value={url} onChange={(e) => setUrl(e.target.value)} required />
+            <input id="url" className="text" type="url" inputMode="url" placeholder="Dirección de tu tienda (https://…)" value={url} onChange={(e) => setUrl(e.target.value)} required />
             <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? "Auditando…" : "Auditar"}</button>
           </form>
           <div className="quick" aria-label="Tiendas de la demo">

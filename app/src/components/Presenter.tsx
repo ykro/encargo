@@ -43,6 +43,10 @@ export function Presenter({ stores, appHost }: { stores: StoreRef[]; appHost: st
   // Opening this page is the whole talk-day checklist: it wakes every service, and after a long
   // idle period it starts from a clean slate (stock, no old errand, control mode off).
   const stage = useStageStatus({ autoReset: true });
+  // Wake both stores in parallel with the agent instead of after it (saves a cold start in series).
+  useEffect(() => {
+    for (const s of stores) fetch(s.url, { mode: "no-cors", cache: "no-store" }).catch(() => undefined);
+  }, [stores]);
   const [enrolled] = useEnrolled();
   const [override, setOverride] = useState<boolean | null>(null);
   const control = override ?? stage.status?.control ?? null;
