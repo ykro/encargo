@@ -193,9 +193,9 @@ El mismo `make test` corre en GitHub Actions en cada push y pull request (`.gith
 
 Corre cuatro grupos de pruebas:
 
-1. **Kit de comercio** (`stores/shared/tests/`, vitest, 19 pruebas): lo que publican schema.org, el feed y UCP; las fechas de entrega; y que no hay pago sin mandato. Esto último cubre un mandato ausente, una llave desconocida, una plataforma sin confianza, términos distintos, otro checkout, un mandato vencido y un mandato para otra tienda. También: dos `/complete` simultáneos dejan un solo pedido, un mandato rechazado devuelve el checkout, solo la llave del checkout (o la del administrador) lo cancela, y la llave de administración falla cerrada en producción.
+1. **Kit de comercio** (`stores/shared/tests/`, vitest, 20 pruebas): lo que publican schema.org, el feed y UCP; las fechas de entrega; y que no hay pago sin mandato. Esto último cubre un mandato ausente, una llave desconocida, una plataforma sin confianza, términos distintos, otro checkout, un mandato vencido y un mandato para otra tienda. También: dos `/complete` simultáneos dejan un solo pedido, un mandato rechazado devuelve el checkout, solo la llave del checkout (o la del administrador) lo cancela, y la llave de administración falla cerrada en producción.
 2. **Typecheck** de Kilómetro, Pulso y la app.
-3. **Agente** (`agent/tests/`, pytest, 53 pruebas). `conftest.py` fija `MOCK_AI=1`, `RUN_STORE=memory`, `BROWSER_ENABLED=0` y `SIGNER_MODE=test`. Las tiendas falsas (`tests/fake_stores.py`) sirven fixtures reales de Kilómetro y Pulso. Las pruebas que más enseñan:
+3. **Agente** (`agent/tests/`, pytest, 64 pruebas). `conftest.py` fija `MOCK_AI=1`, `RUN_STORE=memory`, `BROWSER_ENABLED=0` y `SIGNER_MODE=test`. Las tiendas falsas (`tests/fake_stores.py`) sirven fixtures reales de Kilómetro y Pulso. Las pruebas que más enseñan:
    - `test_pulso_page_has_no_facts_for_a_machine`.
    - `test_control_mode_buys_where_it_is_cheaper`.
    - `test_guardrail_refuses_approval_when_a_condition_is_not_verified`.
@@ -335,7 +335,7 @@ Lo que pasa desde que la persona escribe el encargo hasta el pedido. Los eventos
 
 ### 1. El encargo
 
-- `app/src/components/ErrandForm.tsx` hace `POST /api/agent/runs` con `{errand, stores}`: solo el texto y las URL de Pulso y Kilómetro.
+- `app/src/components/ErrandForm.tsx` hace `POST /api/agent/runs` con `{errand}`: las URL de Pulso y Kilómetro las fija el servidor (nunca el cliente).
 - El proxy `app/src/app/api/agent/[...path]/route.ts` lo reenvía al agente.
 - La app navega a `/encargo/<id>`, que se suscribe a `GET /runs/<id>/events` (SSE) con `app/src/lib/useRun.ts`.
 
