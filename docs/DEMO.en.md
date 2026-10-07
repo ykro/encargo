@@ -121,7 +121,7 @@ Now both stores meet everything and the decision is «Pulso · 139 USD». Sign w
 
 ![Audit with QR](demo/11-auditoria-qr.png)
 
-**Do:** bring the audit tab to the projector. The audience scans the QR to audit their own store from their phone.
+**Do:** in the presenter, click **Modo de control** again so it reads «APAGADO» (left on, Pulso scores 7/8 in the audit). Then bring the audit tab to the projector. The audience scans the QR to audit their own store from their phone.
 
 **Say:** "The practical checklist: eight things an agent needs to read. Scan the code and audit your store."
 

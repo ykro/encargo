@@ -117,7 +117,10 @@ async def main(a: argparse.Namespace) -> None:
             await run_errand(phone, presenter, a, "09", first=False)
             await shot(presenter, "10-presentador-control-pulso", 1500)
 
-            # 4. The audit: QR for the audience, then the two stores side by side.
+            # 4. The audit: control mode back off first (it makes Pulso legible: the audit would say 7/8),
+            # then the QR for the audience and the two stores side by side.
+            await presenter.get_by_role("button", name="Modo de control").click()
+            await presenter.locator(".p-control strong", has_text="APAGADO").wait_for(timeout=30000)
             audit = await ctx.new_page()
             await audit.set_viewport_size({"width": 1920, "height": 1080})
             await audit.goto(f"{a.app}/auditoria")

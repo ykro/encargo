@@ -121,7 +121,7 @@ Ahora las dos tiendas cumplen todo y la decisión es «Pulso · 139 USD». Firma
 
 ![Auditoría con QR](demo/11-auditoria-qr.png)
 
-**Haz:** trae la pestaña de la auditoría al proyector. El público escanea el QR para auditar su propia tienda desde su teléfono.
+**Haz:** en el presentador, haz clic otra vez en **Modo de control** para dejarlo «APAGADO» (si queda encendido, Pulso sale 7/8 en la auditoría). Luego trae la pestaña de la auditoría al proyector. El público escanea el QR para auditar su propia tienda desde su teléfono.
 
 **Di:** «El checklist práctico: ocho cosas que un agente necesita leer. Escaneen el código y auditen su tienda.»
 
