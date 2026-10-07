@@ -33,7 +33,7 @@ make up                                    # app :3000, Kilómetro :3001, Pulso 
 ```
 
 - Open `http://localhost:3000/configurar?clave=dev-admin` and register a passkey (Touch ID). In the cloud one is already registered; a new browser is enabled from the phone page with «Habilitar con Touch ID».
-- Send the errand from `http://localhost:3000` and watch it at `http://localhost:3000/presenter`.
+- Send the errand from `http://localhost:3000` and watch it at `http://localhost:3000/presentador`.
 - `make test` runs every test offline.
 
 Details (prerequisites, cloud, rehearsal and talk day) are in [ONBOARDING.md](ONBOARDING.md).

@@ -33,7 +33,7 @@ make up                                    # app :3000, Kilómetro :3001, Pulso 
 ```
 
 - Abre `http://localhost:3000/configurar?clave=dev-admin` y registra una passkey (Touch ID). En la nube ya hay una registrada; un navegador nuevo se habilita en el teléfono con «Habilitar con Touch ID».
-- Envía el encargo desde `http://localhost:3000` y míralo en `http://localhost:3000/presenter`.
+- Envía el encargo desde `http://localhost:3000` y míralo en `http://localhost:3000/presentador`.
 - `make test` corre todas las pruebas sin red.
 
 Los detalles (requisitos, nube, ensayo y día de la charla) están en [ONBOARDING.md](ONBOARDING.md).

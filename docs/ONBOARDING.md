@@ -62,7 +62,7 @@ make up
 | URL | Qué es |
 | --- | --- |
 | `http://localhost:3000` | App Encargo: el «teléfono» (encargo y aprobación) |
-| `http://localhost:3000/presenter` | Vista del presentador (1920×1080) |
+| `http://localhost:3000/presentador` | Vista del presentador (1920×1080) |
 | `http://localhost:3000/configurar?clave=dev-admin` | Registro de la passkey |
 | `http://localhost:3000/auditoria` | Auditoría de preparación para agentes |
 | `http://localhost:3001` | Kilómetro |
@@ -440,7 +440,7 @@ El guion, con capturas y qué decir en cada pantalla, está en [DEMO.md](DEMO.md
 
 ### Qué pasa cuando abres el presentador
 
-`/presenter` llama a `POST /stage/warmup` del agente (`agent/encargo/stage.py`) y luego consulta `GET /stage/status` cada 3 s hasta que todo está listo:
+`/presentador` llama a `POST /stage/warmup` del agente (`agent/encargo/stage.py`) y luego consulta `GET /stage/status` cada 3 s hasta que todo está listo:
 
 - despierta las dos tiendas (portada, feed y perfil UCP) y el agente;
 - hace una llamada corta a Gemini y arranca Chromium (como mucho cada 5 minutos);

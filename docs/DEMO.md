@@ -10,11 +10,13 @@ Cada bloque del diagrama dice qué pasos de este guion lo ejercitan («PASOS N»
 
 ## Antes de la demo
 
+El **presentador** es una página solo para la demo en vivo: la vista del proyector. El producto que cualquiera puede probar es la app (el «teléfono»), la auditoría y las dos tiendas ([README](../README.md#páginas-desplegadas)).
+
 Unos minutos antes, con internet, abre dos ventanas del mismo perfil de Chrome (ahí vive la passkey):
 
 | Ventana | Dirección | Dónde va |
 | --- | --- | --- |
-| Presentador | `https://encargo-app-611681112050.us-central1.run.app/presenter`, en pantalla completa | Proyector, 1920×1080 |
+| Presentador | `https://encargo-app-611681112050.us-central1.run.app/presentador`, en pantalla completa | Proyector, 1920×1080 |
 | «Teléfono» | `https://encargo-app-611681112050.us-central1.run.app` | Pantalla del portátil, a un lado. La ves tú; el público ve el presentador |
 | Auditoría (para el cierre) | `https://encargo-app-611681112050.us-central1.run.app/auditoria`, en otra pestaña | Detrás del presentador; la traes al proyector en el paso 8 |
 

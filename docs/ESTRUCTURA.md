@@ -10,7 +10,7 @@ Qué corre dónde y dónde está cada cosa en el código. Volver al [README](../
 | Kilómetro | `stores/kilometro/` | Next.js con render en el servidor, API UCP, SQLite en el proceso | `encargo-kilometro` |
 | Kit de comercio compartido | `stores/shared/` | schema.org, feed, UCP y verificación AP2 (TypeScript). Se copia dentro de cada tienda | — |
 | Agente Encargo | `agent/` | Python 3.13, ADK, Gemini (`GEMINI_MODEL`) vía Vertex AI, Playwright (Chromium headless), FastAPI | `encargo-agent` |
-| App Encargo | `app/` | Next.js. El encargo y la aprobación con passkey en el «teléfono» (`/`, `/encargo/[id]`), el presentador (`/presenter`), la configuración de la passkey (`/configurar`) y la auditoría (`/auditoria`) | `encargo-app` |
+| App Encargo | `app/` | Next.js. El encargo y la aprobación con passkey en el «teléfono» (`/`, `/encargo/[id]`), el presentador (`/presentador`), la configuración de la passkey (`/configurar`) y la auditoría (`/auditoria`) | `encargo-app` |
 | Estado de las ejecuciones | — | Firestore, base `encargo` | — |
 
 La app nunca llama al agente desde el navegador. Usa un proxy en el mismo origen (`app/src/app/api/agent/[...path]/route.ts`), incluido el stream SSE, para que las passkeys tengan un solo origen y no haya CORS. El agente transmite cada paso como eventos (`step`, `observation`, `agent_view`, `checklist`, `approval_requested`, `order_confirmed`, …). El teléfono y el presentador dibujan esos mismos eventos.
@@ -52,7 +52,7 @@ encargo/
 │   ├── mock_planner.py     MOCK_AI=1: planificador determinista con las mismas herramientas
 │   └── api.py              FastAPI: /runs, SSE, /mandates, /passkeys, /stage, /audit, /.well-known/ucp
 ├── app/src/
-│   ├── app/                /, /encargo/[id], /presenter, /configurar, /auditoria, /api/agent (proxy)
+│   ├── app/                /, /encargo/[id], /presentador, /configurar, /auditoria, /api/agent (proxy)
 │   ├── components/         ErrandForm, RunPhone, Presenter, PasskeySetup, AuditView, PhoneTop, Logo, Icons
 │   └── lib/                useRun (SSE), runState (eventos → pantalla), useReplay (plan B), stage, stageClient (preparar, reiniciar, habilitar con Touch ID), auditCopy
 ├── infra/                  10-enable-apis, 20-secrets, 30-deploy-stores, 40-deploy-agent, 50-deploy-app

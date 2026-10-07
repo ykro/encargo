@@ -20,7 +20,7 @@ The Spanish [README.md](README.md) is the primary document; this is a faithful E
 
 Nothing is run. Two pages are opened in the same Chrome on the laptop:
 
-- **Presenter**, on the projector: https://encargo-app-611681112050.us-central1.run.app/presenter. When it opens it wakes the stores, the agent and Gemini, and if it sat idle for a while it starts from scratch. It says «Preparando la demo…» and, in about 15–20 s, «Envía un encargo desde la app». The control-mode switch, «Empezar de nuevo» and «Ver la ejecución grabada» (Plan B) are there.
+- **Presentador** (projector view, only for the live demo), on the projector: https://encargo-app-611681112050.us-central1.run.app/presentador. When it opens it wakes the stores, the agent and Gemini, and if it sat idle for a while it starts from scratch. It says «Preparando la demo…» and, in about 15–20 s, «Envía un encargo desde la app». The control-mode switch, «Empezar de nuevo» and «Ver la ejecución grabada» (Plan B) are there.
 - **Phone**, on the laptop screen: https://encargo-app-611681112050.us-central1.run.app. The errand is sent and signed with Touch ID there.
 
 The full script is in [docs/DEMO.en.md](docs/DEMO.en.md).
@@ -33,24 +33,34 @@ gcloud auth application-default login      # ADC for Gemini on Vertex AI (or MOC
 (cd agent && uv run playwright install chromium)
 make up                                    # app :3000, Kilómetro :3001, Pulso :3002, agent :8000
 open "http://localhost:3000/configurar?clave=dev-admin"   # register a passkey (Touch ID)
-open http://localhost:3000/presenter       # send the errand from http://localhost:3000
+open http://localhost:3000/presentador     # send the errand from http://localhost:3000
 make test                                  # every test, offline
 ```
 
 **Bias test** (`make bias-test TARGET=cloud`, 2026-10-01): Kilómetro 9/10 with control off and Pulso 10/10 with control on, every run under 120 s ([details](docs/DECISIONES.en.md#bias-test-results)).
 
-## Deployed URLs
+## Deployed pages
 
-| Service | URL |
-| --- | --- |
-| App (phone) | https://encargo-app-611681112050.us-central1.run.app |
-| Presenter | https://encargo-app-611681112050.us-central1.run.app/presenter |
-| Audit | https://encargo-app-611681112050.us-central1.run.app/auditoria |
-| Kilómetro | https://encargo-kilometro-611681112050.us-central1.run.app |
-| Pulso | https://encargo-pulso-611681112050.us-central1.run.app |
-| Agent | https://encargo-agent-611681112050.us-central1.run.app (`/health`, `/.well-known/ucp`) |
+**The product, what anyone can try** (on a phone, tablet or computer):
 
-Use these URLs, not the `…-uc.a.run.app` aliases: the passkey is bound to the app's host name (RP ID), and on another host the signature fails.
+| Page | URL | What it is |
+| --- | --- | --- |
+| Encargo app | https://encargo-app-611681112050.us-central1.run.app | Write the errand, watch the agent decide and sign the purchase with your passkey |
+| Audit | https://encargo-app-611681112050.us-central1.run.app/auditoria | Paste a store's address and see how ready it is for agents |
+| Kilómetro | https://encargo-kilometro-611681112050.us-central1.run.app | Fictitious agent-ready store |
+| Pulso | https://encargo-pulso-611681112050.us-central1.run.app | Fictitious store that is opaque to agents |
+
+They all adapt to phones and tablets. On a 375 px phone: the app, an errand in progress, the audit, Kilómetro, Pulso and the presentador.
+
+![Encargo on a phone](docs/demo/movil.png)
+
+**Only for the live demo:**
+
+| Page | URL | What it is |
+| --- | --- | --- |
+| Presentador | https://encargo-app-611681112050.us-central1.run.app/presentador | The projector view: shows large what a person sees, the agent's reasoning and what the agent sees. It prepares the services when it opens and holds the talk's buttons. Not part of the product |
+
+The agent has no page: it is a service (https://encargo-agent-611681112050.us-central1.run.app, with `/health` and `/.well-known/ucp`). The old `/presenter` address leads to the presentador.
 
 ## Documentation
 

@@ -20,7 +20,7 @@ Demo de la charla **«Tu próximo cliente es un agente de IA»**. Encargo es un 
 
 No se corre ningún comando. Se abren dos páginas en el mismo Chrome del portátil:
 
-- **Presentador**, en el proyector: https://encargo-app-611681112050.us-central1.run.app/presenter. Al abrirse despierta las tiendas, el agente y Gemini, y si llevaba rato sin uso empieza de cero. Dice «Preparando la demo…» y, en unos 15–20 s, «Envía un encargo desde la app». Ahí están el interruptor del modo de control, «Empezar de nuevo» y «Ver la ejecución grabada» (el plan B).
+- **Presentador** (vista del proyector, solo para la demo en vivo), en el proyector: https://encargo-app-611681112050.us-central1.run.app/presentador. Al abrirse despierta las tiendas, el agente y Gemini, y si llevaba rato sin uso empieza de cero. Dice «Preparando la demo…» y, en unos 15–20 s, «Envía un encargo desde la app». Ahí están el interruptor del modo de control, «Empezar de nuevo» y «Ver la ejecución grabada» (el plan B).
 - **Teléfono**, en la pantalla del portátil: https://encargo-app-611681112050.us-central1.run.app. Se envía el encargo y se firma con Touch ID.
 
 El guion completo está en [docs/DEMO.md](docs/DEMO.md).
@@ -33,24 +33,34 @@ gcloud auth application-default login      # ADC para Gemini en Vertex AI (o MOC
 (cd agent && uv run playwright install chromium)
 make up                                    # app :3000, Kilómetro :3001, Pulso :3002, agente :8000
 open "http://localhost:3000/configurar?clave=dev-admin"   # registra una passkey (Touch ID)
-open http://localhost:3000/presenter       # envía el encargo desde http://localhost:3000
+open http://localhost:3000/presentador     # envía el encargo desde http://localhost:3000
 make test                                  # todas las pruebas, sin red
 ```
 
 **Prueba de sesgo** (`make bias-test TARGET=cloud`, 2026-10-01): Kilómetro 9/10 con el modo apagado y Pulso 10/10 con el modo encendido, todas las ejecuciones en menos de 120 s ([detalle](docs/DECISIONES.md#resultados-de-la-prueba-de-sesgo)).
 
-## URLs desplegadas
+## Páginas desplegadas
 
-| Servicio | URL |
-| --- | --- |
-| App (teléfono) | https://encargo-app-611681112050.us-central1.run.app |
-| Presentador | https://encargo-app-611681112050.us-central1.run.app/presenter |
-| Auditoría | https://encargo-app-611681112050.us-central1.run.app/auditoria |
-| Kilómetro | https://encargo-kilometro-611681112050.us-central1.run.app |
-| Pulso | https://encargo-pulso-611681112050.us-central1.run.app |
-| Agente | https://encargo-agent-611681112050.us-central1.run.app (`/health`, `/.well-known/ucp`) |
+**El producto, lo que cualquiera puede probar** (en el teléfono, la tablet o la computadora):
 
-Usa estas URL y no los alias `…-uc.a.run.app`: la passkey está ligada al host de la app (RP ID) y con otro host la firma falla.
+| Página | URL | Qué es |
+| --- | --- | --- |
+| App Encargo | https://encargo-app-611681112050.us-central1.run.app | Escribes el encargo, ves cómo decide el agente y firmas la compra con tu passkey |
+| Auditoría | https://encargo-app-611681112050.us-central1.run.app/auditoria | Pega la dirección de una tienda y ve qué tan lista está para agentes |
+| Kilómetro | https://encargo-kilometro-611681112050.us-central1.run.app | Tienda ficticia lista para agentes |
+| Pulso | https://encargo-pulso-611681112050.us-central1.run.app | Tienda ficticia opaca para agentes |
+
+Todas se adaptan al teléfono y a la tablet. En un teléfono de 375 px: la app, un encargo en curso, la auditoría, Kilómetro, Pulso y el presentador.
+
+![Encargo en el teléfono](docs/demo/movil.png)
+
+**Solo para la demo en vivo:**
+
+| Página | URL | Qué es |
+| --- | --- | --- |
+| Presentador | https://encargo-app-611681112050.us-central1.run.app/presentador | La vista del proyector: muestra en grande lo que ve una persona, el razonamiento del agente y lo que ve el agente. Prepara los servicios al abrirse y tiene los botones de la charla. No es parte del producto |
+
+El agente no tiene página: es un servicio (https://encargo-agent-611681112050.us-central1.run.app, con `/health` y `/.well-known/ucp`). La dirección vieja `/presenter` lleva al presentador.
 
 ## Documentación
 

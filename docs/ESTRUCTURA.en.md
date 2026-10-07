@@ -10,7 +10,7 @@ What runs where and where each thing lives in the code. Back to the [README](../
 | Kilómetro | `stores/kilometro/` | Next.js with server rendering, UCP API, in-process SQLite | `encargo-kilometro` |
 | Shared commerce kit | `stores/shared/` | schema.org, feed, UCP and AP2 verification (TypeScript). Copied into each store | — |
 | Encargo agent | `agent/` | Python 3.13, ADK, Gemini (`GEMINI_MODEL`) on Vertex AI, Playwright (headless Chromium), FastAPI | `encargo-agent` |
-| Encargo app | `app/` | Next.js. The errand and passkey approval on the "phone" (`/`, `/encargo/[id]`), the presenter (`/presenter`), passkey setup (`/configurar`) and the audit (`/auditoria`) | `encargo-app` |
+| Encargo app | `app/` | Next.js. The errand and passkey approval on the "phone" (`/`, `/encargo/[id]`), the presenter (`/presentador`), passkey setup (`/configurar`) and the audit (`/auditoria`) | `encargo-app` |
 | Run state | — | Firestore, database `encargo` | — |
 
 The app never calls the agent from the browser. It uses a same-origin proxy (`app/src/app/api/agent/[...path]/route.ts`), including the SSE stream, so passkeys have one origin and there is no CORS. The agent streams every step as events (`step`, `observation`, `agent_view`, `checklist`, `approval_requested`, `order_confirmed`, …). The phone and the presenter render those same events.
@@ -52,7 +52,7 @@ encargo/
 │   ├── mock_planner.py     MOCK_AI=1: deterministic planner with the same tools
 │   └── api.py              FastAPI: /runs, SSE, /mandates, /passkeys, /stage, /audit, /.well-known/ucp
 ├── app/src/
-│   ├── app/                /, /encargo/[id], /presenter, /configurar, /auditoria, /api/agent (proxy)
+│   ├── app/                /, /encargo/[id], /presentador, /configurar, /auditoria, /api/agent (proxy)
 │   ├── components/         ErrandForm, RunPhone, Presenter, PasskeySetup, AuditView, PhoneTop, Logo, Icons
 │   └── lib/                useRun (SSE), runState (events → screen), useReplay (Plan B), stage, stageClient (prepare, reset, enable with Touch ID), auditCopy
 ├── infra/                  10-enable-apis, 20-secrets, 30-deploy-stores, 40-deploy-agent, 50-deploy-app

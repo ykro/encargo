@@ -199,13 +199,17 @@ The errand is parsed with a deterministic parser (regular expressions), not by t
 
 ### Nothing is run on talk day: the presenter page prepares the stage
 
-The four services keep 0 minimum instances (`MIN_INSTANCES`, 0 by default), so nothing bills around the clock. When it opens, `/presenter` calls the agent's `POST /stage/warmup` (`agent/encargo/stage.py`):
+The four services keep 0 minimum instances (`MIN_INSTANCES`, 0 by default), so nothing bills around the clock. When it opens, `/presentador` calls the agent's `POST /stage/warmup` (`agent/encargo/stage.py`):
 
 - it wakes the stores (home page, feed and UCP profile) and the agent;
 - it makes one short Gemini call and launches Chromium, at most every 5 minutes;
 - if more than 10 minutes passed since the last errand and none is in flight, it resets: full stock, no orders or errand on screen, control mode off.
 
-Then it polls `GET /stage/status` every 3 s and shows «Preparando la demo…» with each part until everything answers. From 0 instances it takes about 16 s (measured on 6 Oct 2026 with fresh instances, reset included). While the page stays open it wakes the services again every 4 minutes, so Cloud Run does not scale them down mid-talk. What a command-line gate used to check, the page now says: stores not answering, no passkey, or low size-9 stock.
+Then it polls `GET /stage/status` every 3 s and shows «Preparando la demo…» with each part until everything answers. From 0 instances it takes about 16 s (measured on 6 Oct 2026 with fresh instances, reset included). While the page stays open it wakes the services again every 4 minutes, so Cloud Run does not scale them down mid-talk.
+
+**Shorter cold start (7 Oct 2026).** The agent was the slow one: about 12 s from Cloud Run creating the instance to the server answering, against ~1.5 s for the stores and the app. Three cheap changes: the agent image installs only the headless Chromium shell (`playwright install --only-shell`; the agent never opens a window), going from 677 MB to 492 MB; the server starts straight from the virtualenv instead of through `uv run`; and the presentador wakes the stores at the same time as the agent instead of waiting for the agent to wake them. Measured on Cloud Run: the agent starts in 5.5–9.5 s. Every service already had startup CPU boost (`startup-cpu-boost`).
+
+What a command-line gate used to check, the page now says: stores not answering, no passkey, or low size-9 stock.
 
 **Ruled out:**
 

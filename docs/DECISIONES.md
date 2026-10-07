@@ -199,13 +199,17 @@ El encargo se interpreta con un parser determinista (expresiones regulares) y no
 
 ### El día de la charla no se corre nada: la página del presentador prepara el escenario
 
-Los cuatro servicios quedan con 0 instancias mínimas (`MIN_INSTANCES`, 0 por omisión), así que nada se cobra las 24 horas. Al abrirse, `/presenter` llama a `POST /stage/warmup` del agente (`agent/encargo/stage.py`):
+Los cuatro servicios quedan con 0 instancias mínimas (`MIN_INSTANCES`, 0 por omisión), así que nada se cobra las 24 horas. Al abrirse, `/presentador` llama a `POST /stage/warmup` del agente (`agent/encargo/stage.py`):
 
 - despierta las tiendas (portada, feed y perfil UCP) y el agente;
 - hace una llamada corta a Gemini y arranca Chromium, como mucho cada 5 minutos;
 - si pasaron más de 10 minutos desde el último encargo y no hay uno en curso, reinicia: stock completo, sin pedidos ni encargo en pantalla, modo de control apagado.
 
-Después consulta `GET /stage/status` cada 3 s y muestra «Preparando la demo…» con cada parte hasta que todo responde. Desde 0 instancias tarda unos 16 s (medido el 6 oct 2026 con instancias nuevas, reinicio incluido). Mientras la página siga abierta, cada 4 minutos vuelve a despertar los servicios, así que Cloud Run no los apaga a mitad de la charla. Lo que antes revisaba un portero de línea de comandos ahora lo dice la página: tiendas que no responden, que no haya passkey o que quede poco stock de la talla 9.
+Después consulta `GET /stage/status` cada 3 s y muestra «Preparando la demo…» con cada parte hasta que todo responde. Desde 0 instancias tarda unos 16 s (medido el 6 oct 2026 con instancias nuevas, reinicio incluido). Mientras la página siga abierta, cada 4 minutos vuelve a despertar los servicios, así que Cloud Run no los apaga a mitad de la charla.
+
+**Arranque en frío más corto (7 oct 2026).** El que más tardaba en arrancar era el agente: unos 12 s entre que Cloud Run crea la instancia y el servidor responde, contra ~1.5 s de las tiendas y la app. Tres cambios baratos: la imagen del agente instala solo el Chromium sin interfaz (`playwright install --only-shell`; el agente nunca abre una ventana), con lo que pasa de 677 MB a 492 MB; el servidor arranca directo desde el entorno virtual, sin pasar por `uv run`; y el presentador despierta las tiendas al mismo tiempo que el agente, en vez de esperar a que el agente las despierte. Medido en Cloud Run: el agente arranca en 5.5–9.5 s. Todos los servicios ya tenían el impulso de CPU al arrancar (`startup-cpu-boost`).
+
+Lo que antes revisaba un portero de línea de comandos ahora lo dice la página: tiendas que no responden, que no haya passkey o que quede poco stock de la talla 9.
 
 **Descartado:**
 

@@ -10,11 +10,13 @@ Each block of the diagram names the steps of this script that exercise it ("PASO
 
 ## Before the demo
 
+The **presentador** is a page only for the live demo: the projector view. The product anyone can try is the app (the "phone"), the audit and both stores ([README](../README.en.md#deployed-pages)).
+
 A few minutes before, with internet, open two windows of the same Chrome profile (the passkey lives there):
 
 | Window | Address | Where it goes |
 | --- | --- | --- |
-| Presenter | `https://encargo-app-611681112050.us-central1.run.app/presenter`, full screen | Projector, 1920×1080 |
+| Presenter | `https://encargo-app-611681112050.us-central1.run.app/presentador`, full screen | Projector, 1920×1080 |
 | "Phone" | `https://encargo-app-611681112050.us-central1.run.app` | Laptop screen, to one side. You see it; the audience sees the presenter |
 | Audit (for the close) | `https://encargo-app-611681112050.us-central1.run.app/auditoria`, in another tab | Behind the presenter; bring it to the projector in step 8 |
 
