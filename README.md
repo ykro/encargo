@@ -4,6 +4,12 @@ Demo de la charla **«Tu próximo cliente es un agente de IA»**. Encargo es un 
 
 [English version](README.en.md)
 
+## Codelab interactivo (60 min) y Laboratorio Demo en vivo
+
+- **Codelab paso a paso (publicado):** [https://next-customer-agent-2027.web.app](https://next-customer-agent-2027.web.app)
+- **App Demo del Codelab (`Encargo Auditor & Fixer Lab` en vivo):** [https://encargo-auditor-lab-611681112050.us-central1.run.app](https://encargo-auditor-lab-611681112050.us-central1.run.app)
+- **Código del Codelab y del Laboratorio:** [`codelab/`](codelab/) y [`codelab/demo-app/`](codelab/demo-app/)
+
 ## Qué vas a aprender
 
 1. **Los agentes leen datos, no marketing:** un dato que solo está en una imagen no cuenta.

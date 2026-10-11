@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Codelab: Your Next Customer Is an AI Agent: Tu próximo cliente es un agente de IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #1a73e8;
+      --blue-dark: #1557b0;
+      --blue-bg: #e8f0fe;
+      --green: #0d9488;
+      --green-bg: #e6f4ea;
+      --amber: #d97706;
+      --amber-bg: #fef7e0;
+      --red: #b91c1c;
+      --red-bg: #fef2f2;
+      --purple: #6d28d9;
+      --purple-bg: #f5f3ff;
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --ink: #202124;
+      --body: #3c4043;
+      --muted: #5f6368;
+      --border: #dadce0;
+      --code-bg: #1e222d;
+      --code-fg: #f1f3f4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--body);
+      line-height: 1.65;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Appbar (100% independiente de slides) */
+    header.appbar {
+      height: 64px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    .appbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .badge-gemma {
+      background: var(--green);
+      color: #fff;
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+    .appbar-title {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .appbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+      color: var(--muted);
+      font-family: 'Google Sans', sans-serif;
+    }
+    .timer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blue-bg);
+      color: var(--blue);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* Main Workspace */
+    .workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left Drawer */
+    nav.drawer {
+      width: 320px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px 0;
+      flex-shrink: 0;
+    }
+    .step-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 20px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 14px;
+      border-left: 4px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .step-nav-item:hover {
+      background: #f1f3f4;
+      color: var(--ink);
+    }
+    .step-nav-item.active {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border-left-color: var(--blue);
+      font-weight: 500;
+    }
+    .step-nav-item.completed .step-circle {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+    .step-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      background: #fff;
+    }
+    .step-nav-item.active .step-circle {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    /* Content Area */
+    main.stage {
+      flex: 1;
+      overflow-y: auto;
+      padding: 36px 48px 100px;
+      display: flex;
+      justify-content: center;
+    }
+    .step-card {
+      max-width: 880px;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px 48px;
+      box-shadow: 0 1px 3px rgba(60,64,67,0.08);
+      display: none;
+      height: fit-content;
+    }
+    .step-card.active {
+      display: block;
+    }
+    .step-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+    }
+    .step-header h1 {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 27px;
+      color: var(--ink);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .step-duration {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    h2 {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 20px;
+      color: var(--ink);
+      margin: 28px 0 12px;
+    }
+    h3 {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 16.5px;
+      color: var(--ink);
+      margin: 20px 0 8px;
+    }
+    p { margin-bottom: 14px; font-size: 15.5px; }
+    ul, ol { margin: 0 0 18px 24px; font-size: 15.5px; }
+    li { margin-bottom: 8px; }
+    code {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 13.5px;
+      background: #f1f3f4;
+      color: #c5221f;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Callouts */
+    .callout {
+      padding: 16px 20px;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-size: 14.5px;
+      border-left: 4px solid;
+    }
+    .callout.info {
+      background: var(--blue-bg);
+      border-left-color: var(--blue);
+      color: #174ea6;
+    }
+    .callout.tip {
+      background: var(--green-bg);
+      border-left-color: var(--green);
+      color: #0d652d;
+    }
+    .callout.warn {
+      background: var(--amber-bg);
+      border-left-color: var(--amber);
+      color: #b06000;
+    }
+    .callout strong { display: block; margin-bottom: 4px; font-family: 'Google Sans', sans-serif; }
+
+    /* Screenshot Figure */
+    figure.screenshot-box {
+      margin: 22px 0 26px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #faf9f5;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    }
+    figure.screenshot-box img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    figure.screenshot-box figcaption {
+      padding: 10px 16px;
+      background: #f8f9fa;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+      font-family: 'Google Sans', sans-serif;
+    }
+
+    .dual-figures {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0 24px;
+    }
+    .dual-figures figure.screenshot-box {
+      margin: 0;
+    }
+
+    /* Code Blocks */
+    .code-wrap {
+      position: relative;
+      margin: 18px 0 24px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--code-bg);
+      border: 1px solid #2d3343;
+    }
+    .code-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #282c3a;
+      padding: 8px 16px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 12px;
+      color: #9aa0a6;
+    }
+    .copy-btn {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Google Sans', sans-serif;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.2); }
+    pre {
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--code-fg);
+    }
+
+    /* Tables */
+    table.arch-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 24px;
+      font-size: 14.5px;
+    }
+    table.arch-table th, table.arch-table td {
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+    }
+    table.arch-table th {
+      background: #f1f3f4;
+      color: var(--ink);
+      font-family: 'Google Sans', sans-serif;
+    }
+    .pill-score {
+      display: inline-block;
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    .pill-score.red { background: var(--red-bg); color: var(--red); border: 1px solid #fecaca; }
+    .pill-score.amber { background: var(--amber-bg); color: var(--amber); border: 1px solid #fde68a; }
+    .pill-score.green { background: var(--green-bg); color: var(--green); border: 1px solid #99f6e4; }
+    .pill-score.blue { background: var(--blue-bg); color: var(--blue); border: 1px solid #bfdbfe; }
+
+    /* Case cards */
+    .case-box {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 22px 24px;
+      margin: 22px 0;
+      background: #fcfcfd;
+    }
+    .case-box.red-border { border-left: 5px solid var(--red); }
+    .case-box.amber-border { border-left: 5px solid var(--amber); }
+    .case-box.green-border { border-left: 5px solid var(--green); }
+    .case-box.blue-border { border-left: 5px solid var(--blue); }
+
+    /* Interactive Simulator in Step 7 */
+    .sim-container {
+      border: 2px solid var(--blue);
+      border-radius: 10px;
+      background: #ffffff;
+      padding: 24px;
+      margin: 24px 0;
+      box-shadow: 0 4px 16px rgba(26,115,232,0.08);
+    }
+    .sim-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+    .sim-score-badge {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: var(--red-bg);
+      color: var(--red);
+      border: 2px solid var(--red);
+      min-width: 110px;
+      text-align: center;
+    }
+    .sim-presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .sim-preset-btn {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 12.5px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #f8f9fa;
+      cursor: pointer;
+      color: var(--ink);
+    }
+    .sim-preset-btn:hover { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+    .sim-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .sim-check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      background: #fff;
+      transition: all 0.15s;
+    }
+    .sim-check-item:hover { border-color: var(--blue); background: #f8fbff; }
+    .sim-check-item.checked {
+      background: var(--green-bg);
+      border-color: var(--green);
+    }
+    .sim-check-item input[type="checkbox"] {
+      margin-top: 3px;
+      width: 17px;
+      height: 17px;
+      accent-color: var(--green);
+      cursor: pointer;
+    }
+    .sim-check-title {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--ink);
+      display: block;
+    }
+    .sim-check-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      display: block;
+      margin-top: 2px;
+    }
+    .sim-agent-view {
+      background: #1e222d;
+      color: #e8eaed;
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    /* Bottom Navigation Controls */
+    footer.controls {
+      position: fixed;
+      bottom: 0;
+      left: 320px;
+      right: 0;
+      height: 64px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      z-index: 10;
+    }
+    .btn {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 22px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--blue);
+      transition: all 0.15s;
+    }
+    .btn:hover { background: #f1f3f4; }
+    .btn.primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+    .btn.primary:hover { background: var(--blue-dark); }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+
+    @media (max-width: 900px) {
+      nav.drawer { display: none; }
+      footer.controls { left: 0; padding: 0 20px; }
+      main.stage { padding: 20px 16px 90px; }
+      .step-card { padding: 24px 20px; }
+      .dual-figures, .sim-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="appbar">
+    <div class="appbar-left">
+      <span class="badge-gemma">CODELAB · AGENT COMMERCE</span>
+      <span class="appbar-title">Your Next Customer Is an AI Agent: Tu próximo cliente es un agente de IA</span>
+    </div>
+    <div class="appbar-right">
+      <a href="https://encargo-auditor-lab-611681112050.us-central1.run.app" target="_blank" rel="noopener" style="background:#0d9488;color:#fff;text-decoration:none;padding:6px 14px;border-radius:16px;font-weight:700;font-size:13px;">Abrir App Demo en Vivo ↗</a>
+      <span>Autor: Adrián Catalán (@adriancs.tech)</span>
+      <span class="timer-pill" id="timeRemaining">60 min restantes</span>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <nav class="drawer" id="drawerNav"></nav>
+
+    <main class="stage" id="stageContainer">
+
+      <!-- STEP 1 -->
+      <section class="step-card active" data-title="1. Qué vas a lograr y cómo se ve al final" data-duration="8">
+        <div class="step-header">
+          <h1>1. Qué vas a lograr y cómo se ve al final</h1>
+          <div class="step-duration">Duración estimada: 8 minutos · Guía práctica para Producto, E-Commerce, Webmasters y Desarrollo</div>
+        </div>
+
+        <p>En este codelab práctico aprenderás a <strong>diagnosticar si una tienda en línea puede ser leída y comprada por un agente de IA</strong>, probarás la <strong>Auditoría de 8 Puntos con ejemplos comentados y notas de negocio</strong>, y completarás un <strong>tutorial guiado de reparación</strong> para llevar un comercio desde <code>0/8</code> (invisible para agentes) hasta <code>8/8</code> (compra completada en 3 pasos con autorización biométrica Passkey).</p>
+
+        <div class="callout info">
+          <strong>Qué vas a lograr en estos 60 minutos</strong>
+          1. Ejecutar y explorar el <strong>Laboratorio Interactivo de Auditoría y Reparación (<code>Encargo Auditor &amp; Fixer Lab</code>)</strong> incluido en la carpeta <code>demo-app/</code>.<br/>
+          2. Probar la auditoría de 8 puntos sobre <strong>3 tiendas de ejemplo precargadas</strong> (<code>0/8 Pulso Outdoor</code>, <code>3/8 Café Nube</code> y <code>8/8 Kilómetro</code>) entendiendo las notas de negocio detrás de cada punto.<br/>
+          3. Reparar paso a paso una tienda inicialmente en <code>0/8</code> aplicando las <strong>4 correcciones guiadas</strong> (<code>robots.txt</code> → <code>JSON-LD ProductGroup + OfferShippingDetails</code> → <code>/feed.xml + SSR</code> → <code>/.well-known/ucp + AP2 Passkey</code>) hasta ver cómo el agente aprueba el pedido en <code>8/8</code>.<br/><br/>
+          <strong>App Demo de referencia publicada en vivo:</strong> Puedes probar en cualquier momento el laboratorio funcionando en <a href="https://encargo-auditor-lab-611681112050.us-central1.run.app" target="_blank" rel="noopener"><code>https://encargo-auditor-lab-611681112050.us-central1.run.app</code></a> para comparar tu progreso con el resultado esperado.
+        </div>
+
+        <h2>Así se ve el resultado final que vas a lograr</h2>
+        <p>Al completar las 4 correcciones del laboratorio, tu tienda alcanza una puntuación de <strong><code>8/8</code></strong> en la tabla central, expone todos sus datos verificables en la columna izquierda y logra que el <strong>Simulador de Compra del Agente</strong> (columna derecha) apruebe el pedido en 3 pasos:</p>
+
+        <figure class="screenshot-box">
+          <img src="assets/step1-final-lab.png" alt="Vista completa del Laboratorio Encargo Auditor & Fixer Lab con una tienda en 8 de 8 y compra aprobada por el agente" />
+          <figcaption>Figura 1 — Resultado final en el Laboratorio Interactivo (`demo-app/`): a la izquierda lo que ve un humano frente a los datos exactos que lee el agente; al centro la Auditoría de 8 Puntos en `8/8`; a la derecha el Simulador de Compra emitiendo la orden confirmada con Passkey AP2.</figcaption>
+        </figure>
+
+        <h2>El problema de negocio: La historia de Pulso (0/8) y Kilómetro (8/8)</h2>
+        <p>Imagina que un martes por la noche un comprador ve en Instagram el anuncio de unas botas impermeables para subir el volcán Acatenango el fin de semana. En vez de abrir siete pantallas en el navegador, le delega la tarea a su asistente de IA:</p>
+
+        <div class="callout tip">
+          <strong>El encargo que recibe el agente de IA</strong>
+          «Consígueme unas botas impermeables Acatenango T3 en talla 42 (US 9), por menos de Q1,290 ($150 USD), y asegúrate de que lleguen antes del viernes».
+        </div>
+
+        <p>El agente visita dos tiendas que venden el mismo calzado:</p>
+
+        <div class="dual-figures">
+          <figure class="screenshot-box">
+            <img src="assets/movil-pulso.png" alt="Tienda móvil Pulso Outdoor con fotografía atractiva pero sin datos legibles para máquinas" />
+            <figcaption><strong>Pulso Outdoor (0/8 puntos):</strong> Tiene fotografías llamativas y es más barata (Q1,190 / $139 USD), pero encierra el precio en un banner JPG, las tallas en un <code>&lt;canvas&gt;</code> y el envío en el paso 5 del carrito.</figcaption>
+          </figure>
+          <figure class="screenshot-box">
+            <img src="assets/movil-kilometro.png" alt="Tienda móvil Kilómetro con diseño sobrio y datos estructurados completos" />
+            <figcaption><strong>Kilómetro (8/8 puntos):</strong> Diseño sobrio (Q1,250 / $145 USD), pero publica precio, inventario por talla y días de entrega en formato verificable para agentes.</figcaption>
+          </figure>
+        </div>
+
+        <div class="callout warn">
+          <strong>Regla de oro: Un agente responsable no adivina con el dinero de su usuario</strong>
+          Si tu tienda obliga al agente a adivinar si hay talla 42 en stock o si el paquete llegará antes del viernes, el agente descarta tu tienda en 3 segundos y compra en el competidor donde sí puede verificar cada condición.
+        </div>
+
+        <figure class="screenshot-box">
+          <img src="assets/funnel.png" alt="Comparación del embudo tradicional de 7 pantallas para humanos frente a los 3 pasos para un agente de IA" />
+          <figcaption>Figura 2 — Mientras un humano recorre 7 pantallas visuales, un agente de IA colapsa el embudo en 3 etapas verificables: 1) Descubrir catálogo, 2) Cotizar en 1 paso con UCP, y 3) Autorizar pago con Passkey AP2.</figcaption>
+        </figure>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="step-card" data-title="2. Cómo iniciar y usar el Laboratorio (demo-app)" data-duration="8">
+        <div class="step-header">
+          <h1>2. Cómo iniciar y usar el Laboratorio Interactivo (`demo-app/`)</h1>
+          <div class="step-duration">Duración estimada: 8 minutos · Puesta en marcha y recorrido por las 3 vistas</div>
+        </div>
+
+        <p>Este codelab incluye su propio laboratorio ejecutable en Node.js sin dependencias externas pesadas (<code>demo-app/</code>) y también puedes apoyarte en la aplicación web demostrativa de Encargo.</p>
+
+        <h2>Paso A: Levantar el Laboratorio de Auditoría y Reparación en tu máquina</h2>
+        <p>Abre una terminal en la carpeta <code>encargo/codelab/demo-app</code> y ejecuta el servidor local y su suite de pruebas:</p>
+
+        <div class="code-wrap">
+          <div class="code-bar"><span>Terminal — Iniciar Encargo Auditor &amp; Fixer Lab y ejecutar tests</span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div>
+          <pre>cd /Users/ykro/code/charlas/2027/encargo/codelab/demo-app
+
+# 1. Verificar que los 4 tests del auditor y del tutorial pasen al 100%
+node --test audit.test.mjs
+
+# 2. Iniciar el servidor interactivo en http://localhost:4324
+node server.mjs</pre>
+        </div>
+
+        <p>Al abrir <code>http://localhost:4324</code> en tu navegador, encontrarás el <strong>Laboratorio dividido en 3 columnas</strong> para que entiendas de un vistazo qué ocurre por dentro cuando un agente visita una tienda:</p>
+        <ul>
+          <li><strong>Columna 1 (Izquierda) — Humano vs Lectura del Agente:</strong> Arriba muestra cómo luce la tarjeta visual para una persona (banners, precios de oferta, avisos promocionales) y abajo muestra <strong>exactamente qué campos logró extraer el agente de IA</strong> sin intervención humana.</li>
+          <li><strong>Columna 2 (Centro) — Tabla de Auditoría de 8 Puntos con Notas:</strong> Evalúa punto por punto la tienda y te entrega dos notas en español claro por cada fila: la <em>Nota de Diagnóstico</em> (qué encontró o qué faltó) y la <em>Nota de Negocio</em> (por qué ese punto te hace ganar o perder ventas).</li>
+          <li><strong>Columna 3 (Derecha) — Simulador de Compra del Agente:</strong> Toma el encargo del comprador («Botas Acatenango T3, talla 42, presupuesto &lt;= Q1,290, entrega antes del viernes») y evalúa si el agente rechaza la tienda o aprueba la compra.</li>
+        </ul>
+
+        <h2>Paso B: Cómo observar el flujo completo en la plataforma Encargo</h2>
+        <p>Cuando un comprador envía su encargo desde el teléfono, el agente inspecciona las tiendas candidatas en paralelo y llena su bitácora de razonamiento antes de pedir la firma del usuario:</p>
+
+        <div class="dual-figures">
+          <figure class="screenshot-box">
+            <img src="assets/02-telefono-encargo.png" alt="Pantalla del teléfono enviando el encargo con restricciones de talla, precio y fecha" />
+            <figcaption>Figura 3 — En su teléfono, el comprador solo define qué producto busca, su talla, su presupuesto máximo y para qué día lo necesita.</figcaption>
+          </figure>
+          <figure class="screenshot-box">
+            <img src="assets/checklist-razonamiento.png" alt="Checklist de evaluación del agente comparando Pulso contra Kilómetro" />
+            <figcaption>Figura 4 — Bitácora del agente: compara ambas tiendas frente a las 4 condiciones del cliente. Pulso queda en «No verificable» y Kilómetro aprueba las 4.</figcaption>
+          </figure>
+        </div>
+
+        <figure class="screenshot-box">
+          <img src="assets/03-presentador-razonamiento.png" alt="Vista general de la comparación en vivo entre lo que ve un humano y lo que extrae el agente" />
+          <figcaption>Figura 5 — Comparación en vivo: aunque Pulso luce atractiva para el ojo humano, entrega 0 campos verificables al agente frente a la ficha completa de Kilómetro.</figcaption>
+        </figure>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="step-card" data-title="3. Qué mide la Auditoría de 8 Puntos y sus notas" data-duration="10">
+        <div class="step-header">
+          <h1>3. Guía de la Auditoría de 8 Puntos: Qué mide cada punto y por qué importa</h1>
+          <div class="step-duration">Duración estimada: 10 minutos · Diagnóstico claro sin jerga innecesaria</div>
+        </div>
+
+        <p>Para que cualquier equipo de e-commerce, marketing o tecnología sepa exactamente qué ajustar en su tienda, el auditor evalúa <strong>8 puntos concretos</strong> organizados en las tres etapas de una compra delegada a un agente:</p>
+
+        <figure class="screenshot-box">
+          <img src="assets/agent-readability-matrix.png" alt="Matriz de legibilidad para agentes en las tres etapas: Descubrir, Cotizar y Autorizar" />
+          <figcaption>Figura 6 — Las 3 etapas que califica la auditoría: 1) Descubrir y verificar catálogo en la primera lectura (Puntos 1 al 6), 2) Cotizar en 1 paso sin formularios (Punto 7), y 3) Autorizar el pago con Passkey (Punto 8).</figcaption>
+        </figure>
+
+        <h2>Tabla de referencia: Los 8 puntos y sus notas de negocio</h2>
+        <table class="arch-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Punto Evaluado y Etapa</th>
+              <th>Qué busca el Agente de IA</th>
+              <th>Qué ocurre si falla</th>
+              <th>Nota de Negocio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1</strong></td>
+              <td><strong>Permiso en <code>robots.txt</code> a agentes de compra</strong><br/><span class="pill-score blue">Etapa 1 · Descubrir</span></td>
+              <td>Reglas <code>Allow: /</code> para buscadores de asistentes (<code>OAI-SearchBot</code>, <code>Claude-SearchBot</code>, <code>Google-Extended</code>).</td>
+              <td>El agente respeta la prohibición en <code>robots.txt</code> y ni siquiera entra a tu tienda.</td>
+              <td>Puedes bloquear bots de entrenamiento masivo si lo deseas, pero nunca bloquees a los agentes de búsqueda que traen clientes listos para comprar.</td>
+            </tr>
+            <tr>
+              <td><strong>2</strong></td>
+              <td><strong>Acceso HTTP directo sin bloqueo anti-agente</strong><br/><span class="pill-score blue">Etapa 1 · Descubrir</span></td>
+              <td>Respuesta <code>200 OK</code> limpia sin exigir resolver acertijos visuales para ver el catálogo público.</td>
+              <td>El agente descarta la tienda en menos de 200ms y pasa al siguiente comercio.</td>
+              <td>Protege las rutas de pago contra abuso, pero deja las fichas de producto abiertas a lectura rápida.</td>
+            </tr>
+            <tr>
+              <td><strong>3</strong></td>
+              <td><strong>Ficha <code>JSON-LD ProductGroup</code> con stock por talla</strong><br/><span class="pill-score blue">Etapa 1 · Descubrir</span></td>
+              <td>Un bloque <code>schema.org/ProductGroup</code> con <code>hasVariant</code> donde cada talla tiene su propio <code>SKU</code>, precio y estado <code>InStock</code> o <code>OutOfStock</code>.</td>
+              <td>El agente sabe que vendes el modelo, pero como ignora si la <strong>talla 42</strong> está disponible, abandona la compra.</td>
+              <td>Es la causa #1 de descarte en moda y calzado: declarar "En Stock" general sin desglosar variantes por talla.</td>
+            </tr>
+            <tr>
+              <td><strong>4</strong></td>
+              <td><strong>Costo y días de entrega en la ficha (<code>OfferShippingDetails</code>)</strong><br/><span class="pill-score blue">Etapa 1 · Descubrir</span></td>
+              <td>Días de preparación (<code>handlingTime</code>), días de tránsito (<code>transitTime</code>) y tarifa de envío dentro del bloque JSON-LD.</td>
+              <td>El agente no puede garantizar que el pedido llegará antes del viernes y descarta el comercio.</td>
+              <td>Esconder el costo y tiempo de envío hasta el paso 5 del carrito provoca el 100% de abandono cuando el cliente pide fecha límite.</td>
+            </tr>
+            <tr>
+              <td><strong>5</strong></td>
+              <td><strong>Nombre y precio visibles en el HTML inicial (SSR)</strong><br/><span class="pill-score blue">Etapa 1 · Descubrir</span></td>
+              <td>Que el título, precio y disponibilidad vengan escritos en el HTML inicial del servidor, no encerrados en un JPG ni en un contenedor vacío.</td>
+              <td>El lector rápido del agente recibe una página en blanco (<code>&lt;div id="root"&gt;&lt;/div&gt;</code>) sin precios.</td>
+              <td>Además de ayudar a los agentes de IA, renderizar precios en el HTML inicial mejora el posicionamiento en buscadores.</td>
+            </tr>
+            <tr>
+              <td><strong>6</strong></td>
+              <td><strong>Catálogo rápido en <code>/feed.xml</code></strong><br/><span class="pill-score blue">Etapa 1 · Descubrir</span></td>
+              <td>Un archivo XML/JSON (formato Google Merchant Center) con todos tus productos, precios, tallas y envíos.</td>
+              <td>El agente tiene que rastrear decenas de páginas lentas para comparar tu catálogo.</td>
+              <td>Si ya haces campañas de catálogo en Google Shopping o Meta, tu tienda ya genera este archivo; solo debes dejarlo accesible en <code>/feed.xml</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>7</strong></td>
+              <td><strong>Cotización en 1 paso vía <code>/.well-known/ucp</code></strong><br/><span class="pill-score green">Etapa 2 · Cotizar</span></td>
+              <td>Un manifiesto en <code>/.well-known/ucp</code> donde el agente envía el SKU y recibe una cotización cerrada con <code>checkout_hash</code>.</td>
+              <td>El agente tendría que intentar llenar 7 pantallas de formularios HTML (alta fricción y propenso a romperse).</td>
+              <td>El protocolo UCP convierte un embudo de 7 pantallas en una sola llamada directa de cotización.</td>
+            </tr>
+            <tr>
+              <td><strong>8</strong></td>
+              <td><strong>Autorización biométrica Passkey (<code>AP2 CartMandate</code>)</strong><br/><span class="pill-score green">Etapa 3 · Autorizar</span></td>
+              <td>Que la tienda verifique un mandato criptográfico firmado con la huella o rostro del comprador (Passkey) sobre el <code>checkout_hash</code>.</td>
+              <td>Sin autorización verificable, el cliente tendría que compartir su tarjeta o el comercio asumir riesgo de contracargo.</td>
+              <td>Con AP2 el agente nunca ve la tarjeta del cliente y la tienda recibe prueba matemática del consentimiento del comprador.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- STEP 4 -->
+      <section class="step-card" data-title="4. Probando los 3 Ejemplos (0/8, 3/8 y 8/8) con sus notas" data-duration="12">
+        <div class="step-header">
+          <h1>4. Probando la Auditoría con 3 Ejemplos (`0/8`, `3/8` y `8/8`) y sus Notas</h1>
+          <div class="step-duration">Duración estimada: 12 minutos · Análisis práctico en el Laboratorio</div>
+        </div>
+
+        <p>En la barra superior del <strong>Laboratorio Interactivo (`http://localhost:4324`)</strong> encontrarás los botones para cargar las <strong>3 tiendas de ejemplo precargadas</strong>. Vamos a probar cada una y a revisar con lupa sus notas de negocio.</p>
+
+        <!-- EJEMPLO A -->
+        <div class="case-box red-border">
+          <h3>Ejemplo A: <code>0/8 Pulso Outdoor</code> — Tienda visual en Instagram pero opaca al agente</h3>
+          <p><span class="pill-score red">Puntuación: 0 / 8</span> · <strong>Veredicto del Simulador:</strong> <code>TIENDA RECHAZADA (0/8)</code></p>
+          <p>Haz clic en el botón <strong>«Ejemplo A: 0/8 Pulso Outdoor (Opaca)»</strong> del laboratorio. Verás cómo los 8 puntos aparecen marcados en rojo con la explicación exacta de cada fallo:</p>
+
+          <figure class="screenshot-box">
+            <img src="assets/step3-audit-0of8-notes.png" alt="Vista del Laboratorio evaluando el Ejemplo A 0/8 Pulso Outdoor con sus notas detalladas" />
+            <figcaption>Figura 7 — Diagnóstico en vivo del Ejemplo A (`0/8 Pulso Outdoor`): aunque en la vista humana ofrece el mejor precio (`Q1,190`), en la lectura del agente todos los campos aparecen bloqueados o no verificables.</figcaption>
+          </figure>
+
+          <p><strong>Notas clave que debes observar en Pulso Outdoor:</strong></p>
+          <ul>
+            <li><strong>Por qué falla el precio:</strong> El precio de oferta (<code>Q1,190</code>) está dibujado dentro de una imagen promocional JPG y el HTML inicial es un cascarón vacío (<code>&lt;div id="root"&gt;&lt;/div&gt;</code>).</li>
+            <li><strong>Por qué falla la talla:</strong> El selector de tallas se dibuja en un <code>&lt;canvas&gt;</code> interactivo sin etiquetas <code>JSON-LD ProductGroup</code>.</li>
+            <li><strong>Impacto comercial comprobado:</strong> En el experimento controlado de 78 corridas donde Pulso estuvo en <code>0/8</code> frente a un competidor en <code>8/8</code>, Pulso obtuvo <strong>0 compras de 78</strong> a pesar de ser Q60 más barata.</li>
+          </ul>
+        </div>
+
+        <!-- EJEMPLO B -->
+        <div class="case-box amber-border">
+          <h3>Ejemplo B: <code>3/8 Café Nube</code> — Catálogo parcial que oculta envío y stock por variante</h3>
+          <p><span class="pill-score amber">Puntuación: 3 / 8</span> · <strong>Veredicto del Simulador:</strong> <code>TIENDA RECHAZADA (3/8)</code></p>
+          <p>Ahora haz clic en <strong>«Ejemplo B: 3/8 Café Nube (Parcial)»</strong>. Este ejemplo es fundamental porque representa a la gran mayoría de tiendas actuales en plantillas básicas de Shopify o WooCommerce:</p>
+          <ul>
+            <li><strong>Los 3 puntos que SÍ aprueba:</strong>
+              <ol>
+                <li><strong>Punto 1 (<code>robots.txt</code>):</strong> Permite el acceso a <code>OAI-SearchBot</code> y <code>Claude-SearchBot</code>.</li>
+                <li><strong>Punto 2 (Acceso HTTP):</strong> Entrega la página rápido sin bloqueos.</li>
+                <li><strong>Punto 5 (HTML inicial SSR):</strong> Muestra el nombre de las botas y su precio base (<code>Q1,220.00 GTQ</code>) en texto legible, además de un bloque <code>Product</code> básico.</li>
+              </ol>
+            </li>
+            <li><strong>Por qué el Agente de IA de todos modos RECHAZA la compra en Café Nube:</strong>
+              <ul>
+                <li><strong>Fallo en Punto 3 (Sin stock por variante):</strong> Su código dice que el producto general está <code>InStock</code>, pero esconde qué tallas existen detrás de un menú desplegable. El agente ve <code>AMBIGUO (Dice InStock general pero oculta tallas)</code> y no se arriesga a pedir una talla 42 agotada.</li>
+                <li><strong>Fallo en Punto 4 (Sin días ni costo de envío):</strong> Obliga a llenar el carrito hasta el paso 5 para revelar cuándo llega. Como el cliente pidió <em>«que llegue antes del viernes»</em>, el agente descarta a Café Nube.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+
+        <!-- EJEMPLO C -->
+        <div class="case-box green-border">
+          <h3>Ejemplo C: <code>8/8 Kilómetro</code> — Tienda lista para humanos y agentes</h3>
+          <p><span class="pill-score green">Puntuación: 8 / 8</span> · <strong>Veredicto del Simulador:</strong> <code>COMPRA COMPLETADA (8/8)</code></p>
+          <p>Haz clic en <strong>«Ejemplo C: 8/8 Kilómetro (Lista)»</strong>. Observa cómo cambian las tres columnas del laboratorio:</p>
+
+          <figure class="screenshot-box">
+            <img src="assets/auditoria-kilometro-recorte.png" alt="Tabla de auditoría mostrando los 8 puntos aprobados en verde para Kilómetro" />
+            <figcaption>Figura 8 — Cuando una tienda cumple los 8 puntos, el agente verifica en menos de 1 segundo producto, talla 42 en stock, entrega en 1 día hábil y cierra el pedido con UCP y Passkey AP2.</figcaption>
+          </figure>
+
+          <ul>
+            <li><strong>Lectura instantánea del Agente:</strong> Extrae el SKU exacto <code>KM-ACAT-T3-42</code> para la talla 42 en estado <code>InStock</code>, confirma el precio <code>Q1,250.00 GTQ</code> y verifica <code>0 días de preparación + 1 día de tránsito</code> (llega el miércoles, antes del viernes).</li>
+            <li><strong>Cierre en 3 pasos:</strong> En la columna derecha, el Simulador emite el recibo confirmado <code>ORD-ENC-2027-808</code> firmado con <code>WebAuthn Passkey</code>.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- STEP 5 -->
+      <section class="step-card" data-title="5. Tutorial Parte 1: De 0/8 a 6/8 (Catálogo y Envío)" data-duration="11">
+        <div class="step-header">
+          <h1>5. Tutorial Paso a Paso (Parte 1): Repara tu tienda de `0/8` a `6/8`</h1>
+          <div class="step-duration">Duración estimada: 11 minutos · Correcciones 1, 2 y 3 en el Laboratorio</div>
+        </div>
+
+        <p>Ahora pasamos del diagnóstico a la acción. En el laboratorio (<code>http://localhost:4324</code>), haz clic en el botón morado <strong>«Tutorial Paso a Paso: Repara de 0/8 a 8/8»</strong>. Se abrirá la cinta interactiva con las <strong>4 correcciones guiadas</strong> sobre Pulso Outdoor (que inicia en <code>0/8</code>).</p>
+
+        <div class="callout tip">
+          <strong>Buena noticia: De 0/8 a 6/8 son estándares web abiertos que puedes aplicar hoy mismo</strong>
+          Las primeras 3 correcciones no requieren cambiar tu pasarela de pagos ni instalar software complejo: son archivos de texto y etiquetas estándar (<code>robots.txt</code>, <code>JSON-LD</code> y <code>/feed.xml</code>) compatibles con Shopify, WooCommerce, Magento, Next.js o cualquier sitio HTML.
+        </div>
+
+        <h2>Corrección 1: Abrir <code>/robots.txt</code> a agentes de compra (Sube de <code>0/8</code> a <code>2/8</code>)</h2>
+        <p>Marca la casilla <strong>«CORRECCIÓN 1 · SUBE A 2/8»</strong> en el laboratorio. Esta receta reemplaza el bloqueo total por una regla que permite la entrada a los asistentes de búsqueda y compra:</p>
+
+        <div class="code-wrap">
+          <div class="code-bar"><span>Receta 1 — /robots.txt abierto a agentes de búsqueda y compra</span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div>
+          <pre># Permitir agentes de búsqueda y asistentes de compra cuando un cliente consulta en vivo
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://pulso.ejemplo.gt/sitemap.xml</pre>
+        </div>
+
+        <p><strong>Qué cambia en el laboratorio al activar la Corrección 1:</strong> La puntuación sube a <strong><code>2/8</code></strong>. El agente ya puede entrar a tu tienda, pero todavía sigue descartándola porque no encuentra el stock por talla ni los días de envío.</p>
+
+        <h2>Corrección 2: Inyectar la ficha <code>JSON-LD</code> con tallas y envío (Sube de <code>2/8</code> a <code>4/8</code>)</h2>
+        <p>Marca ahora la casilla <strong>«CORRECCIÓN 2 · SUBE A 4/8»</strong>. Esto inyecta en el <code>&lt;head&gt;</code> de la página de producto el bloque <code>schema.org/ProductGroup</code> con cada talla desglosada y su promesa de entrega (<code>OfferShippingDetails</code>):</p>
+
+        <div class="code-wrap">
+          <div class="code-bar"><span>Receta 2 — Ficha JSON-LD con ProductGroup (tallas) + OfferShippingDetails (envío)</span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div>
+          <pre>&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "ProductGroup",
+  "name": "Botas Acatenango T3 Impermeables",
+  "productGroupID": "PULSO-ACAT-T3",
+  "brand": { "@type": "Brand", "name": "Senda" },
+  "variesBy": ["https://schema.org/size"],
+  "hasVariant": [
+    {
+      "@type": "Product",
+      "sku": "PULSO-ACAT-T3-41",
+      "size": "41",
+      "offers": {
+        "@type": "Offer",
+        "price": "1190.00",
+        "priceCurrency": "GTQ",
+        "availability": "https://schema.org/OutOfStock"
+      }
+    },
+    {
+      "@type": "Product",
+      "sku": "PULSO-ACAT-T3-42",
+      "name": "Botas Acatenango T3 Impermeables - Talla 42 (US 9)",
+      "size": "42",
+      "offers": {
+        "@type": "Offer",
+        "price": "1190.00",
+        "priceCurrency": "GTQ",
+        "availability": "https://schema.org/InStock",
+        "shippingDetails": {
+          "@type": "OfferShippingDetails",
+          "shippingRate": { "@type": "MonetaryAmount", "value": "0.00", "currency": "GTQ" },
+          "deliveryTime": {
+            "@type": "ShippingDeliveryTime",
+            "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 0, "unitCode": "DAY" },
+            "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 1, "unitCode": "DAY" }
+          }
+        }
+      }
+    }
+  ]
+}
+&lt;/script&gt;</pre>
+        </div>
+
+        <p><strong>Qué cambia en el laboratorio al activar la Corrección 2:</strong> La puntuación sube a <strong><code>4/8</code></strong> y en el Simulador de la derecha verás que las primeras 3 condiciones del comprador (<em>Producto y presupuesto Q1,190</em>, <em>Talla 42 en stock</em> y <em>Entrega en 1 día hábil antes del viernes</em>) pasan inmediatamente a estado <strong><code>VERIFICADO</code></strong>.</p>
+
+        <h2>Corrección 3: Publicar <code>/feed.xml</code> y precios en el HTML inicial SSR (Sube de <code>4/8</code> a <code>6/8</code>)</h2>
+        <p>Marca la casilla <strong>«CORRECCIÓN 3 · SUBE A 6/8»</strong>. Con esto el servidor incluye el nombre, precio y talla directamente en el cuerpo del HTML inicial y publica el archivo rápido <code>/feed.xml</code>:</p>
+
+        <div class="code-wrap">
+          <div class="code-bar"><span>Receta 3 — Catálogo rápido /feed.xml + HTML inicial con precio explícito</span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div>
+          <pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;rss version="2.0" xmlns:g="http://base.google.com/ns/1.0"&gt;
+  &lt;channel&gt;
+    &lt;title&gt;Pulso Outdoor — Catálogo Rápido&lt;/title&gt;
+    &lt;item&gt;
+      &lt;g:id&gt;PULSO-ACAT-T3-42&lt;/g:id&gt;
+      &lt;title&gt;Botas Acatenango T3 Impermeables - Talla 42&lt;/title&gt;
+      &lt;g:price&gt;1190.00 GTQ&lt;/g:price&gt;
+      &lt;g:availability&gt;in_stock&lt;/g:availability&gt;
+      &lt;g:size&gt;42&lt;/g:size&gt;
+    &lt;/item&gt;
+  &lt;/channel&gt;
+&lt;/rss&gt;</pre>
+        </div>
+
+        <p><strong>Qué cambia al llegar a <code>6/8</code>:</strong> El veredicto del agente cambia de rojo a azul: <strong><code>CATÁLOGO VERIFICADO (6/8) · FALTA UCP/AP2</code></strong>. Tu tienda ya es recomendada por el agente como la opción con mejor precio verificable.</p>
+      </section>
+
+      <!-- STEP 6 -->
+      <section class="step-card" data-title="6. Tutorial Parte 2: De 6/8 a 8/8 (UCP y Passkey AP2)" data-duration="6">
+        <div class="step-header">
+          <h1>6. Tutorial Paso a Paso (Parte 2): De `6/8` a `8/8` y Compra Aprobada</h1>
+          <div class="step-duration">Duración estimada: 6 minutos · Corrección 4: Cotización en 1 paso y autorización con Passkey</div>
+        </div>
+
+        <p>Para que el agente no solo recomiende tu tienda sino que pueda <strong>cerrar el pedido en 3 pasos sin pedirle al usuario que llene formularios ni escriba su tarjeta de crédito</strong>, activamos la cuarta y última corrección.</p>
+
+        <h2>Corrección 4: Habilitar <code>/.well-known/ucp</code> y autorización con Passkey (<code>AP2 CartMandate</code>) → Sube a <code>8/8</code></h2>
+        <p>Marca la cuarta casilla <strong>«CORRECCIÓN 4 · SUBE A 8/8»</strong> en la cinta del tutorial (o presiona el botón <strong>«Activar las 4 Correcciones (8/8)»</strong>). Esta receta publica el manifiesto UCP con soporte para mandatos firmados con Passkey:</p>
+
+        <div class="code-wrap">
+          <div class="code-bar"><span>Receta 4 — Manifiesto /.well-known/ucp con extensión de mandato Passkey AP2</span><button class="copy-btn" onclick="copyCode(this)">Copiar</button></div>
+          <pre>{
+  "ucp_version": "2026-08-25",
+  "merchant": {
+    "id": "pulso-outdoor-gt",
+    "name": "Pulso Outdoor",
+    "currency": "GTQ"
+  },
+  "services": [
+    {
+      "id": "dev.ucp.shopping",
+      "endpoint": "https://pulso.ejemplo.gt/api/ucp/checkout",
+      "capabilities": ["catalog.lookup", "cart", "checkout"],
+      "extensions": ["fulfillment", "dev.ucp.common.payment.ap2_mandate"]
+    }
+  ]
+}</pre>
+        </div>
+
+        <figure class="screenshot-box">
+          <img src="assets/step6-tutorial-fix-8of8.png" alt="Vista del Tutorial Paso a Paso en el Laboratorio con las 4 correcciones activadas y Pulso Outdoor reparada en 8/8" />
+          <figcaption>Figura 9 — ¡Tienda reparada de `0/8` a `8/8`! Con las 4 correcciones activadas en Pulso Outdoor, los 8 puntos de la tabla central quedan en `APROBADO` y el Simulador de la derecha completa la compra por `Q1,190.00 GTQ` (`SKU: PULSO-ACAT-T3-42`).</figcaption>
+        </figure>
+
+        <h2>Cómo vive el comprador la autorización con su huella (Passkey AP2)</h2>
+        <p>Observa lo que ocurre cuando la tienda alcanza <code>8/8</code>:</p>
+        <ol>
+          <li><strong>Cotización cerrada (UCP):</strong> El agente pide precio final para el SKU <code>PULSO-ACAT-T3-42</code> y recibe un resumen único (<code>checkout_hash</code>) que congela producto, talla 42, entrega en 1 día y total de <code>Q1,190.00 GTQ</code>.</li>
+          <li><strong>Firma con Passkey en el teléfono (AP2):</strong> El agente jamás tiene permiso para pagar solo. En el teléfono del cliente aparece la solicitud para firmar ese carrito exacto con Touch ID o Face ID.</li>
+          <li><strong>Orden emitida sin exponer tarjetas:</strong> La tienda valida la firma matemática y confirma el pedido en segundos.</li>
+        </ol>
+
+        <div class="dual-figures">
+          <figure class="screenshot-box">
+            <img src="assets/06-telefono-autoriza.png" alt="Pantalla del teléfono solicitando la huella del comprador para firmar el mandato AP2" />
+            <figcaption>Figura 10 — El comprador revisa el resumen y autoriza con su Passkey (huella o rostro) sin compartir los 16 dígitos de su tarjeta con el agente.</figcaption>
+          </figure>
+          <figure class="screenshot-box">
+            <img src="assets/08-presentador-pedido-confirmado.png" alt="Pedido confirmado una vez verificado el mandato criptográfico AP2" />
+            <figcaption>Figura 11 — Pedido confirmado con prueba criptográfica tanto para el comprador como para el comercio.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- STEP 7 -->
+      <section class="step-card" data-title="7. Práctica Rápida 0/8 → 8/8 y Plan para el Lunes" data-duration="5">
+        <div class="step-header">
+          <h1>7. Práctica Rápida `0/8` → `8/8` y Plan de Acción para el Lunes</h1>
+          <div class="step-duration">Duración estimada: 5 minutos · Simulador rápido integrado y hoja de ruta</div>
+        </div>
+
+        <p>También puedes practicar directamente aquí marcando cualquiera de los 8 puntos o cargando las 4 etapas del tutorial para repasar qué lee y qué decide el agente en cada nivel:</p>
+
+        <div class="sim-container">
+          <div class="sim-top">
+            <div>
+              <div style="font-size:12.5px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted); font-weight:700;">Puntuación en Vivo</div>
+              <div id="simCategoryLabel" style="font-family:'Google Sans',sans-serif; font-size:18px; font-weight:700; color:var(--red); margin-top:2px;">Opaca al Agente (Ejemplo A · Pulso sin reparar)</div>
+              <div id="simProbLabel" style="font-size:13.5px; color:var(--body); margin-top:4px;">Resultado frente a un competidor preparado: <strong>0 compras en 78 corridas</strong></div>
+            </div>
+            <div class="sim-score-badge" id="simScoreBadge">0 / 8</div>
+          </div>
+
+          <div style="margin-bottom: 14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+            <span style="font-size:13.5px; font-weight:500; color:var(--ink);">Prueba los ejemplos o las 4 correcciones del tutorial:</span>
+            <div class="sim-presets">
+              <button class="sim-preset-btn" onclick="setSimPreset([])">Ejemplo A: Pulso (0/8)</button>
+              <button class="sim-preset-btn" onclick="setSimPreset([0,1])">+ Corrección 1: robots.txt (2/8)</button>
+              <button class="sim-preset-btn" onclick="setSimPreset([0,1,2,3])">+ Corrección 2: JSON-LD Tallas/Envío (4/8)</button>
+              <button class="sim-preset-btn" onclick="setSimPreset([0,1,2,3,4,5])">+ Corrección 3: /feed.xml + SSR (6/8)</button>
+              <button class="sim-preset-btn" onclick="setSimPreset([0,1,2,3,4,5,6,7])">+ Corrección 4: UCP + Passkey AP2 (8/8)</button>
+            </div>
+          </div>
+
+          <div class="sim-grid" id="simCheckGrid">
+            <label class="sim-check-item">
+              <input type="checkbox" class="sim-cb" data-idx="0" onchange="updateSimulator()" />
+              <div>
+                <span class="sim-check-title">1. Permiso en robots.txt a agentes</span>
+                <span class="sim-check-desc">OAI-SearchBot, Claude-SearchBot, Google-Extended</span>
+              </div>
+            </label>
+            <label class="sim-check-item">
+              <input type="checkbox" class="sim-cb" data-idx="1" onchange="updateSimulator()" />
+              <div>
+                <span class="sim-check-title">2. Acceso HTTP directo sin bloqueo</span>
+                <span class="sim-check-desc">Respuesta 200 OK limpia para asistentes</span>
+              </div>
+            </label>
+            <label class="sim-check-item">
+              <input type="checkbox" class="sim-cb" data-idx="2" onchange="updateSimulator()" />
+              <div>
+                <span class="sim-check-title">3. JSON-LD ProductGroup por talla</span>
+                <span class="sim-check-desc">hasVariant con SKU y estado InStock por talla</span>
+              </div>
+            </label>
+            <label class="sim-check-item">
+              <input type="checkbox" class="sim-cb" data-idx="3" onchange="updateSimulator()" />
+              <div>
+                <span class="sim-check-title">4. Costo y días de entrega (OfferShippingDetails)</span>
+                <span class="sim-check-desc">handlingTime + transitTime + tarifa en la ficha</span>
+              </div>
+            </label>
+            <label class="sim-check-item">
+              <input type="checkbox" class="sim-cb" data-idx="4" onchange="updateSimulator()" />
+              <div>
+                <span class="sim-check-title">5. Precios en el HTML inicial (SSR)</span>
+                <span class="sim-check-desc">Visible sin ejecutar JS ni leer imágenes JPG</span>
+              </div>
+            </label>
+            <label class="sim-check-item">
+              <input type="checkbox" class="sim-cb" data-idx="5" onchange="updateSimulator()" />
+              <div>
+                <span class="sim-check-title">6. Catálogo rápido /feed.xml</span>
+                <span class="sim-check-desc">Inventario completo en una sola lectura</span>
+              </div>
+            </label>
+            <label class="sim-check-item">
+              <input type="checkbox" class="sim-cb" data-idx="6" onchange="updateSimulator()" />
+              <div>
+                <span class="sim-check-title">7. Cotización en 1 paso (/.well-known/ucp)</span>
+                <span class="sim-check-desc">Emite checkout_hash firmado sin formularios</span>
+              </div>
+            </label>
+            <label class="sim-check-item">
+              <input type="checkbox" class="sim-cb" data-idx="7" onchange="updateSimulator()" />
+              <div>
+                <span class="sim-check-title">8. Autorización Passkey (AP2 CartMandate)</span>
+                <span class="sim-check-desc">Mandato biométrico firmado por el comprador</span>
+              </div>
+            </label>
+          </div>
+
+          <div style="font-size:12.5px; font-weight:700; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Bitácora en vivo del Agente al inspeccionar la tienda:</div>
+          <div class="sim-agent-view" id="simAgentOutput"></div>
+        </div>
+
+        <h2>Hoja de ruta práctica para aplicar el lunes en tu comercio</h2>
+        <table class="arch-table">
+          <thead>
+            <tr>
+              <th>Etapa</th>
+              <th>Corrección del Tutorial</th>
+              <th>Salto en el Auditor</th>
+              <th>Tiempo Estimado</th>
+              <th>Responsable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Paso 1 · Lunes AM</strong></td>
+              <td>Abrir <code>/robots.txt</code> a <code>OAI-SearchBot</code>, <code>Claude-SearchBot</code> y <code>Google-Extended</code> sin bloquear la lectura HTTP de fichas de producto.</td>
+              <td><span class="pill-score blue">De 0/8 a 2/8</span></td>
+              <td>30 minutos</td>
+              <td>Webmaster / SEO / DevOps</td>
+            </tr>
+            <tr>
+              <td><strong>Paso 2 · Lunes PM</strong></td>
+              <td>Inyectar la ficha <code>JSON-LD ProductGroup</code> con stock por variante/talla (<code>hasVariant</code>) y <code>OfferShippingDetails</code> con tarifa y días de entrega.</td>
+              <td><span class="pill-score green">De 2/8 a 4/8</span></td>
+              <td>1 tarde</td>
+              <td>E-Commerce Manager / Frontend</td>
+            </tr>
+            <tr>
+              <td><strong>Paso 3 · Martes</strong></td>
+              <td>Publicar el catálogo rápido <code>/feed.xml</code> y asegurar que el nombre y precio vengan en el HTML inicial (SSR).</td>
+              <td><span class="pill-score green">De 4/8 a 6/8</span></td>
+              <td>Medio día</td>
+              <td>E-Commerce Manager / Integrador</td>
+            </tr>
+            <tr>
+              <td><strong>Paso 4 · Siguiente Sprint</strong></td>
+              <td>Habilitar cotización en 1 paso (<code>/.well-known/ucp</code>) y verificación de mandato biométrico con Passkey (<code>AP2 CartMandate</code>).</td>
+              <td><span class="pill-score green">De 6/8 a 8/8 (Compra aprobada)</span></td>
+              <td>Piloto de checkout</td>
+              <td>Ingeniería / Pagos</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout tip">
+          <strong>¡Felicidades! Completaste el Codelab de Agent Commerce</strong>
+          Ya dominas cómo auditar cualquier tienda con los 8 puntos de Encargo, cómo interpretar sus notas de negocio y cómo aplicar las 4 correcciones para llevar un comercio de <code>0/8</code> a <code>8/8</code>.
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer class="controls">
+    <button class="btn" id="prevBtn" onclick="changeStep(-1)" disabled>← Anterior</button>
+    <div id="stepCounter" style="font-size: 14px; color: var(--muted); font-family: 'Google Sans', sans-serif;">Paso 1 de 7</div>
+    <button class="btn primary" id="nextBtn" onclick="changeStep(1)">Siguiente →</button>
+  </footer>
+
+  <script>
+    const steps = Array.from(document.querySelectorAll('.step-card'));
+    const drawer = document.getElementById('drawerNav');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const stepCounter = document.getElementById('stepCounter');
+    const timeRemaining = document.getElementById('timeRemaining');
+    let current = 0;
+
+    function buildDrawer() {
+      drawer.innerHTML = '';
+      steps.forEach((step, idx) => {
+        const item = document.createElement('div');
+        item.className = 'step-nav-item' + (idx === current ? ' active' : '') + (idx < current ? ' completed' : '');
+        item.onclick = () => goToStep(idx);
+        const circle = document.createElement('div');
+        circle.className = 'step-circle';
+        circle.textContent = idx < current ? 'OK' : (idx + 1);
+        const label = document.createElement('span');
+        label.textContent = step.dataset.title.replace(/^\d+\.\s*/, '');
+        item.appendChild(circle);
+        item.appendChild(label);
+        drawer.appendChild(item);
+      });
+    }
+
+    function updateTime() {
+      let mins = 0;
+      for (let i = current; i < steps.length; i++) {
+        mins += parseInt(steps[i].dataset.duration || '5', 10);
+      }
+      timeRemaining.textContent = `${mins} min restantes`;
+    }
+
+    function goToStep(idx) {
+      steps[current].classList.remove('active');
+      current = idx;
+      steps[current].classList.add('active');
+      document.getElementById('stageContainer').scrollTop = 0;
+      prevBtn.disabled = current === 0;
+      nextBtn.textContent = current === steps.length - 1 ? 'Finalizar' : 'Siguiente →';
+      nextBtn.disabled = current === steps.length - 1;
+      stepCounter.textContent = `Paso ${current + 1} de ${steps.length}`;
+      buildDrawer();
+      updateTime();
+    }
+
+    function changeStep(delta) {
+      const next = current + delta;
+      if (next >= 0 && next < steps.length) {
+        goToStep(next);
+      }
+    }
+
+    function copyCode(btn) {
+      const pre = btn.closest('.code-wrap').querySelector('pre');
+      navigator.clipboard.writeText(pre.innerText).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = '¡Copiado!';
+        setTimeout(() => { btn.textContent = orig; }, 1500);
+      });
+    }
+
+    function setSimPreset(activeIndices) {
+      const cbs = document.querySelectorAll('.sim-cb');
+      cbs.forEach((cb, idx) => {
+        cb.checked = activeIndices.includes(idx);
+      });
+      updateSimulator();
+    }
+
+    function updateSimulator() {
+      const cbs = Array.from(document.querySelectorAll('.sim-cb'));
+      const active = cbs.map(cb => cb.checked);
+      const score = active.filter(Boolean).length;
+
+      cbs.forEach(cb => {
+        const parent = cb.closest('.sim-check-item');
+        if (cb.checked) parent.classList.add('checked');
+        else parent.classList.remove('checked');
+      });
+
+      const badge = document.getElementById('simScoreBadge');
+      const cat = document.getElementById('simCategoryLabel');
+      const prob = document.getElementById('simProbLabel');
+      const out = document.getElementById('simAgentOutput');
+
+      badge.textContent = `${score} / 8`;
+
+      if (score <= 2) {
+        badge.style.background = 'var(--red-bg)';
+        badge.style.color = 'var(--red)';
+        badge.style.borderColor = 'var(--red)';
+        cat.style.color = 'var(--red)';
+        cat.textContent = 'Tienda Opaca al Agente (Rechazada en la fase de acceso o catálogo)';
+        prob.innerHTML = 'Resultado frente a un competidor preparado: <strong>0 compras en 78 corridas</strong>';
+      } else if (score <= 5) {
+        badge.style.background = 'var(--amber-bg)';
+        badge.style.color = 'var(--amber)';
+        badge.style.borderColor = 'var(--amber)';
+        cat.style.color = 'var(--amber)';
+        cat.textContent = 'Visibilidad Parcial (El agente lee tus datos básicos pero falta completar el resto)';
+        prob.innerHTML = 'Estado: Sigue activando las correcciones 2 y 3 para llegar a 6/8.';
+      } else if (score < 8) {
+        badge.style.background = 'var(--blue-bg)';
+        badge.style.color = 'var(--blue)';
+        badge.style.borderColor = 'var(--blue)';
+        cat.style.color = 'var(--blue)';
+        cat.textContent = 'Catálogo 100% Verificable (6/8 · Lista para recomendación)';
+        prob.innerHTML = 'Estado: El agente ya comprueba producto, talla 42 y entrega en 1 día. Activa la Corrección 4 para cerrar el pago.';
+      } else {
+        badge.style.background = 'var(--green-bg)';
+        badge.style.color = 'var(--green)';
+        badge.style.borderColor = 'var(--green)';
+        cat.style.color = 'var(--green)';
+        cat.textContent = 'Tienda Lista para Agentes — Compra Aprobada en 3 Pasos (8/8)';
+        prob.innerHTML = 'Resultado con las 4 correcciones activas: <strong>Compra completada con mandato Passkey AP2</strong>';
+      }
+
+      const lines = [];
+      lines.push(`> DIAGNÓSTICO DEL AUDITOR Y SIMULADOR ENCARGO [Puntuación: ${score}/8]`);
+      lines.push(`• Punto 1 (robots.txt):       ${active[0] ? 'APROBADO — OAI-SearchBot, Claude-SearchBot y Google-Extended permitidos' : 'BLOQUEADO — Disallow: / impide la entrada del agente'}`);
+      lines.push(`• Punto 2 (Acceso HTTP):      ${active[1] ? 'APROBADO — Respuesta 200 OK sin bloqueo anti-agente' : 'FALLO — Sin acceso directo para asistentes'}`);
+      lines.push(`• Punto 3 (ProductGroup):     ${active[2] ? 'APROBADO — SKU PULSO-ACAT-T3-42 (Talla 42) verificado en estado InStock' : 'FALTA DESGLOSE — Tallas ocultas en <canvas> o sin estado por variante'}`);
+      lines.push(`• Punto 4 (Envío en ficha):   ${active[3] ? 'APROBADO — OfferShippingDetails: 0d prep + 1d tránsito (Q0.00, llega antes del viernes)' : 'OCULTO EN CARRITO — Imposible verificar si llega antes del viernes'}`);
+      lines.push(`• Punto 5 (HTML inicial SSR): ${active[4] ? 'APROBADO — Precio Q1,190.00 GTQ legible en la primera respuesta HTML' : 'PÁGINA VACÍA / JPG — Precio encerrado en imagen promocional'}`);
+      lines.push(`• Punto 6 (/feed.xml):        ${active[5] ? 'APROBADO — Catálogo sincronizado disponible en /feed.xml' : 'AUSENTE — Obliga a rastrear páginas individuales'}`);
+      lines.push(`• Punto 7 (Checkout UCP):     ${active[6] ? 'APROBADO — /.well-known/ucp emite cotización con checkout_hash en 1 paso' : 'SOLO 7 PANTALLAS — Sin endpoint de cotización UCP'}`);
+      lines.push(`• Punto 8 (Passkey AP2):      ${active[7] ? 'APROBADO — Verifica mandato biométrico AP2 CartMandate firmado por el comprador' : 'SIN MANDATO AP2 — Sin autorización criptográfica Passkey'}`);
+
+      const canVerifyCatalog = active[0] && active[1] && active[2] && active[3];
+      if (!canVerifyCatalog) {
+        lines.push(`\nVEREDICTO DEL AGENTE: TIENDA RECHAZADA. El agente no adivina con el dinero del cliente; descarta la tienda porque no puede verificar talla 42 en stock ni entrega antes del viernes.`);
+      } else if (score < 8) {
+        lines.push(`\nVEREDICTO DEL AGENTE: CANDIDATA VERIFICADA EN CATÁLOGO. Cumple producto, talla 42, presupuesto (Q1,190) y entrega antes del viernes. Activa UCP (7) y AP2 (8) para aprobar la compra en 3 pasos.`);
+      } else {
+        lines.push(`\nVEREDICTO DEL AGENTE: COMPRA APROBADA EN 3 PASOS (Orden #ORD-ENC-2027-808 · SKU PULSO-ACAT-T3-42 · Total Q1,190.00 GTQ firmado con Passkey AP2).`);
+      }
+
+      out.textContent = lines.join('\n');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') changeStep(1);
+      if (e.key === 'ArrowLeft') changeStep(-1);
+    });
+
+    buildDrawer();
+    updateTime();
+    updateSimulator();
+  </script>
+</body>
+</html>

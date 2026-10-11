@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encargo Auditor & Fixer Lab — De 0/8 a 8/8 para Agentes de IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FAF9F5;
+      --surface: #FFFFFF;
+      --ink: #14171F;
+      --slate: #334155;
+      --muted: #64748B;
+      --border: #E2E8F0;
+      --blue: #1A73E8;
+      --blue-bg: #EFF6FF;
+      --blue-border: #BFDBFE;
+      --teal: #0D9488;
+      --teal-dark: #0F766E;
+      --teal-bg: #F0FDFA;
+      --teal-border: #99F6E4;
+      --amber: #D97706;
+      --amber-bg: #FFFBEB;
+      --amber-border: #FDE68A;
+      --rose: #E11D48;
+      --rose-bg: #FFF1F2;
+      --rose-border: #FECDD3;
+      --violet: #6D28D9;
+      --violet-bg: #F5F3FF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      padding-bottom: 2.5rem;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .brand { display: flex; align-items: center; gap: 0.85rem; }
+    .badge-lab {
+      background: var(--teal);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.76rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      letter-spacing: 0.4px;
+    }
+    .header-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid var(--blue-border);
+      padding: 0.38rem 0.85rem;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    /* Barra de selección de modo y ejemplos */
+    .mode-bar {
+      max-width: 1460px;
+      margin: 1rem auto 0;
+      padding: 0 1.25rem;
+    }
+    .mode-strip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1.15rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      box-shadow: 0 2px 8px rgba(20, 23, 31, 0.03);
+    }
+    .btn-group { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .btn-preset {
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #F8FAFC;
+      color: var(--slate);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-preset:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+    .btn-preset.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+    .btn-preset.tutorial-btn {
+      background: var(--violet-bg);
+      color: var(--violet);
+      border-color: #DDD6FE;
+    }
+    .btn-preset.tutorial-btn.active {
+      background: var(--violet);
+      color: #fff;
+      border-color: var(--violet);
+    }
+
+    /* Panel de Tutorial Paso a Paso (4 correcciones guiadas) */
+    .tutorial-ribbon {
+      max-width: 1460px;
+      margin: 0.85rem auto 0;
+      padding: 0 1.25rem;
+      display: none;
+    }
+    .tutorial-ribbon.visible { display: block; }
+    .tutorial-card {
+      background: #FCFBF9;
+      border: 2px solid var(--violet);
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 6px 18px rgba(109, 40, 217, 0.07);
+    }
+    .tutorial-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    .tutorial-steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .fix-toggle-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .fix-toggle-card:hover { border-color: var(--violet); }
+    .fix-toggle-card.enabled {
+      background: var(--teal-bg);
+      border-color: var(--teal);
+    }
+    .fix-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+    }
+    .fix-step-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background: #F1F5F9;
+      color: var(--slate);
+    }
+    .fix-toggle-card.enabled .fix-step-tag {
+      background: var(--teal);
+      color: #fff;
+    }
+    .fix-title {
+      font-size: 0.83rem;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 0.25rem;
+    }
+    .fix-desc {
+      font-size: 0.75rem;
+      color: var(--slate);
+      line-height: 1.4;
+    }
+
+    /* Vista Dividida en 3 Columnas */
+    .workspace-grid {
+      max-width: 1460px;
+      margin: 1rem auto 0;
+      padding: 0 1.25rem;
+      display: grid;
+      grid-template-columns: 350px minmax(0, 1fr) 390px;
+      gap: 1rem;
+      align-items: start;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.15rem 1.25rem;
+      box-shadow: 0 4px 12px rgba(20, 23, 31, 0.03);
+    }
+    .col-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.65rem;
+      margin-bottom: 0.85rem;
+    }
+    .col-title {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .col-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 5px;
+      background: #F1F5F9;
+      color: var(--slate);
+    }
+
+    /* Columna 1: Humano vs Agente */
+    .human-preview {
+      background: linear-gradient(145deg, #1E293B, #0F172A);
+      color: #F8FAFC;
+      border-radius: 10px;
+      padding: 0.95rem 1rem;
+      margin-bottom: 0.9rem;
+    }
+    .human-banner-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: #38BDF8;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .human-prod-title {
+      font-size: 1rem;
+      font-weight: 800;
+      margin: 0.25rem 0 0.4rem;
+      color: #fff;
+    }
+    .human-price-pill {
+      display: inline-block;
+      background: #F59E0B;
+      color: #111827;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 5px;
+      margin-bottom: 0.6rem;
+    }
+    .human-meta-row {
+      font-size: 0.77rem;
+      color: #CBD5E1;
+      margin-top: 0.3rem;
+      line-height: 1.4;
+    }
+    .agent-read-box {
+      background: #14171F;
+      color: #F1F5F9;
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+    }
+    .agent-kv {
+      padding: 0.42rem 0;
+      border-bottom: 1px solid #262B38;
+    }
+    .agent-kv:last-child { border-bottom: none; }
+    .agent-k {
+      color: #94A3B8;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      display: block;
+    }
+    .agent-v {
+      font-weight: 700;
+      margin-top: 0.1rem;
+      display: block;
+    }
+    .agent-v.ok { color: #2DD4BF; }
+    .agent-v.fail { color: #FB7185; }
+    .agent-v.warn { color: #FBBF24; }
+
+    /* Columna 2: Tabla de Auditoría de 8 puntos con sus notas */
+    .score-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.85rem 1.1rem;
+      border-radius: 10px;
+      margin-bottom: 0.85rem;
+      border: 1.5px solid;
+    }
+    .score-banner.rose { background: var(--rose-bg); border-color: var(--rose-border); color: #9F1239; }
+    .score-banner.amber { background: var(--amber-bg); border-color: var(--amber-border); color: #92400E; }
+    .score-banner.blue { background: var(--blue-bg); border-color: var(--blue-border); color: #1E40AF; }
+    .score-banner.teal { background: var(--teal-bg); border-color: var(--teal-border); color: #115E59; }
+
+    .big-score {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 800;
+      padding: 0.25rem 0.8rem;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.85);
+      flex-shrink: 0;
+    }
+    .business-summary {
+      font-size: 0.8rem;
+      line-height: 1.48;
+      background: #F8FAFC;
+      border-left: 4px solid var(--blue);
+      padding: 0.65rem 0.85rem;
+      border-radius: 6px;
+      margin-bottom: 0.85rem;
+      color: var(--slate);
+    }
+
+    .audit-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .audit-table th {
+      text-align: left;
+      background: #F1F5F9;
+      color: var(--ink);
+      padding: 0.42rem 0.55rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      border-bottom: 1px solid var(--border);
+    }
+    .audit-table td {
+      padding: 0.42rem 0.55rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.34;
+    }
+    .status-chip {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+    .status-chip.pass { background: var(--teal-bg); color: var(--teal-dark); border: 1px solid var(--teal-border); }
+    .status-chip.fail { background: var(--rose-bg); color: var(--rose); border: 1px solid var(--rose-border); }
+    .note-tech { color: var(--ink); font-weight: 600; display: block; margin-bottom: 0.12rem; font-size: 0.75rem; }
+    .note-biz { color: var(--muted); font-size: 0.71rem; display: block; }
+
+    /* Columna 3: Simulador de Compra del Agente */
+    .order-prompt-box {
+      background: var(--blue-bg);
+      border: 1px solid var(--blue-border);
+      border-radius: 10px;
+      padding: 0.8rem 0.95rem;
+      margin-bottom: 0.85rem;
+    }
+    .order-prompt-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 0.25rem;
+    }
+    .order-prompt-text {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #1E3A8A;
+      line-height: 1.42;
+    }
+    .req-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+    }
+    .req-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 0.7rem;
+      background: #FCFBF9;
+    }
+    .req-item.ok { border-left: 4px solid var(--teal); background: #F8FFFE; }
+    .req-item.fail { border-left: 4px solid var(--rose); background: #FFFBFB; }
+    .req-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 0.18rem;
+    }
+    .req-detail {
+      font-size: 0.73rem;
+      color: var(--slate);
+      line-height: 1.38;
+    }
+
+    .decision-card {
+      border-radius: 10px;
+      padding: 0.95rem 1rem;
+      border: 2px solid;
+    }
+    .decision-card.rose { background: var(--rose-bg); border-color: var(--rose); color: #881337; }
+    .decision-card.blue { background: var(--blue-bg); border-color: var(--blue); color: #1E3A8A; }
+    .decision-card.teal { background: var(--teal-bg); border-color: var(--teal); color: #134E4A; }
+
+    .decision-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.9);
+      margin-bottom: 0.45rem;
+    }
+    .decision-headline {
+      font-size: 0.9rem;
+      font-weight: 800;
+      line-height: 1.35;
+      margin-bottom: 0.4rem;
+    }
+    .decision-exp {
+      font-size: 0.77rem;
+      line-height: 1.45;
+    }
+    .receipt-box {
+      margin-top: 0.75rem;
+      background: #14171F;
+      color: #F8FAFC;
+      border-radius: 8px;
+      padding: 0.75rem 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      line-height: 1.55;
+    }
+    .receipt-row { display: flex; justify-content: space-between; gap: 0.5rem; }
+    .receipt-k { color: #94A3B8; }
+    .receipt-v { color: #2DD4BF; font-weight: 700; text-align: right; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="badge-lab">AGENT COMMERCE · AUDITOR & FIXER LAB</span>
+      <div>
+        <div style="font-weight:800; font-size:1.08rem;">Encargo — Laboratorio de Auditoría (8 Puntos) y Reparación de Tiendas</div>
+        <div style="font-size:0.78rem; color:var(--muted);">Prueba ejemplos con notas de negocio o repara una tienda de 0/8 a 8/8 paso a paso</div>
+      </div>
+    </div>
+    <span class="header-status" id="headerModeLabel">Modo: Ejemplos de Auditoría con Notas</span>
+  </header>
+
+  <!-- Barra de selección de ejemplos y modo tutorial -->
+  <section class="mode-bar">
+    <div class="mode-strip">
+      <div class="btn-group">
+        <span style="font-size:0.78rem; font-weight:800; color:var(--muted); text-transform:uppercase; margin-right:0.25rem;">1. Auditar Tiendas de Ejemplo:</span>
+        <button class="btn-preset active" id="btnExPulso" onclick="loadExample('pulso')">Ejemplo A: 0/8 Pulso Outdoor (Opaca)</button>
+        <button class="btn-preset" id="btnExCafe" onclick="loadExample('cafenube')">Ejemplo B: 3/8 Café Nube (Parcial)</button>
+        <button class="btn-preset" id="btnExKilo" onclick="loadExample('kilometro')">Ejemplo C: 8/8 Kilómetro (Lista)</button>
+      </div>
+      <div class="btn-group">
+        <span style="font-size:0.78rem; font-weight:800; color:var(--violet); text-transform:uppercase; margin-right:0.25rem;">2. Modo Reparación Guiada:</span>
+        <button class="btn-preset tutorial-btn" id="btnModeTutorial" onclick="startTutorial(false)">Tutorial Paso a Paso: Repara de 0/8 a 8/8</button>
+        <button class="btn-preset tutorial-btn" id="btnModeTutorialFull" onclick="startTutorial(true)">Ver Tienda Reparada (4 Correcciones → 8/8)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cinta interactiva del Tutorial Paso a Paso (4 correcciones) -->
+  <section class="tutorial-ribbon" id="tutorialRibbon">
+    <div class="tutorial-card">
+      <div class="tutorial-top">
+        <div>
+          <span style="font-size:0.74rem; font-weight:800; text-transform:uppercase; color:var(--violet); letter-spacing:0.4px;">Tutorial Interactivo de Corrección · De 0/8 a 8/8</span>
+          <h3 style="font-size:0.98rem; font-weight:800; color:var(--ink); margin-top:0.15rem;">Activa las 4 recetas sobre Pulso Outdoor (Q1,190) y observa cómo el Agente pasa de rechazar la tienda a completar la compra</h3>
+        </div>
+        <div class="btn-group">
+          <button class="btn-preset" onclick="setAllFixes(false)">Reiniciar a 0/8</button>
+          <button class="btn-preset active" onclick="setAllFixes(true)">Activar las 4 Correcciones (8/8)</button>
+        </div>
+      </div>
+
+      <div class="tutorial-steps-grid">
+        <label class="fix-toggle-card" id="cardFix1">
+          <div>
+            <div class="fix-head">
+              <span class="fix-step-tag">CORRECCIÓN 1 · SUBE A 2/8</span>
+              <input type="checkbox" id="cbFix1" onchange="applyTutorialFixes()" style="width:16px; height:16px; accent-color:var(--teal);" />
+            </div>
+            <div class="fix-title">1. Abrir robots.txt a agentes</div>
+            <div class="fix-desc">Autoriza a <code>OAI-SearchBot</code>, <code>Claude-SearchBot</code> y <code>Google-Extended</code> + acceso HTTP limpio.</div>
+          </div>
+        </label>
+
+        <label class="fix-toggle-card" id="cardFix2">
+          <div>
+            <div class="fix-head">
+              <span class="fix-step-tag">CORRECCIÓN 2 · SUBE A 4/8</span>
+              <input type="checkbox" id="cbFix2" onchange="applyTutorialFixes()" style="width:16px; height:16px; accent-color:var(--teal);" />
+            </div>
+            <div class="fix-title">2. Inyectar ficha JSON-LD</div>
+            <div class="fix-desc">Agrega <code>ProductGroup</code> con stock por talla (<code>Talla 42 InStock</code>) y <code>OfferShippingDetails</code> (1 día).</div>
+          </div>
+        </label>
+
+        <label class="fix-toggle-card" id="cardFix3">
+          <div>
+            <div class="fix-head">
+              <span class="fix-step-tag">CORRECCIÓN 3 · SUBE A 6/8</span>
+              <input type="checkbox" id="cbFix3" onchange="applyTutorialFixes()" style="width:16px; height:16px; accent-color:var(--teal);" />
+            </div>
+            <div class="fix-title">3. Publicar /feed.xml y SSR</div>
+            <div class="fix-desc">Renderiza precios Q1,190 en el HTML inicial (SSR) y expone el catálogo rápido en <code>/feed.xml</code>.</div>
+          </div>
+        </label>
+
+        <label class="fix-toggle-card" id="cardFix4">
+          <div>
+            <div class="fix-head">
+              <span class="fix-step-tag">CORRECCIÓN 4 · SUBE A 8/8</span>
+              <input type="checkbox" id="cbFix4" onchange="applyTutorialFixes()" style="width:16px; height:16px; accent-color:var(--teal);" />
+            </div>
+            <div class="fix-title">4. Habilitar UCP + Passkey AP2</div>
+            <div class="fix-desc">Publica cotización en 1 paso (<code>/.well-known/ucp</code>) y mandato biométrico <code>AP2 CartMandate</code>.</div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- Vista Dividida en 3 Columnas -->
+  <main class="workspace-grid">
+    <!-- COLUMNA IZQUIERDA: Humano vs Agente -->
+    <section class="card">
+      <div class="col-header">
+        <span class="col-title">1. Humano vs Lectura del Agente</span>
+        <span class="col-tag" id="leftStoreBadge">Ejemplo A</span>
+      </div>
+
+      <div style="font-size:0.74rem; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:0.35rem;">Lo que ve el Comprador Humano:</div>
+      <div class="human-preview">
+        <div class="human-banner-tag" id="hBannerTitle">PULSO OUTDOOR · COLECCIÓN VOLCÁN</div>
+        <div class="human-prod-title" id="hProdTitle">Botas Acatenango T3 Impermeables</div>
+        <div class="human-price-pill" id="hPrice">Q1,190.00 ($139 USD)</div>
+        <div class="human-meta-row"><strong>Tallas:</strong> <span id="hSizes">Selector en &lt;canvas&gt;</span></div>
+        <div class="human-meta-row"><strong>Envío:</strong> <span id="hShipping">Calculado en el paso 5</span></div>
+        <div class="human-meta-row"><strong>Checkout:</strong> <span id="hCheckout">7 pantallas visuales</span></div>
+      </div>
+
+      <div style="font-size:0.74rem; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:0.35rem;">Qué datos exactos logra leer el Agente de IA:</div>
+      <div class="agent-read-box" id="agentReadBox"></div>
+    </section>
+
+    <!-- COLUMNA CENTRAL: Tabla de Auditoría de 8 Puntos con Notas -->
+    <section class="card">
+      <div class="col-header">
+        <span class="col-title">2. Tabla de Auditoría de 8 Puntos y Notas de Negocio</span>
+        <span class="col-tag">Diagnóstico HTTP + Esquemas</span>
+      </div>
+
+      <div class="score-banner rose" id="scoreBanner">
+        <div>
+          <div style="font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.4px;" id="auditStoreTitle">Pulso Outdoor</div>
+          <div style="font-size:0.98rem; font-weight:800; margin-top:0.15rem;" id="auditTierLabel">Opaca al Agente</div>
+        </div>
+        <div class="big-score" id="auditScorePill">0 / 8</div>
+      </div>
+
+      <div class="business-summary" id="businessSummaryBox"></div>
+
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th style="width:28%;">Punto Evaluado</th>
+            <th style="width:16%;">Estado</th>
+            <th>Nota de Diagnóstico y Nota de Negocio</th>
+          </tr>
+        </thead>
+        <tbody id="auditTableBody"></tbody>
+      </table>
+    </section>
+
+    <!-- COLUMNA DERECHA: Simulador de Compra del Agente -->
+    <section class="card">
+      <div class="col-header">
+        <span class="col-title">3. Simulador de Compra del Agente</span>
+        <span class="col-tag">Evaluación en Vivo</span>
+      </div>
+
+      <div class="order-prompt-box">
+        <div class="order-prompt-title">Encargo del Cliente en su Teléfono</div>
+        <div class="order-prompt-text">«Consígueme unas botas impermeables Acatenango T3 en talla 42 (US 9), por menos de Q1,290 ($150 USD), y asegúrate de que lleguen antes del viernes».</div>
+      </div>
+
+      <div style="font-size:0.74rem; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:0.45rem;">Verificación de las 4 Condiciones por el Agente:</div>
+      <div class="req-list" id="reqChecklist"></div>
+
+      <div class="decision-card rose" id="decisionCard">
+        <span class="decision-badge" id="decisionBadge">TIENDA RECHAZADA (0/8)</span>
+        <div class="decision-headline" id="decisionHeadline"></div>
+        <div class="decision-exp" id="decisionExp"></div>
+        <div class="receipt-box" id="receiptBox" style="display:none;"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function setActiveButton(id) {
+      document.querySelectorAll('.mode-strip .btn-preset').forEach(b => b.classList.remove('active'));
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+
+    async function loadExample(storeId) {
+      document.getElementById('tutorialRibbon').classList.remove('visible');
+      document.getElementById('headerModeLabel').textContent = `Modo: Auditoría de Ejemplo (${storeId.toUpperCase()})`;
+      const btnMap = { pulso: 'btnExPulso', cafenube: 'btnExCafe', kilometro: 'btnExKilo' };
+      setActiveButton(btnMap[storeId]);
+
+      const res = await fetch('/api/audit-example', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId })
+      });
+      const data = await res.json();
+      renderLab(data.audit, data.simulation);
+    }
+
+    async function startTutorial(enableAll = false) {
+      document.getElementById('tutorialRibbon').classList.add('visible');
+      document.getElementById('headerModeLabel').textContent = 'Modo: Tutorial Paso a Paso (Repara de 0/8 a 8/8)';
+      setActiveButton(enableAll ? 'btnModeTutorialFull' : 'btnModeTutorial');
+      await setAllFixes(enableAll);
+    }
+
+    async function setAllFixes(val) {
+      ['cbFix1', 'cbFix2', 'cbFix3', 'cbFix4'].forEach(id => {
+        document.getElementById(id).checked = val;
+      });
+      await applyTutorialFixes();
+    }
+
+    async function applyTutorialFixes() {
+      const fixes = {
+        fix1_robots: document.getElementById('cbFix1').checked,
+        fix2_jsonld: document.getElementById('cbFix2').checked,
+        fix3_ssr_feed: document.getElementById('cbFix3').checked,
+        fix4_ucp_ap2: document.getElementById('cbFix4').checked,
+      };
+      ['1', '2', '3', '4'].forEach((n, idx) => {
+        const card = document.getElementById('cardFix' + n);
+        const key = Object.keys(fixes)[idx];
+        if (fixes[key]) card.classList.add('enabled');
+        else card.classList.remove('enabled');
+      });
+
+      const res = await fetch('/api/tutorial-fix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fixes })
+      });
+      const data = await res.json();
+      renderLab(data.audit, data.simulation);
+    }
+
+    function renderLab(audit, simulation) {
+      // 1. Columna Izquierda: Humano vs Agente
+      document.getElementById('leftStoreBadge').textContent = audit.badge;
+      if (audit.humanVisual) {
+        document.getElementById('hBannerTitle').textContent = audit.humanVisual.bannerTitle;
+        document.getElementById('hProdTitle').textContent = audit.humanVisual.productTitle;
+        document.getElementById('hPrice').textContent = audit.humanVisual.displayedPrice;
+        document.getElementById('hSizes').textContent = audit.humanVisual.sizeSelectorLabel;
+        document.getElementById('hShipping').textContent = audit.humanVisual.shippingBanner;
+        document.getElementById('hCheckout').textContent = audit.humanVisual.checkoutFlow;
+      }
+
+      const ev = audit.agentExtractedView;
+      const fields = [
+        { k: 'Acceso Bot / HTTP', v: ev.canAccessStore ? 'PERMITIDO (200 OK)' : 'BLOQUEADO (robots.txt Disallow)', ok: ev.canAccessStore },
+        { k: 'Producto Extraído', v: ev.productName, ok: !ev.productName.includes('BLOQUEADO') && !ev.productName.includes('NO LEGIBLE') },
+        { k: 'Precio Verificado', v: ev.priceAndCurrency, ok: ev.priceAndCurrency !== 'NO VERIFICABLE' },
+        { k: 'Inventario Talla 42 (US 9)', v: ev.size42Inventory, ok: ev.size42Inventory.startsWith('EN STOCK') },
+        { k: 'Promesa de Entrega', v: ev.shippingPromise, ok: ev.shippingPromise.startsWith('LLEGA EN') },
+        { k: 'Protocolo Checkout', v: ev.checkoutProtocol, ok: ev.checkoutProtocol.includes('UCP') },
+      ];
+      document.getElementById('agentReadBox').innerHTML = fields.map(f => `
+        <div class="agent-kv">
+          <span class="agent-k">${escapeHtml(f.k)}</span>
+          <span class="agent-v ${f.ok ? 'ok' : (f.v.includes('AMBIGUO') ? 'warn' : 'fail')}">${escapeHtml(f.v)}</span>
+        </div>
+      `).join('');
+
+      // 2. Columna Central: Tabla de 8 Puntos con Notas
+      const banner = document.getElementById('scoreBanner');
+      banner.className = 'score-banner ' + audit.tierColor;
+      document.getElementById('auditStoreTitle').textContent = audit.storeName + ' · ' + audit.tagline;
+      document.getElementById('auditTierLabel').textContent = audit.readinessTier;
+      document.getElementById('auditScorePill').textContent = `${audit.score} / ${audit.maxScore}`;
+      document.getElementById('businessSummaryBox').textContent = audit.businessSummaryNote;
+
+      document.getElementById('auditTableBody').innerHTML = audit.checks.map(c => `
+        <tr>
+          <td>
+            <div style="font-weight:800; color:var(--ink);">${escapeHtml(c.title)}</div>
+            <div style="font-size:0.68rem; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-top:0.1rem;">${escapeHtml(c.stage)}</div>
+          </td>
+          <td>
+            <span class="status-chip ${c.passed ? 'pass' : 'fail'}">${escapeHtml(c.statusLabel)}</span>
+          </td>
+          <td>
+            <span class="note-tech">${escapeHtml(c.findingNote)}</span>
+            <span class="note-biz">Nota de negocio: ${escapeHtml(c.businessImpactNote)}</span>
+          </td>
+        </tr>
+      `).join('');
+
+      // 3. Columna Derecha: Simulador de Compra del Agente
+      document.getElementById('reqChecklist').innerHTML = simulation.requirementsChecklist.map(r => `
+        <div class="req-item ${r.verified ? 'ok' : 'fail'}">
+          <div class="req-head">
+            <span>${escapeHtml(r.requirement)}</span>
+            <span class="status-chip ${r.verified ? 'pass' : 'fail'}">${r.verified ? 'VERIFICADO' : 'SIN CERTEZA'}</span>
+          </div>
+          <div class="req-detail">${escapeHtml(r.detail)}</div>
+        </div>
+      `).join('');
+
+      const dCard = document.getElementById('decisionCard');
+      dCard.className = 'decision-card ' + simulation.decisionColor;
+      document.getElementById('decisionBadge').textContent = simulation.decisionBadge;
+      document.getElementById('decisionHeadline').textContent = simulation.headline;
+      document.getElementById('decisionExp').textContent = simulation.explanation;
+
+      const rBox = document.getElementById('receiptBox');
+      if (simulation.orderReceipt) {
+        const rec = simulation.orderReceipt;
+        rBox.style.display = 'block';
+        rBox.innerHTML = `
+          <div style="color:#FBBF24; font-weight:800; margin-bottom:0.35rem; border-bottom:1px solid #334155; padding-bottom:0.25rem;">RECIBO DE COMPRA AGÉNTICA (3 PASOS)</div>
+          <div class="receipt-row"><span class="receipt-k">Orden Confirmada:</span><span class="receipt-v">${escapeHtml(rec.orderId)}</span></div>
+          <div class="receipt-row"><span class="receipt-k">Comercio Elegido:</span><span class="receipt-v">${escapeHtml(rec.merchant)}</span></div>
+          <div class="receipt-row"><span class="receipt-k">SKU Comprado:</span><span class="receipt-v">${escapeHtml(rec.sku)}</span></div>
+          <div class="receipt-row"><span class="receipt-k">Total Pagado:</span><span class="receipt-v">${escapeHtml(rec.totalPaid)}</span></div>
+          <div class="receipt-row"><span class="receipt-k">Entrega Prometida:</span><span class="receipt-v">${escapeHtml(rec.deliveryEta)}</span></div>
+          <div class="receipt-row"><span class="receipt-k">Mandato AP2:</span><span class="receipt-v">${escapeHtml(rec.ap2Signature)}</span></div>
+        `;
+      } else {
+        rBox.style.display = 'none';
+      }
+    }
+
+    // Permitir abrir directo en cierto estado mediante parámetros de URL (?mode=tutorial-8of8, ?mode=pulso, ?mode=kilometro)
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode');
+      if (mode === 'tutorial-8of8') {
+        startTutorial(true);
+      } else if (mode === 'tutorial-0of8') {
+        startTutorial(false);
+      } else if (mode === 'kilometro') {
+        loadExample('kilometro');
+      } else if (mode === 'cafenube') {
+        loadExample('cafenube');
+      } else {
+        loadExample('pulso');
+      }
+    });
+  </script>
+</body>
+</html>

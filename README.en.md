@@ -4,6 +4,12 @@ Demo for the talk **"Your Next Customer Is an AI Agent."** Encargo is an agent t
 
 The Spanish [README.md](README.md) is the primary document; this is a faithful English version.
 
+## Interactive Codelab (60 min) & Live Demo Lab
+
+- **Published Step-by-Step Codelab:** [https://next-customer-agent-2027.web.app](https://next-customer-agent-2027.web.app)
+- **Live Codelab Demo App (`Encargo Auditor & Fixer Lab`):** [https://encargo-auditor-lab-611681112050.us-central1.run.app](https://encargo-auditor-lab-611681112050.us-central1.run.app)
+- **Codelab & Demo App Source:** [`codelab/`](codelab/) and [`codelab/demo-app/`](codelab/demo-app/)
+
 ## What you'll learn
 
 1. **Agents read data, not marketing:** a fact that only appears inside an image does not count.
