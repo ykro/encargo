@@ -4,11 +4,9 @@ Demo for the talk **"Your Next Customer Is an AI Agent."** Encargo is an agent t
 
 The Spanish [README.md](README.md) is the primary document; this is a faithful English version.
 
-## Interactive Codelab (60 min) & Live Demo Lab
+## Hands-on codelab
 
-- **Published Step-by-Step Codelab:** [https://next-customer-agent-2027.web.app](https://next-customer-agent-2027.web.app)
-- **Live Codelab Demo App (`Encargo Auditor & Fixer Lab`):** [https://encargo-auditor-lab-611681112050.us-central1.run.app](https://encargo-auditor-lab-611681112050.us-central1.run.app)
-- **Codelab & Demo App Source:** [`codelab/`](codelab/) and [`codelab/demo-app/`](codelab/demo-app/)
+The codelab for this talk is “Make your store readable by agents” ([codelabs-2027/tienda-para-agentes](https://github.com/ykro/codelabs-2027/tree/main/tienda-para-agentes)), in Spanish: you take a store from 0/8 to 8/8 with schema.org, a UCP profile and checkout, and an agent buys from it. It runs in the browser with a Google account and ends with something that works.
 
 ## What you'll learn
 

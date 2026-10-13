@@ -4,11 +4,9 @@ Demo de la charla **«Tu próximo cliente es un agente de IA»**. Encargo es un 
 
 [English version](README.en.md)
 
-## Codelab interactivo (60 min) y Laboratorio Demo en vivo
+## Taller práctico
 
-- **Codelab paso a paso (publicado):** [https://next-customer-agent-2027.web.app](https://next-customer-agent-2027.web.app)
-- **App Demo del Codelab (`Encargo Auditor & Fixer Lab` en vivo):** [https://encargo-auditor-lab-611681112050.us-central1.run.app](https://encargo-auditor-lab-611681112050.us-central1.run.app)
-- **Código del Codelab y del Laboratorio:** [`codelab/`](codelab/) y [`codelab/demo-app/`](codelab/demo-app/)
+El taller de esta charla es «Haz tu tienda legible para agentes» ([codelabs-2027/tienda-para-agentes](https://github.com/ykro/codelabs-2027/tree/main/tienda-para-agentes)): llevas una tienda de 0/8 a 8/8 con schema.org, un perfil UCP y checkout, y un agente le compra. Se sigue desde el navegador, con una cuenta de Google, y termina con algo que funciona.
 
 ## Qué vas a aprender
 
