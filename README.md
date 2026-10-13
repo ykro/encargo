@@ -4,6 +4,10 @@ Demo de la charla **«Tu próximo cliente es un agente de IA»**. Encargo es un 
 
 [English version](README.en.md)
 
+## Diapositivas
+
+Esta demo es parte de la charla «Your Next Customer Is an AI Agent». Las diapositivas están en Google Slides: [Your Next Customer Is an AI Agent](https://docs.google.com/presentation/d/19Le8y5UP1SWTSzZ4hzWSY7FUEzROACUv6cuLolwokf4/edit?usp=sharing).
+
 ## Taller práctico
 
 El taller de esta charla es «Haz tu tienda legible para agentes» ([codelabs-2027/tienda-para-agentes](https://github.com/ykro/codelabs-2027/tree/main/tienda-para-agentes)): llevas una tienda de 0/8 a 8/8 con schema.org, un perfil UCP y checkout, y un agente le compra. Se sigue desde el navegador, con una cuenta de Google, y termina con algo que funciona.
