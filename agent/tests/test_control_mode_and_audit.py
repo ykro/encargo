@@ -58,3 +58,55 @@ async def test_audit_scores_what_is_published(monkeypatch):
     keys = {i["key"]: i["ok"] for i in ready["items"]}
     assert keys["feed"] and keys["ucp_profile"] and keys["checkout_api"] and keys["payment_authorization"] and keys["delivery"]
     assert opaque["score"] == 0
+
+
+async def test_audit_follows_sitemap_index_and_aggregate_offer(monkeypatch):
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/":
+            return httpx.Response(200, text="<html><body>" + ("Tienda de Guatemala " * 10) + "</body></html>")
+        if path == "/sitemap.xml":
+            return httpx.Response(
+                200,
+                text=(
+                    '<?xml version="1.0" encoding="UTF-8"?>'
+                    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+                    "<sitemap><loc>http://vtex.test/sitemap/brand-0.xml</loc></sitemap>"
+                    "<sitemap><loc>http://vtex.test/sitemap/product-1.xml</loc></sitemap>"
+                    "</sitemapindex>"
+                ),
+            )
+        if path == "/sitemap/product-1.xml":
+            return httpx.Response(
+                200,
+                text=(
+                    '<?xml version="1.0" encoding="UTF-8"?>'
+                    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+                    "<url><loc>http://vtex.test/cafetera-123/p</loc></url>"
+                    "</urlset>"
+                ),
+            )
+        if path == "/cafetera-123/p":
+            ld = (
+                '{"@context":"https://schema.org","@graph":[{"@type":"Product","name":"Cafetera",'
+                '"offers":{"@type":"AggregateOffer","lowPrice":299,"highPrice":299,"priceCurrency":"GTQ",'
+                '"offers":[{"@type":"Offer","price":299,"availability":"http://schema.org/InStock"}]}}]}'
+            )
+            return httpx.Response(
+                200,
+                text=f'<html><head><script type="application/ld+json">{ld}</script></head><body>' + ("Cafetera Q299 " * 10) + "</body></html>",
+            )
+        return httpx.Response(404)
+
+    real_client = httpx.AsyncClient
+
+    def patched(*args, **kwargs):
+        kwargs["transport"] = httpx.MockTransport(handler)
+        return real_client(*args, **kwargs)
+
+    monkeypatch.setattr(httpx, "AsyncClient", patched)
+    for target in ("http://vtex.test", "http://vtex.test/cafetera-123/p"):
+        report = await audit_store(target)
+        keys = {i["key"]: i["ok"] for i in report["items"]}
+        assert keys["structured_data"] and keys["availability"] and keys["server_rendered"]
+        assert report["score"] == 3

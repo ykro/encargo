@@ -51,21 +51,81 @@ def _item(key: str, label: str, ok: bool, evidence: str, fix: str) -> dict[str, 
     return {"key": key, "label": label, "ok": ok, "evidence": evidence, "fix": "" if ok else fix}
 
 
+def _is_product_type(t: Any) -> bool:
+    if isinstance(t, list):
+        return any(_is_product_type(x) for x in t)
+    if not isinstance(t, str):
+        return False
+    clean = t.rsplit("/", 1)[-1]
+    return clean in {"Product", "ProductGroup"}
+
+
 def _product_nodes(blocks: list[Any]) -> list[dict[str, Any]]:
-    nodes = []
-    for b in blocks:
-        for n in b if isinstance(b, list) else [b]:
-            if isinstance(n, dict) and n.get("@type") in {"Product", "ProductGroup"}:
-                nodes.append(n)
+    nodes: list[dict[str, Any]] = []
+    stack: list[Any] = list(blocks)
+    while stack:
+        curr = stack.pop(0)
+        if isinstance(curr, list):
+            stack.extend(curr)
+        elif isinstance(curr, dict):
+            if _is_product_type(curr.get("@type")):
+                nodes.append(curr)
+            if isinstance(curr.get("@graph"), list):
+                stack.extend(curr["@graph"])
     return nodes
 
 
 def _offers(node: dict[str, Any]) -> list[dict[str, Any]]:
-    out = []
+    out: list[dict[str, Any]] = []
     for v in node.get("hasVariant") or [node]:
-        o = v.get("offers") or {}
-        out += o if isinstance(o, list) else [o]
+        if not isinstance(v, dict):
+            continue
+        raw_offers = v.get("offers") or {}
+        for o in raw_offers if isinstance(raw_offers, list) else [raw_offers]:
+            if not isinstance(o, dict) or not o:
+                continue
+            nested = o.get("offers")
+            parent_currency = o.get("priceCurrency")
+            if nested:
+                for sub in nested if isinstance(nested, list) else [nested]:
+                    if isinstance(sub, dict) and sub:
+                        merged = dict(sub)
+                        if not merged.get("priceCurrency") and parent_currency:
+                            merged["priceCurrency"] = parent_currency
+                        if merged.get("price") is None and o.get("lowPrice") is not None:
+                            merged["price"] = o["lowPrice"]
+                        out.append(merged)
+            else:
+                merged = dict(o)
+                if merged.get("price") is None and o.get("lowPrice") is not None:
+                    merged["price"] = o["lowPrice"]
+                out.append(merged)
     return out
+
+
+def _xml_locs(xml_text: str) -> tuple[bool, list[str]]:
+    try:
+        root = ET.fromstring(xml_text.lstrip())
+    except ET.ParseError:
+        return False, []
+    is_index = root.tag.endswith("sitemapindex")
+    locs = [e.text.strip() for e in root.iter() if e.tag.endswith("loc") and e.text and e.text.strip()]
+    return is_index, locs
+
+
+def _looks_like_xml_sitemap(u: str) -> bool:
+    path = urlparse(u).path.lower()
+    return path.endswith(".xml") or path.endswith(".xml.gz") or "sitemap" in path
+
+
+def _product_url_rank(u: str) -> int:
+    low = u.lower()
+    path = urlparse(low).path.rstrip("/")
+    if path.endswith("/p") or "/product" in path or "/producto" in path or "&pid=" in low or "/item/" in path:
+        return 0
+    if any(seg in path for seg in ("/blog", "/empresa", "/nosotros", "/contacto", "/ayuda", "/terminos", "/privacidad", "/login", "/cart")):
+        return 2
+    return 1
 
 
 async def _get(http: httpx.AsyncClient, url: str) -> httpx.Response | None:
@@ -90,34 +150,74 @@ async def audit_store(url: str, guard: bool = False, allowed_hosts: set[str] | N
             await assert_public(str(request.url), allowed)
 
         hooks = {"request": [check]}
+    parsed_base = urlparse(base)
+    origin = f"{parsed_base.scheme}://{parsed_base.netloc}"
     async with httpx.AsyncClient(timeout=15, headers={"user-agent": "EncargoAudit/1.0"}, event_hooks=hooks) as http:
         home, profile_res, feed_res, sitemap_res = await asyncio.gather(
-            _get(http, base), _get(http, f"{base}/.well-known/ucp"), _get(http, f"{base}/feed.xml"), _get(http, f"{base}/sitemap.xml")
+            _get(http, base), _get(http, f"{origin}/.well-known/ucp"), _get(http, f"{origin}/feed.xml"), _get(http, f"{origin}/sitemap.xml")
         )
         home_page = parse_html(home.text, base) if home is not None and home.status_code == 200 else None
 
-        # Find one product page: sitemap first, then feed links, then homepage links.
+        # Find one product page: if the given URL is already a product page, use it;
+        # otherwise try sitemap (following sitemapindex to a product sub-sitemap), feed links, then homepage links.
         product_url = None
-        if sitemap_res is not None and sitemap_res.status_code == 200:
-            locs = [e.text for e in ET.fromstring(sitemap_res.text).iter() if e.tag.endswith("loc") and e.text]
-            product_url = next((u for u in locs if u.rstrip("/") != base), None)
+        product_page = None
+        if home_page and _product_nodes(home_page["jsonld"]):
+            product_url = base
+            product_page = home_page
+
+        product_candidates: list[str] = []
+        if not product_url and sitemap_res is not None and sitemap_res.status_code == 200:
+            is_index, locs = _xml_locs(sitemap_res.text)
+            if is_index or (locs and all(_looks_like_xml_sitemap(u) for u in locs)):
+                sub_sitemaps = sorted(
+                    locs,
+                    key=lambda u: (0 if any(k in u.lower() for k in ("product", "producto", "pids", "pid")) else 1),
+                )
+                for sm_url in sub_sitemaps[:2]:
+                    sub_res = await _get(http, urljoin(origin, sm_url))
+                    if sub_res is not None and sub_res.status_code == 200:
+                        _, sub_locs = _xml_locs(sub_res.text)
+                        page_locs = [u for u in sub_locs if not _looks_like_xml_sitemap(u) and u.rstrip("/") not in {base, origin}]
+                        if page_locs:
+                            locs = page_locs
+                            break
+            candidates = sorted(
+                [u for u in locs if not _looks_like_xml_sitemap(u) and u.rstrip("/") not in {base, origin}],
+                key=_product_url_rank,
+            )
+            if candidates:
+                product_url = candidates[0]
+                product_candidates = [candidates[0]] + ([candidates[-1]] if len(candidates) > 1 else [])
+
         feed_items: list[ET.Element] = []
         if feed_res is not None and feed_res.status_code == 200:
             try:
-                feed_items = list(ET.fromstring(feed_res.text).iter("item"))
+                feed_items = list(ET.fromstring(feed_res.text.lstrip()).iter("item"))
             except ET.ParseError:
                 feed_items = []
         if not product_url and feed_items:
             link = feed_items[0].find(f"{G}link")
             product_url = link.text.split("?")[0] if link is not None and link.text else None
         if not product_url and home_page:
-            same_host = [u for u in home_page["links"] if urlparse(u).netloc == urlparse(base).netloc and u.rstrip("/") != base]
-            product_url = same_host[0] if same_host else None
+            same_host = [
+                u
+                for u in home_page["links"]
+                if urlparse(u).netloc == parsed_base.netloc and u.rstrip("/") not in {base, origin} and not _looks_like_xml_sitemap(u)
+            ]
+            if same_host:
+                product_url = min(same_host, key=_product_url_rank)
 
-        product_page = None
-        if product_url:
-            res = await _get(http, urljoin(base, product_url))
-            product_page = parse_html(res.text, base) if res is not None and res.status_code == 200 else None
+        if product_url and product_page is None:
+            for cand in product_candidates or [product_url]:
+                res = await _get(http, urljoin(origin, cand))
+                if res is not None and res.status_code == 200:
+                    parsed_cand = parse_html(res.text, origin)
+                    product_url = cand
+                    product_page = parsed_cand
+                    cand_offers = [o for n in _product_nodes(parsed_cand["jsonld"]) for o in _offers(n)]
+                    if any(o.get("price") is not None and o.get("priceCurrency") for o in cand_offers):
+                        break
 
     items = []
     nodes = _product_nodes(product_page["jsonld"]) if product_page else []
